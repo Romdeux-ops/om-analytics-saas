@@ -3,80 +3,52 @@
 @tailwind utilities;
 
 :root {
-  --background: #020617;
-  --foreground: #ffffff;
+  --bg-deep: #030712;    /* Noir profond légèrement bleuté */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-surface: rgba(255, 255, 255, 0.03);
+  --primary: #06b6d4;    /* Cyan électrique (Moderne) */
+  --accent: #f59e0b;     /* Amber (Alerte/Carton) */
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  background-color: var(--bg-deep);
+  color: #e2e8f0;
+  font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
-  /* Police lissée pour écran haute définition */
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- 1. FOND AURORA V2 (Plus profond) --- */
-.aurora-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
+/* --- LE SECRET DU STYLE "BANQUISE" : UTILITIES --- */
+
+/* 1. Le fond subtil (pas de blobs grossiers) */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 100%);
 }
 
-.aurora-blob {
-  position: absolute;
-  filter: blur(100px);
-  opacity: 0.5;
-  animation: float 25s infinite ease-in-out;
-  border-radius: 50%;
-  mix-blend-mode: screen; /* Fusionne les couleurs pour plus d'éclat */
+/* 2. La carte en verre "Premium" */
+.bento-card {
+  background: var(--glass-surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.blob-1 { top: -20%; left: 20%; width: 40vw; height: 40vw; background: #009DDC; animation-delay: 0s; }
-.blob-2 { bottom: -20%; right: 10%; width: 50vw; height: 50vw; background: #3b82f6; animation-delay: -5s; opacity: 0.3; }
-.blob-3 { top: 30%; left: -10%; width: 30vw; height: 30vw; background: #D3A400; opacity: 0.15; animation-delay: -10s; }
-
-/* --- 2. TEXTURE DE GRAIN (L'ingrédient secret) --- */
-.noise-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.04; /* Très subtil */
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+/* 3. Scrollbar invisible mais fonctionnelle */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
+/* 4. Typographie Titres */
+h1, h2, .font-tech {
+  font-family: var(--font-rajdhani), sans-serif;
+  letter-spacing: -0.02em;
 }
-
-/* --- 3. GLASSMORPHISM "CRYSTAL" --- */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05); /* Petit reflet interne en haut */
-}
-
-/* Effet de brillance au survol */
-.glass-hover {
-  transition: all 0.3s ease;
-}
-.glass-hover:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 30px -5px rgba(0, 157, 220, 0.15);
-  transform: translateY(-2px);
-}
-
-.custom-scrollbar::-webkit-scrollbar { width: 5px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
