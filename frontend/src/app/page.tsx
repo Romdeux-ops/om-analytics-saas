@@ -1,31 +1,41 @@
-import MatchLiveInterface from "@/src/components/MatchLiveInterface";
-import { getFirstUnplayedMatch, getMatchById } from "@om/db";
-import { getDb } from "@/src/lib/db";
+import { HomeHeader } from "@/src/components/home/HomeHeader";
+import { NextMatchCard } from "@/src/components/home/NextMatchCard";
+import { StandingsCard } from "@/src/components/home/StandingsCard";
+import { SimulationPanel } from "@/src/components/home/SimulationPanel";
+import { NewsFeed } from "@/src/components/home/NewsFeed";
+import { Reveal } from "@/src/components/ui/Reveal";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const db = getDb();
-  const match = (await getFirstUnplayedMatch(db)) ?? (await getMatchById(db, 1));
+export default function Home() {
+  return (
+    <div className="page-shell">
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-10 lg:px-8">
+        <HomeHeader />
 
-  if (!match) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-center backdrop-blur-2xl bg-white/5 rounded-2xl border border-white/10 p-8 max-w-md">
-          <div className="text-amber-400 text-5xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Aucun match trouvé</h2>
-          <p className="text-slate-400 mb-4">
-            La base Supabase ne contient pas encore de match.
-          </p>
-          <p className="text-sm text-slate-500">
-            Lancez{" "}
-            <code className="bg-white/10 px-2 py-1 rounded">bunx supabase db reset</code>{" "}
-            pour réappliquer le seed.
-          </p>
+        <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
+          <Reveal className="h-full lg:col-span-7">
+            <NextMatchCard />
+          </Reveal>
+          <Reveal delay={0.08} className="h-full lg:col-span-5">
+            <StandingsCard />
+          </Reveal>
+          <Reveal delay={0.12} className="lg:col-span-12">
+            <SimulationPanel />
+          </Reveal>
+          <Reveal delay={0.16} className="lg:col-span-12">
+            <NewsFeed />
+          </Reveal>
         </div>
-      </div>
-    );
-  }
 
-  return <MatchLiveInterface matchData={match} />;
+        <footer className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/5 pt-6 text-xs text-slate-600 sm:flex-row">
+          <p>
+            <span className="font-tech font-bold text-slate-400">OM ANALYTICS</span> — simulation
+            sportive par IA
+          </p>
+          <p className="uppercase tracking-widest">Saison 2025/26 · Données mock &amp; live</p>
+        </footer>
+      </main>
+    </div>
+  );
 }

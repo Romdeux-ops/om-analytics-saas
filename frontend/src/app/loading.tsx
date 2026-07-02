@@ -1,10 +1,16 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-white text-lg font-medium">Chargement du match...</p>
-        <p className="text-slate-400 text-sm mt-2">Connexion à Supabase...</p>
+    <div className="page-shell flex min-h-screen items-center justify-center">
+      <div className="relative z-10 text-center">
+        <div className="relative mx-auto mb-5 h-16 w-16">
+          <div className="absolute inset-0 rounded-full border-4 border-cyan-500/15" />
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-cyan-400" />
+          <div className="absolute inset-0 rounded-full bg-cyan-500/10 blur-lg" />
+        </div>
+        <p className="font-tech text-lg font-black tracking-wide">
+          <span className="text-gradient">OM</span> <span className="text-white">ANALYTICS</span>
+        </p>
+        <p className="mt-2 text-sm text-slate-500">Chargement…</p>
       </div>
     </div>
   );
