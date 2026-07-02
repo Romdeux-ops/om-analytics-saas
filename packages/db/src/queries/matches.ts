@@ -14,29 +14,41 @@ export interface MatchView {
   id: number;
   home_team_name: string;
   away_team_name: string;
+  date: Date;
   match_log: MatchEvent[];
   played: boolean;
   home_score: number;
   away_score: number;
 }
 
+const OM_CLUB_NAME = "Olympique de Marseille";
+
+function matchSelectFields() {
+  return {
+    id: matches.id,
+    home_team_name: homeTeam.name,
+    away_team_name: awayTeam.name,
+    date: matches.date,
+    match_log: matches.matchLog,
+    played: matches.played,
+    home_score: matches.homeScore,
+    away_score: matches.awayScore,
+  };
+}
+
+function matchBaseQuery(db: ReturnType<typeof createDb>) {
+  return db
+    .select(matchSelectFields())
+    .from(matches)
+    .innerJoin(homeTeam, eq(matches.homeTeamId, homeTeam.id))
+    .innerJoin(awayTeam, eq(matches.awayTeamId, awayTeam.id));
+}
+
 export async function getMatchById(
   db: ReturnType<typeof createDb>,
   id: number,
 ): Promise<MatchView | null> {
-  const [row] = await db
-    .select({
-      id: matches.id,
-      home_team_name: homeTeam.name,
-      away_team_name: awayTeam.name,
-      match_log: matches.matchLog,
-      played: matches.played,
-      home_score: matches.homeScore,
-      away_score: matches.awayScore,
-    })
-    .from(matches)
-    .innerJoin(homeTeam, eq(matches.homeTeamId, homeTeam.id))
-    .innerJoin(awayTeam, eq(matches.awayTeamId, awayTeam.id))
+  const [row] = await matchBaseQuery(db)
     .where(eq(matches.id, id))
     .limit(1);
 
@@ -46,24 +58,35 @@ export async function getMatchById(
 export async function getFirstUnplayedMatch(
   db: ReturnType<typeof createDb>,
 ): Promise<MatchView | null> {
-  const [row] = await db
-    .select({
-      id: matches.id,
-      home_team_name: homeTeam.name,
-      away_team_name: awayTeam.name,
-      match_log: matches.matchLog,
-      played: matches.played,
-      home_score: matches.homeScore,
-      away_score: matches.awayScore,
-    })
-    .from(matches)
-    .innerJoin(homeTeam, eq(matches.homeTeamId, homeTeam.id))
-    .innerJoin(awayTeam, eq(matches.awayTeamId, awayTeam.id))
+  const [row] = await matchBaseQuery(db)
     .where(eq(matches.played, false))
     .orderBy(asc(matches.date))
     .limit(1);
 
   return row ?? null;
+}
+
+export async function getUpcomingMatches(
+  db: ReturnType<typeof createDb>,
+  limit = 10,
+): Promise<MatchView[]> {
+  return matchBaseQuery(db)
+    .where(eq(matches.played, false))
+    .orderBy(asc(matches.date))
+    .limit(limit);
+}
+
+export async function getNextOmMatch(
+  db: ReturnType<typeof createDb>,
+): Promise<MatchView | null> {
+  const upcoming = await getUpcomingMatches(db, 20);
+  return (
+    upcoming.find(
+      (m) =>
+        m.home_team_name === OM_CLUB_NAME ||
+        m.away_team_name === OM_CLUB_NAME,
+    ) ?? null
+  );
 }
 
 export async function simulateMatch(

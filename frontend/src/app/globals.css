@@ -1,44 +1,239 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/* Tailwind v4 — mappe les fonts Google (next/font) sur les utilitaires */
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-rajdhani), system-ui, sans-serif;
+}
+
+/* =========================================================================
+   OM ANALYTICS — DESIGN TOKENS
+   Thème sombre profond + identité OM (bleu ciel / cyan + touches or)
+   ========================================================================= */
 :root {
-  --bg-deep: #030712;    /* Noir profond légèrement bleuté */
+  /* Fonds */
+  --bg-deep: #04070f;
+  --bg-raise: #0a1120;
+  --bg-elevated: #0f1729;
+
+  /* Surfaces verre */
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-surface: rgba(255, 255, 255, 0.03);
-  --primary: #06b6d4;    /* Cyan électrique (Moderne) */
-  --accent: #f59e0b;     /* Amber (Alerte/Carton) */
+  --glass-border-strong: rgba(255, 255, 255, 0.14);
+  --glass-surface: rgba(255, 255, 255, 0.035);
+  --glass-surface-strong: rgba(255, 255, 255, 0.06);
+
+  /* Couleurs de marque */
+  --primary: #22d3ee;          /* cyan lumineux */
+  --primary-strong: #06b6d4;
+  --accent: #f59e0b;
+  --om-gold: #fbbf24;
+  --om-sky: #38bdf8;
+  --om-azure: #29a7e6;
+
+  /* Texte */
+  --text-primary: #eef2ff;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  /* Rayons */
+  --radius-card: 24px;
+  --radius-lg: 20px;
+  --radius-sm: 14px;
+
+  /* Lumières / ombres */
+  --shadow-glow: 0 0 40px -12px rgba(34, 211, 238, 0.35);
+  --shadow-glow-gold: 0 0 40px -12px rgba(251, 191, 36, 0.32);
+  --shadow-card: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+
+  /* Dégradés réutilisables */
+  --grad-primary: linear-gradient(135deg, #22d3ee 0%, #2563eb 100%);
+  --grad-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  --grad-sky: linear-gradient(135deg, #7dd3fc 0%, #22d3ee 45%, #2563eb 100%);
+}
+
+* {
+  border-color: var(--glass-border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--bg-deep);
-  color: #e2e8f0;
-  font-family: var(--font-inter), sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* --- LE SECRET DU STYLE "BANQUISE" : UTILITIES --- */
+/* Sélection */
+::selection {
+  background: rgba(34, 211, 238, 0.28);
+  color: #fff;
+}
 
-/* 1. Le fond subtil (pas de blobs grossiers) */
+/* Focus visible cohérent (accessibilité AA) */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* =========================================================================
+   PAGE SHELL — fond ambiant multi-couches (glows + grille + grain)
+   ========================================================================= */
+.page-shell {
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(70rem 40rem at 12% -8%, rgba(34, 211, 238, 0.12), transparent 60%),
+    radial-gradient(60rem 40rem at 92% 4%, rgba(37, 99, 235, 0.14), transparent 60%),
+    radial-gradient(50rem 40rem at 78% 96%, rgba(251, 191, 36, 0.07), transparent 60%),
+    var(--bg-deep);
+}
+
+/* Grille technique subtile */
+.page-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-size: 44px 44px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at 50% 0%, black 25%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Grain / noise léger pour un rendu premium */
+.page-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Variante générique du fond grille (rétro-compat) */
 .bg-grid-pattern {
-  background-size: 40px 40px;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 100%);
 }
 
-/* 2. La carte en verre "Premium" */
+/* =========================================================================
+   SURFACES VERRE
+   ========================================================================= */
 .bento-card {
-  background: var(--glass-surface);
-  backdrop-filter: blur(12px);
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
+    var(--bg-raise);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--glass-border);
-  border-radius: 24px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* 3. Scrollbar invisible mais fonctionnelle */
+/* Reflet lumineux en haut de carte */
+.bento-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 60% at 50% -20%, rgba(56, 189, 248, 0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.bento-card:hover::after {
+  opacity: 1;
+}
+
+/* Bordure lumineuse animée (héros) */
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.55), rgba(37, 99, 235, 0.1) 45%, rgba(251, 191, 36, 0.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* =========================================================================
+   TYPOGRAPHIE
+   ========================================================================= */
+h1, h2, h3, .font-tech {
+  font-family: var(--font-rajdhani), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.text-gradient {
+  background: var(--grad-sky);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-gold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
+   HIGHLIGHT / DIVERS
+   ========================================================================= */
+.om-highlight {
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.14) 0%, rgba(34, 211, 238, 0.02) 60%, transparent 100%);
+  border-left: 2px solid var(--primary);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.08);
+}
+
+/* Pastille pulsante (prend la couleur du texte via currentColor) */
+.pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.pulse-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0.55;
+  animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -47,8 +242,198 @@ body {
   scrollbar-width: none;
 }
 
-/* 4. Typographie Titres */
-h1, h2, .font-tech {
-  font-family: var(--font-rajdhani), sans-serif;
-  letter-spacing: -0.02em;
+/* Bascule d'icône du thème (piloté par la classe sur <html>, sans JS) */
+.theme-icon-sun {
+  display: inline-flex;
+}
+.theme-icon-moon {
+  display: none;
+}
+html.light .theme-icon-sun {
+  display: none;
+}
+html.light .theme-icon-moon {
+  display: inline-flex;
+}
+
+/* Tuiles du compte à rebours */
+.count-tile {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+/* =========================================================================
+   ANIMATIONS
+   ========================================================================= */
+@keyframes ping {
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+.animate-glow-pulse { animation: glow-pulse 4s ease-in-out infinite; }
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.2s linear infinite;
+}
+
+/* =========================================================================
+   TRANSITION FLUIDE ENTRE THÈMES (clair <-> sombre)
+   Faible spécificité (:where) => les transitions des composants gardent priorité
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  :where(body, header, footer, main, section, article, div, span, p, h1, h2, h3, li, a, nav, button, code) {
+    transition: background-color 0.45s ease, border-color 0.45s ease,
+      color 0.35s ease, box-shadow 0.45s ease;
+  }
+}
+
+/* =========================================================================
+   THÈME CLAIR — « soleil » : blanc / bleu ciel
+   Activé via la classe .light sur <html> (next-themes)
+   ========================================================================= */
+html.light {
+  --bg-deep: #e8eff9;
+  --bg-raise: #ffffff;
+  --bg-elevated: #ffffff;
+
+  --glass-border: rgba(15, 42, 84, 0.1);
+  --glass-border-strong: rgba(15, 42, 84, 0.16);
+  --glass-surface: rgba(15, 42, 84, 0.03);
+  --glass-surface-strong: rgba(15, 42, 84, 0.05);
+
+  --primary: #0891b2;
+  --primary-strong: #0e7490;
+  --om-sky: #0ea5e9;
+
+  --text-primary: #0b1a30;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+
+  --shadow-glow: 0 0 40px -12px rgba(14, 165, 233, 0.4);
+  --shadow-glow-gold: 0 0 40px -12px rgba(217, 119, 6, 0.32);
+  --shadow-card: 0 22px 50px -30px rgba(15, 42, 84, 0.3);
+
+  color-scheme: light;
+}
+
+/* Fond ambiant clair : glows bleu ciel / or sur blanc cassé */
+html.light .page-shell {
+  background:
+    radial-gradient(70rem 40rem at 12% -8%, rgba(56, 189, 248, 0.22), transparent 60%),
+    radial-gradient(60rem 40rem at 92% 4%, rgba(59, 130, 246, 0.16), transparent 60%),
+    radial-gradient(50rem 40rem at 78% 96%, rgba(251, 191, 36, 0.12), transparent 60%),
+    var(--bg-deep);
+}
+
+/* Grille : lignes sombres discrètes au lieu de lignes blanches */
+html.light .page-shell::before {
+  background-image:
+    linear-gradient(to right, rgba(15, 42, 84, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 42, 84, 0.05) 1px, transparent 1px);
+}
+html.light .page-shell::after {
+  opacity: 0.03;
+  mix-blend-mode: multiply;
+}
+
+/* Cartes verre claires */
+html.light .bento-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+  border-color: var(--glass-border);
+  box-shadow: var(--shadow-card), inset 0 1px 0 0 #ffffff;
+}
+html.light .bento-card::after {
+  background: radial-gradient(120% 60% at 50% -20%, rgba(56, 189, 248, 0.16), transparent 60%);
+}
+
+html.light .count-tile {
+  background: linear-gradient(180deg, rgba(15, 42, 84, 0.06), rgba(15, 42, 84, 0.02));
+  border-color: var(--glass-border);
+  box-shadow: inset 0 1px 0 0 #ffffff;
+}
+
+html.light .om-highlight {
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0.04) 60%, transparent 100%);
+  border-left-color: var(--primary);
+  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.18);
+}
+
+/* --- Texte : slate/blanc inversés --- */
+html.light .text-white { color: #0b1a30; }
+html.light .text-slate-200 { color: #1e293b; }
+html.light .text-slate-300 { color: #334155; }
+html.light .text-slate-400 { color: #475569; }
+html.light .text-slate-500 { color: #566579; }
+html.light .text-slate-600 { color: #7182a0; }
+
+html.light .hover\:text-white:hover { color: #0b1a30; }
+html.light .group:hover .group-hover\:text-white { color: #0b1a30; }
+html.light .group\/news:hover .group-hover\/news\:text-cyan-300 { color: #0891b2; }
+
+/* --- Accents : assombris pour le contraste sur fond clair --- */
+html.light .text-cyan-100 { color: #0369a1; }
+html.light .text-cyan-200 { color: #0e7490; }
+html.light .text-cyan-300 { color: #0891b2; }
+html.light .text-cyan-400 { color: #0891b2; }
+html.light .text-amber-200 { color: #b45309; }
+html.light .text-amber-300 { color: #b45309; }
+html.light .text-emerald-300 { color: #047857; }
+html.light .text-emerald-400 { color: #059669; }
+html.light .text-red-200 { color: #dc2626; }
+html.light .text-blue-200 { color: #2563eb; }
+
+/* --- Surfaces « verre blanc » -> encre navy translucide --- */
+html.light .bg-white\/\[0\.02\] { background-color: rgba(15, 42, 84, 0.03); }
+html.light .bg-white\/\[0\.03\] { background-color: rgba(15, 42, 84, 0.04); }
+html.light .bg-white\/\[0\.04\] { background-color: rgba(15, 42, 84, 0.05); }
+html.light .bg-white\/5 { background-color: rgba(15, 42, 84, 0.05); }
+html.light .bg-white\/8 { background-color: rgba(15, 42, 84, 0.06); }
+html.light .bg-white\/10 { background-color: rgba(15, 42, 84, 0.07); }
+
+html.light .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(15, 42, 84, 0.06); }
+html.light .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(15, 42, 84, 0.07); }
+html.light .hover\:bg-white\/5:hover { background-color: rgba(15, 42, 84, 0.06); }
+html.light .hover\:bg-white\/8:hover { background-color: rgba(15, 42, 84, 0.08); }
+html.light .hover\:bg-white\/10:hover { background-color: rgba(15, 42, 84, 0.09); }
+
+/* --- Bordures blanches -> navy translucide --- */
+html.light .border-white\/5 { border-color: rgba(15, 42, 84, 0.1); }
+html.light .border-white\/10 { border-color: rgba(15, 42, 84, 0.12); }
+html.light .border-white\/12 { border-color: rgba(15, 42, 84, 0.14); }
+html.light .border-white\/15 { border-color: rgba(15, 42, 84, 0.16); }
+html.light .hover\:border-white\/10:hover { border-color: rgba(15, 42, 84, 0.16); }
+html.light .hover\:border-white\/12:hover { border-color: rgba(15, 42, 84, 0.18); }
+
+/* --- Écusson club neutre : dégradé navy translucide lisible --- */
+html.light .from-white\/10 { --tw-gradient-from: rgba(15, 42, 84, 0.12); }
+html.light .to-white\/\[0\.02\] { --tw-gradient-to: rgba(15, 42, 84, 0.03); }
+
+/* =========================================================================
+   ACCESSIBILITÉ — mouvement réduit
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
