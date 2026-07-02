@@ -1,0 +1,49 @@
+# ==============================
+#  Python / Django (Backend)
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+Backend/db.sqlite3
+*.sqlite3
+*.log
+
+# Django
+media/
+staticfiles/
+local_settings.py
+
+# ==============================
+#  Node / Next.js (frontend)
+# ==============================
+node_modules/
+.pnp
+.pnp.*
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# ==============================
+#  Environnements & secrets
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+#  OS / Éditeurs
+# ==============================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
