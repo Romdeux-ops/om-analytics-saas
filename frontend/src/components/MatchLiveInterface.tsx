@@ -2,26 +2,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Activity, Zap, Shield, TrendingUp } from 'lucide-react';
-import { simulateMatch } from '../lib/api';
+import { simulateMatchAction } from "@/src/app/actions/match";
+import type { MatchEvent, MatchView } from "@/src/lib/types/match";
 
-// --- TYPES ---
-interface MatchEvent {
-  minute: number;
-  type: string;
-  description: string;
-  current_score: { home: number; away: number };
-}
-interface Match {
-  id: number;
-  home_team_name: string;
-  away_team_name: string;
-  match_log: MatchEvent[];
-  played: boolean;
-  home_score: number;
-  away_score: number;
-}
-
-const mockMatchData: Match = {
+const mockMatchData: MatchView = {
   id: 1, home_team_name: "Olympique Marseille", away_team_name: "Paris SG",
   match_log: [], played: false, home_score: 0, away_score: 0
 };
@@ -29,7 +13,7 @@ const mockMatchData: Match = {
 // ==========================================
 // COMPOSANT PRINCIPAL
 // ==========================================
-export default function MatchLiveInterface({ matchData }: { matchData?: Match }) {
+export default function MatchLiveInterface({ matchData }: { matchData?: MatchView }) {
   const [match, setMatch] = useState(matchData || mockMatchData);
   const [currentMinute, setCurrentMinute] = useState(0);
   const [displayEvents, setDisplayEvents] = useState<MatchEvent[]>([]);
@@ -56,9 +40,12 @@ export default function MatchLiveInterface({ matchData }: { matchData?: Match })
       setIsPlaying(!isPlaying); return;
     }
     setIsLoading(true);
-    const result = await simulateMatch(match.id);
+    const result = await simulateMatchAction(match.id);
     setIsLoading(false);
-    if (result?.details) { setMatch(result.details); setIsPlaying(true); }
+    if ("details" in result && result.details) {
+      setMatch(result.details);
+      setIsPlaying(true);
+    }
   };
 
   useEffect(() => {
