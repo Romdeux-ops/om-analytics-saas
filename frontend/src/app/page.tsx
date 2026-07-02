@@ -10,7 +10,10 @@ export default function Home() {
   useEffect(() => {
     async function fetchMatch() {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/matches/1/', { cache: 'no-store' });
+        const apiUrl =
+          process.env.NEXT_PUBLIC_DJANGO_API_URL ??
+          "http://127.0.0.1:8000/api";
+        const res = await fetch(`${apiUrl}/matches/1/`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           setMatchData(data);

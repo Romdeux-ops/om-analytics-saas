@@ -19,9 +19,10 @@ staticfiles/
 local_settings.py
 
 # ==============================
-#  Node / Next.js (frontend)
+#  Node / Bun / Next.js
 # ==============================
 node_modules/
+package-lock.json
 .pnp
 .pnp.*
 .next/
@@ -33,8 +34,10 @@ coverage/
 next-env.d.ts
 
 # ==============================
-#  Environnements & secrets
+#  Supabase
 # ==============================
+supabase/.branches
+supabase/.temp
 .env
 .env.*
 !.env.example
