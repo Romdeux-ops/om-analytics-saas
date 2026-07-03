@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { CalendarDays, Trophy, Sparkles } from "lucide-react";
+import { CalendarDays, Trophy, Sparkles, Users } from "lucide-react";
 import { Badge } from "@/src/components/ui/Badge";
 import { ThemeToggle } from "@/src/components/ui/ThemeToggle";
 
 const navLinks = [
   { href: "/calendrier", label: "Calendrier", icon: CalendarDays },
   { href: "/classement", label: "Classement", icon: Trophy },
+  { href: "/effectif", label: "Effectif", icon: Users },
 ];
 
 export function HomeHeader() {

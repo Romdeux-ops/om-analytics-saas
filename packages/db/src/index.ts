@@ -8,3 +8,9 @@ export {
   simulateMatch,
   type MatchView,
 } from "./queries/matches";
+export {
+  getSquad,
+  getCoach,
+  getSquadTotalMarketValue,
+  type PlayerView,
+} from "./queries/players";
