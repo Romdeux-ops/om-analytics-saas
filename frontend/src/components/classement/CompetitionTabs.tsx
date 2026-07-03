@@ -2,18 +2,29 @@
 
 import { useRef } from "react";
 import { cn } from "@/src/lib/ui/cn";
-import type { Competition, CompetitionId } from "@/src/lib/types/competition";
 
-interface CompetitionTabsProps {
-  competitions: Competition[];
-  selected: CompetitionId;
-  onSelect: (id: CompetitionId) => void;
+/** Descripteur minimal d'onglet — générique pour réutilisation (classement, calendrier…). */
+export interface TabDescriptor<Id extends string> {
+  id: Id;
+  label: string;
+  shortLabel: string;
+  season: string;
 }
 
-export function CompetitionTabs({ competitions, selected, onSelect }: CompetitionTabsProps) {
+interface CompetitionTabsProps<Id extends string> {
+  competitions: TabDescriptor<Id>[];
+  selected: Id;
+  onSelect: (id: Id) => void;
+}
+
+export function CompetitionTabs<Id extends string>({
+  competitions,
+  selected,
+  onSelect,
+}: CompetitionTabsProps<Id>) {
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  function selectAndFocus(id: CompetitionId) {
+  function selectAndFocus(id: Id) {
     onSelect(id);
     tabRefs.current[id]?.focus();
   }
