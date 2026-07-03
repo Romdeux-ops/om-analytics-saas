@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, MapPin, Swords } from "lucide-react";
+import { CalendarClock, MapPin, Swords, Zap } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { Badge } from "@/src/components/ui/Badge";
@@ -10,7 +10,7 @@ import { shortTeamName } from "@/src/lib/ui/teams";
 
 const PARIS_TZ = "Europe/Paris";
 
-function formatMatchDate(dateStr: string, timeTbd: boolean) {
+function formatMatchDate(dateStr: string, timeTbd: boolean): string {
   const date = new Date(dateStr);
   if (timeTbd) {
     return new Intl.DateTimeFormat("fr-FR", {
@@ -31,12 +31,12 @@ function formatMatchDate(dateStr: string, timeTbd: boolean) {
   }).format(date);
 }
 
-export function NextMatchCard() {
+export function NextMatchHighlight() {
   const fixture = getNextOmFixture();
 
   if (!fixture) {
     return (
-      <Card className="flex h-full flex-col">
+      <Card className="mb-8 flex flex-col">
         <SectionHeading
           title="Prochain match"
           subtitle="Calendrier OM"
@@ -53,15 +53,15 @@ export function NextMatchCard() {
   const competition = getCompetition(fixture.competition);
 
   return (
-    <Card href="/calendrier" variant="hero" className="flex h-full flex-col">
+    <Card variant="hero" className="mb-8 flex flex-col">
       <SectionHeading
         title="Prochain match"
-        subtitle="Le rendez-vous à ne pas manquer"
+        subtitle={`Journée ${fixture.matchday} · ${competition.label}`}
         icon={<CalendarClock size={16} />}
         action={
-          <span className="flex items-center gap-1 text-xs font-medium text-cyan-300 transition-all group-hover:gap-2">
-            Calendrier <ChevronRight size={14} />
-          </span>
+          <Badge variant="gold">
+            J{fixture.matchday}
+          </Badge>
         }
       />
 
@@ -71,17 +71,15 @@ export function NextMatchCard() {
             <MapPin size={10} />
             {isHome ? "À domicile" : "À l'extérieur"}
           </Badge>
-          <Badge variant="gold">
-            J{fixture.matchday} · {competition.shortLabel}
-          </Badge>
+          {fixture.timeTbd && (
+            <Badge variant="muted">Horaire à confirmer</Badge>
+          )}
         </div>
 
-        {/* Affiche du match */}
         <div className="relative">
           <div className="pointer-events-none absolute inset-x-0 top-1/2 -z-0 h-40 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
           <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-4">
             <TeamSide name={fixture.homeTeam} align="right" />
-
             <div className="flex flex-col items-center gap-2">
               <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 shadow-inner">
                 <Swords size={16} className="text-cyan-300" />
@@ -90,7 +88,6 @@ export function NextMatchCard() {
                 VS
               </span>
             </div>
-
             <TeamSide name={fixture.awayTeam} align="left" />
           </div>
         </div>
@@ -113,6 +110,18 @@ export function NextMatchCard() {
           </p>
           <MatchCountdown targetDate={fixture.date} />
         </div>
+
+        <div className="flex items-center gap-3 rounded-2xl border border-amber-400/20 bg-amber-500/5 px-4 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-400/25 bg-amber-500/10 text-amber-300">
+            <Zap size={16} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-200">Simulation bientôt</p>
+            <p className="text-xs text-slate-500">
+              Le moteur de prédiction sera disponible prochainement pour ce match.
+            </p>
+          </div>
+        </div>
       </div>
     </Card>
   );
@@ -127,9 +136,9 @@ function TeamSide({ name, align }: { name: string; align: "left" | "right" }) {
           : "flex flex-col items-center gap-3 md:flex-row md:justify-start md:text-left"
       }
     >
-      <TeamCrest name={name} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
+      <TeamCrest name={name} size="lg" />
       <div className="min-w-0">
-        <p className="truncate text-lg font-black uppercase leading-tight text-white font-tech md:text-xl">
+        <p className="truncate font-tech text-lg font-black uppercase leading-tight text-white md:text-xl">
           {shortTeamName(name)}
         </p>
       </div>
