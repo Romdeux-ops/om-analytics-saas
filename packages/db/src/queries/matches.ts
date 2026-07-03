@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { createDb } from "../client";
 import { clubs, matches, players, type MatchEvent } from "../schema";
@@ -79,14 +79,19 @@ export async function getUpcomingMatches(
 export async function getNextOmMatch(
   db: ReturnType<typeof createDb>,
 ): Promise<MatchView | null> {
-  const upcoming = await getUpcomingMatches(db, 20);
-  return (
-    upcoming.find(
-      (m) =>
-        m.home_team_name === OM_CLUB_NAME ||
-        m.away_team_name === OM_CLUB_NAME,
-    ) ?? null
-  );
+  // Filtrage poussé dans SQL : Postgres trie par date et s'arrête au 1er
+  // match OM non joué (LIMIT 1), quel que soit son rang dans le calendrier.
+  const [row] = await matchBaseQuery(db)
+    .where(
+      and(
+        eq(matches.played, false),
+        or(eq(homeTeam.name, OM_CLUB_NAME), eq(awayTeam.name, OM_CLUB_NAME)),
+      ),
+    )
+    .orderBy(asc(matches.date))
+    .limit(1);
+
+  return row ?? null;
 }
 
 export async function simulateMatch(
