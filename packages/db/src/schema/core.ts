@@ -27,6 +27,7 @@ export const clubs = pgTable("clubs", {
     .notNull()
     .default(0),
   reputation: integer("reputation").notNull().default(50),
+  coach: text("coach"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -49,11 +50,17 @@ export const players = pgTable("players", {
     .references(() => clubs.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   position: playerPositionEnum("position").notNull(),
+  positionLabel: text("position_label").notNull().default(""),
+  jerseyNumber: integer("jersey_number"),
+  age: integer("age").notNull().default(0),
   overallRating: integer("overall_rating").notNull(),
   formFactor: real("form_factor").notNull().default(1.0),
   injuryProne: real("injury_prone").notNull().default(0.1),
-  marketValue: bigint("market_value", { mode: "number" }).notNull(),
+  marketValue: bigint("market_value", { mode: "number" }),
   wage: bigint("wage", { mode: "number" }).notNull(),
+  matchesPlayed: integer("matches_played").notNull().default(0),
+  goals: integer("goals").notNull().default(0),
+  assists: integer("assists").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
