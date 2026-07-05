@@ -2,6 +2,7 @@ import {
   boolean,
   integer,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -9,7 +10,19 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Fan Zone — préparé pour la Phase 2 (temps réel Supabase)
+// Fan Zone — temps réel Supabase (UGC via client, pas Drizzle queries)
+
+export const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey(),
+  displayName: text("display_name").notNull(),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 export const rooms = pgTable("rooms", {
   id: serial("id").primaryKey(),
@@ -27,12 +40,50 @@ export const messages = pgTable("messages", {
   roomId: integer("room_id")
     .notNull()
     .references(() => rooms.id, { onDelete: "cascade" }),
+  parentId: integer("parent_id"), // self-ref messages.id — défini en SQL migration
   userId: uuid("user_id").notNull(), // référence auth.users Supabase
   content: text("content").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+export const messageReactions = pgTable(
+  "message_reactions",
+  {
+    id: serial("id").primaryKey(),
+    messageId: integer("message_id")
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("message_reactions_message_user_unique").on(
+      table.messageId,
+      table.userId,
+    ),
+  ],
+);
+
+export const messageLikes = pgTable(
+  "message_likes",
+  {
+    messageId: integer("message_id")
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.messageId, table.userId] }),
+  ],
+);
 
 export const polls = pgTable("polls", {
   id: serial("id").primaryKey(),

@@ -15,12 +15,14 @@ interface CompetitionTabsProps<Id extends string> {
   competitions: TabDescriptor<Id>[];
   selected: Id;
   onSelect: (id: Id) => void;
+  ariaLabel?: string;
 }
 
 export function CompetitionTabs<Id extends string>({
   competitions,
   selected,
   onSelect,
+  ariaLabel = "Compétitions",
 }: CompetitionTabsProps<Id>) {
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -49,7 +51,7 @@ export function CompetitionTabs<Id extends string>({
   return (
     <div
       role="tablist"
-      aria-label="Compétitions"
+      aria-label={ariaLabel}
       className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 backdrop-blur-md"
     >
       {competitions.map((comp, idx) => {
@@ -64,6 +66,7 @@ export function CompetitionTabs<Id extends string>({
             role="tab"
             id={`tab-${comp.id}`}
             aria-selected={isActive}
+            aria-label={comp.label}
             aria-controls={`panel-${comp.id}`}
             tabIndex={isActive ? 0 : -1}
             onClick={() => onSelect(comp.id)}

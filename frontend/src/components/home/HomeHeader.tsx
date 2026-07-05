@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Trophy, Sparkles, Users } from "lucide-react";
+import { CalendarDays, Trophy, Sparkles, Users, MessagesSquare } from "lucide-react";
 import { Badge } from "@/src/components/ui/Badge";
 import { ThemeToggle } from "@/src/components/ui/ThemeToggle";
 
@@ -7,6 +7,7 @@ const navLinks = [
   { href: "/calendrier", label: "Calendrier", icon: CalendarDays },
   { href: "/classement", label: "Classement", icon: Trophy },
   { href: "/effectif", label: "Effectif", icon: Users },
+  { href: "/fan-zone", label: "Fan Zone", icon: MessagesSquare, live: true },
 ];
 
 export function HomeHeader() {
@@ -32,7 +33,7 @@ export function HomeHeader() {
         </Link>
 
         <nav className="hidden items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1 backdrop-blur-md md:flex">
-          {navLinks.map(({ href, label, icon: Icon }) => (
+          {navLinks.map(({ href, label, icon: Icon, live }) => (
             <Link
               key={href}
               href={href}
@@ -40,9 +41,23 @@ export function HomeHeader() {
             >
               <Icon size={15} className="text-cyan-400" />
               {label}
+              {live && (
+                <span className="rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">
+                  Live
+                </span>
+              )}
             </Link>
           ))}
         </nav>
+
+        <Link
+          href="/fan-zone"
+          className="flex items-center gap-1.5 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-300 md:hidden"
+          aria-label="Fan Zone"
+        >
+          <MessagesSquare size={14} />
+          Fan Zone
+        </Link>
 
         <div className="flex items-center gap-2">
           <Badge variant="om" className="hidden sm:inline-flex">

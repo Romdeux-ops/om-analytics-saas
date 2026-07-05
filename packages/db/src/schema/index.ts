@@ -3,7 +3,7 @@ export * from "./fan-zone";
 
 import { relations } from "drizzle-orm";
 import { clubs, matches, players } from "./core";
-import { messages, pollOptions, polls, rooms, votes } from "./fan-zone";
+import { messages, pollOptions, polls, profiles, rooms, votes } from "./fan-zone";
 
 export const clubsRelations = relations(clubs, ({ many }) => ({
   players: many(players),
