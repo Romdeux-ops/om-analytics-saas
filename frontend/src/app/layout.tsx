@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Rajdhani } from "next/font/google";
 import { ThemeProvider } from "@/src/components/ui/ThemeProvider";
+import { AppProviders } from "@/src/components/auth/AppProviders";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.variable} ${rajdhani.variable} antialiased`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <AppProviders>{children}</AppProviders>
+        </ThemeProvider>
       </body>
     </html>
   );

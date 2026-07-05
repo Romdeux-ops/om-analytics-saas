@@ -69,3 +69,194 @@ INSERT INTO rooms (name, slug, description)
 VALUES
   ('Tribune Principale', 'tribune-principale', 'Débats généraux autour de l''OM'),
   ('Analyse Tactique', 'analyse-tactique', 'Discussions sur les compositions et le jeu');
+
+-- Fan Zone demo data (users, messages, polls, votes)
+-- Mot de passe test pour tous : password123
+
+INSERT INTO auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  recovery_sent_at,
+  last_sign_in_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+)
+VALUES
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'a1111111-1111-1111-1111-111111111111',
+    'authenticated',
+    'authenticated',
+    'supporter@test.om',
+    crypt('password123', gen_salt('bf')),
+    NOW(), NOW(), NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"SupporterOM"}',
+    NOW(), NOW(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'a2222222-2222-2222-2222-222222222222',
+    'authenticated',
+    'authenticated',
+    'tacticien@test.om',
+    crypt('password123', gen_salt('bf')),
+    NOW(), NOW(), NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"TacticienOM"}',
+    NOW(), NOW(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'a3333333-3333-3333-3333-333333333333',
+    'authenticated',
+    'authenticated',
+    'veloce@test.om',
+    crypt('password123', gen_salt('bf')),
+    NOW(), NOW(), NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"VeloceOM"}',
+    NOW(), NOW(), '', '', '', ''
+  );
+
+INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
+VALUES
+  (
+    'a1111111-1111-1111-1111-111111111111',
+    'a1111111-1111-1111-1111-111111111111',
+    '{"sub":"a1111111-1111-1111-1111-111111111111","email":"supporter@test.om"}'::jsonb,
+    'email', 'a1111111-1111-1111-1111-111111111111', NOW(), NOW(), NOW()
+  ),
+  (
+    'a2222222-2222-2222-2222-222222222222',
+    'a2222222-2222-2222-2222-222222222222',
+    '{"sub":"a2222222-2222-2222-2222-222222222222","email":"tacticien@test.om"}'::jsonb,
+    'email', 'a2222222-2222-2222-2222-222222222222', NOW(), NOW(), NOW()
+  ),
+  (
+    'a3333333-3333-3333-3333-333333333333',
+    'a3333333-3333-3333-3333-333333333333',
+    '{"sub":"a3333333-3333-3333-3333-333333333333","email":"veloce@test.om"}'::jsonb,
+    'email', 'a3333333-3333-3333-3333-333333333333', NOW(), NOW(), NOW()
+  );
+
+INSERT INTO messages (room_id, user_id, content, created_at)
+SELECT r.id, u.user_id, u.content, u.created_at
+FROM rooms r
+CROSS JOIN (VALUES
+  ('a1111111-1111-1111-1111-111111111111'::uuid, 'Allez l''OM ! On va chercher les 3 points contre le PSG.', NOW() - interval '2 hours'),
+  ('a2222222-2222-2222-2222-222222222222'::uuid, 'Greenwood en forme, il faut le titulariser absolument.', NOW() - interval '90 minutes'),
+  ('a3333333-3333-3333-3333-333333333333'::uuid, 'Droit au but ce soir, le Vélodrome va trembler !', NOW() - interval '1 hour'),
+  ('a1111111-1111-1111-1111-111111111111'::uuid, 'Paixão à gauche et Greenwood à droite, combo gagnant.', NOW() - interval '45 minutes'),
+  ('a2222222-2222-2222-2222-222222222222'::uuid, 'Højbjerg doit être titulaire au milieu, on a besoin de son expérience.', NOW() - interval '30 minutes')
+) AS u(user_id, content, created_at)
+WHERE r.slug = 'tribune-principale';
+
+INSERT INTO messages (room_id, user_id, content, created_at)
+SELECT r.id, u.user_id, u.content, u.created_at
+FROM rooms r
+CROSS JOIN (VALUES
+  ('a2222222-2222-2222-2222-222222222222'::uuid, 'Un 4-2-3-1 avec Timber et Højbjerg devant la défense me semble optimal.', NOW() - interval '3 hours'),
+  ('a1111111-1111-1111-1111-111111111111'::uuid, 'Medina et Balerdi en charnière, solide sur les corners.', NOW() - interval '2 hours'),
+  ('a3333333-3333-3333-3333-333333333333'::uuid, 'Gouiri en faux 9 pour fixer les défenseurs parisiens ?', NOW() - interval '1 hour')
+) AS u(user_id, content, created_at)
+WHERE r.slug = 'analyse-tactique';
+
+INSERT INTO polls (room_id, question, is_active, closes_at)
+SELECT id, 'Qui sera homme du match OM-PSG ?', true, NOW() + interval '7 days'
+FROM rooms WHERE slug = 'tribune-principale';
+
+INSERT INTO poll_options (poll_id, label, vote_count)
+SELECT p.id, o.label, 0
+FROM polls p
+CROSS JOIN (VALUES
+  ('Mason Greenwood'),
+  ('Igor Paixão'),
+  ('Pierre-Emile Højbjerg'),
+  ('Amine Gouiri')
+) AS o(label)
+WHERE p.question = 'Qui sera homme du match OM-PSG ?';
+
+INSERT INTO polls (room_id, question, is_active, closes_at)
+SELECT id, 'Formation préférée pour le Classique ?', true, NOW() + interval '7 days'
+FROM rooms WHERE slug = 'analyse-tactique';
+
+INSERT INTO poll_options (poll_id, label, vote_count)
+SELECT p.id, o.label, 0
+FROM polls p
+CROSS JOIN (VALUES
+  ('4-2-3-1 classique'),
+  ('3-5-2 avec ailiers montants'),
+  ('4-3-3 pressing haut')
+) AS o(label)
+WHERE p.question = 'Formation préférée pour le Classique ?';
+
+INSERT INTO votes (poll_id, option_id, user_id)
+SELECT p.id, po.id, 'a1111111-1111-1111-1111-111111111111'::uuid
+FROM polls p
+JOIN poll_options po ON po.poll_id = p.id AND po.label = 'Mason Greenwood'
+WHERE p.question = 'Qui sera homme du match OM-PSG ?';
+
+INSERT INTO votes (poll_id, option_id, user_id)
+SELECT p.id, po.id, 'a2222222-2222-2222-2222-222222222222'::uuid
+FROM polls p
+JOIN poll_options po ON po.poll_id = p.id AND po.label = 'Igor Paixão'
+WHERE p.question = 'Qui sera homme du match OM-PSG ?';
+
+INSERT INTO votes (poll_id, option_id, user_id)
+SELECT p.id, po.id, 'a2222222-2222-2222-2222-222222222222'::uuid
+FROM polls p
+JOIN poll_options po ON po.poll_id = p.id AND po.label = '4-2-3-1 classique'
+WHERE p.question = 'Formation préférée pour le Classique ?';
+
+-- Réactions seedées (emoji, pas le cœur — likes séparés)
+INSERT INTO message_likes (message_id, user_id)
+SELECT m.id, 'a2222222-2222-2222-2222-222222222222'::uuid
+FROM messages m
+JOIN rooms r ON r.id = m.room_id
+WHERE r.slug = 'tribune-principale'
+  AND m.content LIKE 'Allez l''OM%'
+LIMIT 1;
+
+INSERT INTO message_reactions (message_id, user_id, emoji)
+SELECT m.id, 'a3333333-3333-3333-3333-333333333333'::uuid, '🔥'
+FROM messages m
+JOIN rooms r ON r.id = m.room_id
+WHERE r.slug = 'tribune-principale'
+  AND m.content LIKE 'Greenwood en forme%'
+LIMIT 1;
+
+INSERT INTO message_reactions (message_id, user_id, emoji)
+SELECT m.id, 'a1111111-1111-1111-1111-111111111111'::uuid, '💙'
+FROM messages m
+JOIN rooms r ON r.id = m.room_id
+WHERE r.slug = 'tribune-principale'
+  AND m.content LIKE 'Droit au but%'
+LIMIT 1;
+
+-- Réponse seedée (+ réponses supplémentaires pour tester pagination)
+INSERT INTO messages (room_id, parent_id, user_id, content, created_at)
+SELECT r.id, m.id, u.user_id, u.content, u.created_at
+FROM rooms r
+JOIN messages m ON m.room_id = r.id AND m.content LIKE 'Allez l''OM%'
+CROSS JOIN (VALUES
+  ('a1111111-1111-1111-1111-111111111111'::uuid, 'Tellement d''accord, on va les envahir !', NOW() - interval '20 minutes'),
+  ('a2222222-2222-2222-2222-222222222222'::uuid, 'Allez l''OM à vie !', NOW() - interval '18 minutes'),
+  ('a3333333-3333-3333-3333-333333333333'::uuid, 'Le Vélodrome va exploser ce soir', NOW() - interval '16 minutes'),
+  ('a1111111-1111-1111-1111-111111111111'::uuid, 'Droit au but les gars', NOW() - interval '14 minutes'),
+  ('a2222222-2222-2222-2222-222222222222'::uuid, 'Greenwood va marquer, j''en mets ma main à couper', NOW() - interval '12 minutes'),
+  ('a3333333-3333-3333-3333-333333333333'::uuid, 'Paixão en feu aussi', NOW() - interval '10 minutes'),
+  ('a1111111-1111-1111-1111-111111111111'::uuid, 'On croit en vous !', NOW() - interval '8 minutes')
+) AS u(user_id, content, created_at)
+WHERE r.slug = 'tribune-principale';
