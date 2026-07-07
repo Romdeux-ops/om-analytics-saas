@@ -12,3 +12,18 @@ export const EMOJI_REACTIONS = ["🔵", "⚪", "💙", "🔥", "👏", "😂"] a
 export type EmojiReaction = (typeof EMOJI_REACTIONS)[number];
 
 export const REPLIES_PREVIEW = 5;
+
+export const MIN_ROOM_NAME_LENGTH = 2;
+export const MAX_ROOM_NAME_LENGTH = 80;
+export const MAX_ROOM_DESCRIPTION_LENGTH = 200;
+export const MIN_POLL_QUESTION_LENGTH = 5;
+export const MAX_POLL_QUESTION_LENGTH = 200;
+export const MIN_POLL_OPTIONS = 2;
+export const MAX_POLL_OPTIONS = 6;
+export const MIN_POLL_OPTION_LABEL_LENGTH = 1;
+export const MAX_POLL_OPTION_LABEL_LENGTH = 100;
+export const MIN_DEBATE_QUESTION_LENGTH = 5;
+export const MAX_DEBATE_QUESTION_LENGTH = 300;
+export const MAX_DEBATE_POST_LENGTH = 500;
+export const MAX_DEBATE_REPLY_LENGTH = 300;
+export const DEBATE_POSTS_PREVIEW = 5;

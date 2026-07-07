@@ -1,7 +1,8 @@
 import { createClient } from "@/src/lib/supabase/client";
 import { PAGE_SIZE } from "./constants";
+import { enrichDebatePosts, type DebatePostRow } from "./debate-enrichment";
 import { enrichMessages, type MessageRow } from "./message-enrichment";
-import type { MessageFeedPage, MessageView, PollView } from "./types";
+import type { DebatePostView, DebateView, MessageFeedPage, MessageView, PollView } from "./types";
 
 export async function fetchMessagesPageClient(
   roomId: number,
@@ -15,9 +16,10 @@ export async function fetchMessagesPageClient(
 
   let query = supabase
     .from("messages")
-    .select("id, room_id, parent_id, user_id, content, created_at")
+    .select("id, room_id, parent_id, user_id, content, created_at, is_pinned")
     .eq("room_id", roomId)
     .is("parent_id", null)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit + 1);
 
@@ -110,12 +112,74 @@ export async function fetchRoomPollsClient(roomId: number): Promise<PollView[]> 
   }));
 }
 
+export async function fetchRoomDebatesClient(roomId: number): Promise<DebateView[]> {
+  const supabase = createClient();
+
+  const { data: debates, error } = await supabase
+    .from("debates")
+    .select("id, room_id, question, is_active, created_at")
+    .eq("room_id", roomId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  if (!debates?.length) return [];
+
+  const debateIds = debates.map((d) => d.id);
+
+  const { data: postRows, error: postsError } = await supabase
+    .from("debate_posts")
+    .select("id, debate_id, parent_id, user_id, content, created_at")
+    .in("debate_id", debateIds)
+    .is("parent_id", null)
+    .order("created_at", { ascending: true });
+
+  if (postsError) throw new Error(postsError.message);
+
+  const postsByDebate = new Map<number, DebatePostRow[]>();
+  for (const row of (postRows ?? []) as DebatePostRow[]) {
+    const list = postsByDebate.get(row.debate_id) ?? [];
+    list.push(row);
+    postsByDebate.set(row.debate_id, list);
+  }
+
+  const result: DebateView[] = [];
+  for (const debate of debates) {
+    const rows = postsByDebate.get(debate.id) ?? [];
+    const posts = await enrichDebatePosts(supabase, rows);
+    result.push({
+      id: debate.id,
+      room_id: debate.room_id,
+      question: debate.question,
+      is_active: debate.is_active,
+      created_at: debate.created_at,
+      posts,
+    });
+  }
+
+  return result;
+}
+
+export async function fetchDebateRepliesClient(postId: number): Promise<DebatePostView[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("debate_posts")
+    .select("id, debate_id, parent_id, user_id, content, created_at")
+    .eq("parent_id", postId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return enrichDebatePosts(supabase, (data ?? []) as DebatePostRow[]);
+}
+
 export async function fetchRoomFeedClient(
   roomId: number,
-): Promise<{ messages: MessageFeedPage; polls: PollView[] }> {
-  const [messages, polls] = await Promise.all([
+): Promise<{ messages: MessageFeedPage; polls: PollView[]; debates: DebateView[] }> {
+  const [messages, polls, debates] = await Promise.all([
     fetchMessagesPageClient(roomId),
     fetchRoomPollsClient(roomId),
+    fetchRoomDebatesClient(roomId),
   ]);
-  return { messages, polls };
+  return { messages, polls, debates };
 }

@@ -4,6 +4,8 @@ import { createClient } from "@/src/lib/supabase/server";
 import {
   EMOJI_REACTIONS,
   MAX_CONTENT_LENGTH,
+  MAX_DEBATE_POST_LENGTH,
+  MAX_DEBATE_REPLY_LENGTH,
   MAX_REPLY_LENGTH,
 } from "./constants";
 
@@ -227,4 +229,69 @@ export async function castVoteAction(
   }
 
   return { ok: true };
+}
+
+export async function createDebatePostAction(
+  debateId: number,
+  content: string,
+  parentId?: number | null,
+): Promise<{ ok: true; id: number } | { ok: false; error: string }> {
+  const maxLen = parentId ? MAX_DEBATE_REPLY_LENGTH : MAX_DEBATE_POST_LENGTH;
+  const sanitized = sanitizeContent(content, maxLen);
+  if (!sanitized) {
+    return {
+      ok: false,
+      error: parentId
+        ? `Réponse invalide (1–${MAX_DEBATE_REPLY_LENGTH} caractères).`
+        : `Message invalide (1–${MAX_DEBATE_POST_LENGTH} caractères).`,
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, error: "Connexion requise." };
+  }
+
+  const { data: debate, error: debateError } = await supabase
+    .from("debates")
+    .select("id, is_active")
+    .eq("id", debateId)
+    .single();
+
+  if (debateError || !debate?.is_active) {
+    return { ok: false, error: "Débat indisponible." };
+  }
+
+  if (parentId) {
+    const { data: parent, error: parentError } = await supabase
+      .from("debate_posts")
+      .select("id, debate_id, parent_id")
+      .eq("id", parentId)
+      .single();
+
+    if (parentError || !parent || parent.debate_id !== debateId || parent.parent_id != null) {
+      return { ok: false, error: "Message parent introuvable." };
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("debate_posts")
+    .insert({
+      debate_id: debateId,
+      user_id: user.id,
+      content: sanitized,
+      parent_id: parentId ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: true, id: data.id };
 }
