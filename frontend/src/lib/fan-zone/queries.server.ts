@@ -1,6 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { PAGE_SIZE } from "./constants";
-import { buildDebateView, enrichDebatePosts, type DebatePostRow } from "./debate-enrichment";
+import { buildRoomDebatesViews, type DebatePostRow } from "./debate-enrichment";
 import { enrichMessages, type MessageRow } from "./message-enrichment";
 import type { DebateView, MessageFeedPage, MessageView, PollView, ProfileView, RoomView } from "./types";
 
@@ -166,19 +166,5 @@ export async function getRoomDebates(roomId: number): Promise<DebateView[]> {
 
   if (postsError) throw new Error(postsError.message);
 
-  const postsByDebate = new Map<number, DebatePostRow[]>();
-  for (const row of (postRows ?? []) as DebatePostRow[]) {
-    const list = postsByDebate.get(row.debate_id) ?? [];
-    list.push(row);
-    postsByDebate.set(row.debate_id, list);
-  }
-
-  const result: DebateView[] = [];
-  for (const debate of debates) {
-    const rows = postsByDebate.get(debate.id) ?? [];
-    const posts = await enrichDebatePosts(supabase, rows);
-    result.push(buildDebateView(debate, posts));
-  }
-
-  return result;
+  return buildRoomDebatesViews(supabase, debates, (postRows ?? []) as DebatePostRow[]);
 }

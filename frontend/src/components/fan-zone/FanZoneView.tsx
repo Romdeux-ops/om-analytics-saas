@@ -128,7 +128,9 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
         ...prev,
         [selectedSlug]: {
           ...current,
-          debates: current.debates.filter((d) => d.id !== debateId),
+          debates: current.debates.map((d) =>
+            d.id === debateId ? { ...d, is_active: false } : d,
+          ),
         },
       };
     });
@@ -139,24 +141,20 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
   }
 
   function handleRoomDeleted(roomId: number) {
-    setRooms((prev) => {
-      const deletedRoom = prev.find((r) => r.id === roomId);
-      if (!deletedRoom) return prev;
+    const deletedRoom = rooms.find((r) => r.id === roomId);
+    if (!deletedRoom) return;
 
-      setFeedsBySlug((feeds) => {
-        const next = { ...feeds };
-        delete next[deletedRoom.slug];
-        return next;
-      });
-      loadedSlugsRef.current.delete(deletedRoom.slug);
-
-      const remaining = prev.filter((r) => r.id !== roomId);
-      setSelectedSlug((current) =>
-        current === deletedRoom.slug ? (remaining[0]?.slug ?? current) : current,
-      );
-
-      return remaining;
+    const remaining = rooms.filter((r) => r.id !== roomId);
+    setRooms(remaining);
+    setFeedsBySlug((feeds) => {
+      const next = { ...feeds };
+      delete next[deletedRoom.slug];
+      return next;
     });
+    loadedSlugsRef.current.delete(deletedRoom.slug);
+    setSelectedSlug((current) =>
+      current === deletedRoom.slug ? (remaining[0]?.slug ?? current) : current,
+    );
   }
 
   if (!selectedRoom) {

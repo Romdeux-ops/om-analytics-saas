@@ -122,3 +122,30 @@ export function buildDebateView(
     posts,
   };
 }
+
+type DebateRow = {
+  id: number;
+  room_id: number;
+  question: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+export async function buildRoomDebatesViews<T extends { from: (table: string) => unknown }>(
+  supabase: T,
+  debates: DebateRow[],
+  postRows: DebatePostRow[],
+): Promise<DebateView[]> {
+  if (!debates.length) return [];
+
+  const enrichedPosts = await enrichDebatePosts(supabase, postRows);
+  const postsByDebate = new Map<number, DebatePostView[]>();
+
+  for (const post of enrichedPosts) {
+    const list = postsByDebate.get(post.debate_id) ?? [];
+    list.push(post);
+    postsByDebate.set(post.debate_id, list);
+  }
+
+  return debates.map((debate) => buildDebateView(debate, postsByDebate.get(debate.id) ?? []));
+}

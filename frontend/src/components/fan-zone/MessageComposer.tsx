@@ -19,12 +19,12 @@ export function MessageComposer({ roomId, onOptimisticPost, onPostError }: Messa
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const trimmed = content.trim();
     if (!trimmed) return;
 
-    requireAuth(async () => {
+    await requireAuth(async () => {
       const tempId = -Date.now();
       const authorId = user?.id ?? profile?.id ?? "pending";
       const optimistic: MessageView = {

@@ -14,25 +14,11 @@ import {
 } from "@/src/lib/fan-zone/actions";
 import { deleteMessageAction, pinMessageAction } from "@/src/lib/fan-zone/admin-actions";
 import { REPLIES_PREVIEW } from "@/src/lib/fan-zone/constants";
+import { formatRelativeTime, getInitials } from "@/src/lib/fan-zone/format";
 import type { MessageView, ReactionCount } from "@/src/lib/fan-zone/types";
 
-function formatRelativeTime(iso: string) {
-  const date = new Date(iso);
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "à l'instant";
-  if (diffMin < 60) return `il y a ${diffMin} min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `il y a ${diffH}h`;
-  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(date);
-}
-
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
+function replyCountLabel(count: number) {
+  return `${count} réponse${count > 1 ? "s" : ""}`;
 }
 
 function applyEmojiOptimistic(
@@ -65,10 +51,6 @@ function applyEmojiOptimistic(
   }
   bump(emoji, 1);
   return { reactions: next, user_reaction: emoji };
-}
-
-function replyCountLabel(count: number) {
-  return `${count} réponse${count > 1 ? "s" : ""}`;
 }
 
 function mergeReplies(existing: MessageView[], incoming: MessageView[]): MessageView[] {

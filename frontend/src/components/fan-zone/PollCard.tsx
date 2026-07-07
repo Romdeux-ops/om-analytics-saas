@@ -33,7 +33,7 @@ export function PollCard({ poll, featured = false, onClosed }: PollCardProps) {
   async function handleVote(optionId: number) {
     if (hasVoted || isClosed || voting) return;
 
-    requireAuth(async () => {
+    await requireAuth(async () => {
       setVoting(true);
       setError(null);
 

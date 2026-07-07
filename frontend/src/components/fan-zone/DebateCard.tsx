@@ -11,29 +11,11 @@ import { createDebatePostAction } from "@/src/lib/fan-zone/actions";
 import { closeDebateAction } from "@/src/lib/fan-zone/admin-actions";
 import { DEBATE_POSTS_PREVIEW, MAX_DEBATE_POST_LENGTH } from "@/src/lib/fan-zone/constants";
 import { mapDebatePostRow } from "@/src/lib/fan-zone/debate-enrichment";
+import { formatRelativeTime, getInitials } from "@/src/lib/fan-zone/format";
 import { fetchDebateRepliesClient } from "@/src/lib/fan-zone/queries.client";
 import { createClient } from "@/src/lib/supabase/client";
 import { cn } from "@/src/lib/ui/cn";
 import type { DebatePostView, DebateView, ProfileView } from "@/src/lib/fan-zone/types";
-
-function formatRelativeTime(iso: string) {
-  const date = new Date(iso);
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "à l'instant";
-  if (diffMin < 60) return `il y a ${diffMin} min`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `il y a ${diffH}h`;
-  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(date);
-}
-
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function mergePosts(existing: DebatePostView[], incoming: DebatePostView[]): DebatePostView[] {
   const ids = new Set(existing.map((p) => p.id));
@@ -83,17 +65,11 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
   }
 
   async function handleReply(content: string): Promise<boolean> {
-    let ok = false;
-    await requireAuth(async () => {
-      const result = await createDebatePostAction(debateId, content, post.id);
-      if (!result.ok) return;
-      ok = true;
-      setReplying(false);
-      if (!repliesExpanded) {
-        await loadReplies();
-      }
-    });
-    return ok;
+    const result = await requireAuth(() => createDebatePostAction(debateId, content, post.id));
+    if (!result?.ok) return false;
+    setReplying(false);
+    if (!repliesExpanded) await loadReplies();
+    return true;
   }
 
   return (
@@ -127,11 +103,7 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
             <button
               type="button"
               onClick={() => {
-                if (replying) {
-                  setReplying(false);
-                  return;
-                }
-                requireAuth(() => setReplying(true));
+                void requireAuth(() => setReplying(true));
               }}
               className="mt-2 text-xs font-medium text-cyan-400/80 hover:text-cyan-300"
             >
@@ -311,20 +283,19 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
     const trimmed = content.trim();
     if (!trimmed || submitting || isClosed) return;
 
-    await requireAuth(async () => {
-      setSubmitting(true);
-      setError(null);
+    setSubmitting(true);
+    setError(null);
 
-      const result = await createDebatePostAction(debate.id, trimmed);
-      setSubmitting(false);
+    const result = await requireAuth(() => createDebatePostAction(debate.id, trimmed));
+    setSubmitting(false);
 
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
+    if (!result) return;
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
 
-      setContent("");
-    });
+    setContent("");
   }
 
   async function handleClose() {

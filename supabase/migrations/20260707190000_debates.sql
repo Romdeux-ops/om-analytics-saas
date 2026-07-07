@@ -38,7 +38,13 @@ CREATE POLICY "debate_posts_public_read" ON debate_posts FOR SELECT
   USING (true);
 
 CREATE POLICY "debate_posts_auth_insert" ON debate_posts FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (
+    auth.uid() = user_id
+    AND EXISTS (
+      SELECT 1 FROM debates d
+      WHERE d.id = debate_id AND d.is_active = true
+    )
+  );
 
 CREATE POLICY "debate_posts_admin_delete" ON debate_posts FOR DELETE
   USING (is_admin());
@@ -88,6 +94,7 @@ CREATE TRIGGER debate_posts_validate_parent
 ALTER PUBLICATION supabase_realtime ADD TABLE debate_posts;
 
 GRANT SELECT ON debates TO anon, authenticated;
-GRANT SELECT, INSERT ON debate_posts TO anon, authenticated;
+GRANT SELECT ON debate_posts TO anon, authenticated;
+GRANT INSERT ON debate_posts TO authenticated;
 GRANT INSERT, UPDATE, DELETE ON debates TO authenticated;
 GRANT DELETE ON debate_posts TO authenticated;

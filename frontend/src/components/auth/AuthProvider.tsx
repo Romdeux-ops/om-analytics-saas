@@ -25,8 +25,8 @@ interface AuthContextValue {
   isAdmin: boolean;
   isLoading: boolean;
   openAuthModal: (intent?: AuthIntent) => void;
-  requireAuth: (action: () => void) => void;
-  requireAdmin: (action: () => void) => void;
+  requireAuth: <T>(action: () => T | Promise<T>) => Promise<T | undefined>;
+  requireAdmin: <T>(action: () => T | Promise<T>) => Promise<T | undefined>;
   signOut: () => Promise<void>;
 }
 
@@ -121,26 +121,26 @@ export function AuthProvider({
   }, []);
 
   const requireAuth = useCallback(
-    (action: () => void) => {
-      if (isLoading) return;
+    async <T,>(action: () => T | Promise<T>): Promise<T | undefined> => {
+      if (isLoading) return undefined;
       if (isGuest || !user) {
         openAuthModal("login");
-        return;
+        return undefined;
       }
-      action();
+      return await action();
     },
     [isGuest, isLoading, user, openAuthModal],
   );
 
   const requireAdmin = useCallback(
-    (action: () => void) => {
-      if (isLoading) return;
+    async <T,>(action: () => T | Promise<T>): Promise<T | undefined> => {
+      if (isLoading) return undefined;
       if (isGuest || !user) {
         openAuthModal("login");
-        return;
+        return undefined;
       }
-      if (profile?.role !== "admin") return;
-      action();
+      if (profile?.role !== "admin") return undefined;
+      return await action();
     },
     [isGuest, isLoading, user, profile?.role, openAuthModal],
   );

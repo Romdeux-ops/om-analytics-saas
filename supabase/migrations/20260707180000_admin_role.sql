@@ -22,13 +22,20 @@ AS $$
   );
 $$;
 
--- Prevent non-admins from changing their own role
+-- Prevent non-admins from escalating role on insert or update
 CREATE OR REPLACE FUNCTION prevent_profile_role_escalation()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SET search_path = public
 AS $$
 BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.role IS DISTINCT FROM 'user' AND auth.uid() IS NOT NULL AND NOT is_admin() THEN
+      RAISE EXCEPTION 'insufficient privileges to set role';
+    END IF;
+    RETURN NEW;
+  END IF;
+
   IF NEW.role IS DISTINCT FROM OLD.role AND auth.uid() IS NOT NULL AND NOT is_admin() THEN
     RAISE EXCEPTION 'insufficient privileges to change role';
   END IF;
@@ -37,9 +44,30 @@ END;
 $$;
 
 CREATE TRIGGER profiles_prevent_role_escalation
-  BEFORE UPDATE ON profiles
+  BEFORE INSERT OR UPDATE ON profiles
   FOR EACH ROW
   EXECUTE FUNCTION prevent_profile_role_escalation();
+
+-- Prevent deleting the last active room (defense in depth vs app check)
+CREATE OR REPLACE FUNCTION prevent_delete_last_active_room()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF OLD.is_active AND NOT EXISTS (
+    SELECT 1 FROM rooms WHERE is_active = true AND id <> OLD.id
+  ) THEN
+    RAISE EXCEPTION 'cannot delete the last active room';
+  END IF;
+  RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER rooms_prevent_delete_last_active
+  BEFORE DELETE ON rooms
+  FOR EACH ROW
+  EXECUTE FUNCTION prevent_delete_last_active_room();
 
 -- Admin read inactive rooms/polls
 CREATE POLICY "rooms_admin_read_all" ON rooms FOR SELECT
