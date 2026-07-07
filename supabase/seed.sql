@@ -128,6 +128,18 @@ VALUES
     '{"provider":"email","providers":["email"]}',
     '{"display_name":"VeloceOM"}',
     NOW(), NOW(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    'a0000000-0000-0000-0000-000000000001',
+    'authenticated',
+    'authenticated',
+    'admin@test.om',
+    crypt('password123', gen_salt('bf')),
+    NOW(), NOW(), NOW(),
+    '{"provider":"email","providers":["email"]}',
+    '{"display_name":"AdminOM"}',
+    NOW(), NOW(), '', '', '', ''
   );
 
 INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
@@ -149,7 +161,15 @@ VALUES
     'a3333333-3333-3333-3333-333333333333',
     '{"sub":"a3333333-3333-3333-3333-333333333333","email":"veloce@test.om"}'::jsonb,
     'email', 'a3333333-3333-3333-3333-333333333333', NOW(), NOW(), NOW()
+  ),
+  (
+    'a0000000-0000-0000-0000-000000000001',
+    'a0000000-0000-0000-0000-000000000001',
+    '{"sub":"a0000000-0000-0000-0000-000000000001","email":"admin@test.om"}'::jsonb,
+    'email', 'a0000000-0000-0000-0000-000000000001', NOW(), NOW(), NOW()
   );
+
+UPDATE profiles SET role = 'admin' WHERE id = 'a0000000-0000-0000-0000-000000000001';
 
 INSERT INTO messages (room_id, user_id, content, created_at)
 SELECT r.id, u.user_id, u.content, u.created_at

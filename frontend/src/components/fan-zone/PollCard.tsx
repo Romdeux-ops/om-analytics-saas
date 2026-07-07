@@ -1,33 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Lock } from "lucide-react";
 import { Card } from "@/src/components/ui/Card";
 import { Badge } from "@/src/components/ui/Badge";
+import { Button } from "@/src/components/ui/Button";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { castVoteAction } from "@/src/lib/fan-zone/actions";
+import { closePollAction } from "@/src/lib/fan-zone/admin-actions";
 import { cn } from "@/src/lib/ui/cn";
 import type { PollView } from "@/src/lib/fan-zone/types";
 
 interface PollCardProps {
   poll: PollView;
   featured?: boolean;
+  onClosed?: (pollId: number) => void;
 }
 
-export function PollCard({ poll, featured = false }: PollCardProps) {
-  const { requireAuth } = useAuth();
+export function PollCard({ poll, featured = false, onClosed }: PollCardProps) {
+  const { requireAuth, isAdmin } = useAuth();
   const [localPoll, setLocalPoll] = useState(poll);
   const [error, setError] = useState<string | null>(null);
   const [voting, setVoting] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const totalVotes = localPoll.options.reduce((sum, o) => sum + o.vote_count, 0);
   const hasVoted = localPoll.user_vote_option_id !== null;
-  const isClosed = localPoll.closes_at && new Date(localPoll.closes_at) < new Date();
+  const isClosed =
+    !localPoll.is_active ||
+    Boolean(localPoll.closes_at && new Date(localPoll.closes_at) < new Date());
 
   async function handleVote(optionId: number) {
     if (hasVoted || isClosed || voting) return;
 
-    requireAuth(async () => {
+    await requireAuth(async () => {
       setVoting(true);
       setError(null);
 
@@ -50,18 +56,49 @@ export function PollCard({ poll, featured = false }: PollCardProps) {
     });
   }
 
+  async function handleClosePoll() {
+    if (isClosed || closing) return;
+    setClosing(true);
+    setError(null);
+
+    const result = await closePollAction(localPoll.id);
+    setClosing(false);
+
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    setLocalPoll({
+      ...localPoll,
+      is_active: false,
+      closes_at: new Date().toISOString(),
+    });
+    onClosed?.(localPoll.id);
+  }
+
   return (
     <Card variant={featured ? "hero" : "flat"} className={featured ? "border-violet-400/20" : ""}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <BarChart3 size={16} className="text-violet-400" aria-hidden="true" />
-          {featured && (
-            <Badge variant="om">
-              Match du jour
-            </Badge>
+          {featured && <Badge variant="om">Match du jour</Badge>}
+        </div>
+        <div className="flex items-center gap-2">
+          {isClosed && <Badge variant="muted">Clos</Badge>}
+          {isAdmin && !isClosed && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClosePoll}
+              disabled={closing}
+              className="text-amber-300 hover:text-amber-200"
+            >
+              <Lock size={13} />
+              Fermer
+            </Button>
           )}
         </div>
-        {isClosed && <Badge variant="muted">Clos</Badge>}
       </div>
 
       <h3 className="font-tech text-lg font-bold text-white">{localPoll.question}</h3>

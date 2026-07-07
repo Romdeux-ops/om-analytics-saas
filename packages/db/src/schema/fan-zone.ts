@@ -16,6 +16,7 @@ export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey(),
   displayName: text("display_name").notNull(),
   avatarUrl: text("avatar_url"),
+  role: text("role").notNull().default("user"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -43,6 +44,7 @@ export const messages = pgTable("messages", {
   parentId: integer("parent_id"), // self-ref messages.id — défini en SQL migration
   userId: uuid("user_id").notNull(), // référence auth.users Supabase
   content: text("content").notNull(),
+  isPinned: boolean("is_pinned").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -124,3 +126,28 @@ export const votes = pgTable(
     uniqueIndex("votes_poll_user_unique").on(table.pollId, table.userId),
   ],
 );
+
+export const debates = pgTable("debates", {
+  id: serial("id").primaryKey(),
+  roomId: integer("room_id")
+    .notNull()
+    .references(() => rooms.id, { onDelete: "cascade" }),
+  question: text("question").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const debatePosts = pgTable("debate_posts", {
+  id: serial("id").primaryKey(),
+  debateId: integer("debate_id")
+    .notNull()
+    .references(() => debates.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull(),
+  parentId: integer("parent_id"),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

@@ -1,7 +1,8 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { PAGE_SIZE } from "./constants";
+import { buildRoomDebatesViews, type DebatePostRow } from "./debate-enrichment";
 import { enrichMessages, type MessageRow } from "./message-enrichment";
-import type { MessageFeedPage, MessageView, PollView, ProfileView, RoomView } from "./types";
+import type { DebateView, MessageFeedPage, MessageView, PollView, ProfileView, RoomView } from "./types";
 
 export async function getActiveRooms(): Promise<RoomView[]> {
   const supabase = await createClient();
@@ -33,9 +34,10 @@ export async function getMessagesPage(
 
   let query = supabase
     .from("messages")
-    .select("id, room_id, parent_id, user_id, content, created_at")
+    .select("id, room_id, parent_id, user_id, content, created_at, is_pinned")
     .eq("room_id", roomId)
     .is("parent_id", null)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit + 1);
 
@@ -132,10 +134,37 @@ export async function getCurrentUserProfile(): Promise<ProfileView | null> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_name, avatar_url")
+    .select("id, display_name, avatar_url, role")
     .eq("id", user.id)
     .single();
 
   if (error || !data) return null;
   return data;
+}
+
+export async function getRoomDebates(roomId: number): Promise<DebateView[]> {
+  const supabase = await createClient();
+
+  const { data: debates, error } = await supabase
+    .from("debates")
+    .select("id, room_id, question, is_active, created_at")
+    .eq("room_id", roomId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  if (!debates?.length) return [];
+
+  const debateIds = debates.map((d) => d.id);
+
+  const { data: postRows, error: postsError } = await supabase
+    .from("debate_posts")
+    .select("id, debate_id, parent_id, user_id, content, created_at")
+    .in("debate_id", debateIds)
+    .is("parent_id", null)
+    .order("created_at", { ascending: true });
+
+  if (postsError) throw new Error(postsError.message);
+
+  return buildRoomDebatesViews(supabase, debates, (postRows ?? []) as DebatePostRow[]);
 }

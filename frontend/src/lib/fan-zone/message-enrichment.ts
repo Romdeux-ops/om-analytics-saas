@@ -7,6 +7,7 @@ export type MessageRow = {
   content: string;
   created_at: string;
   parent_id?: number | null;
+  is_pinned?: boolean;
 };
 
 export type ReactionRow = {
@@ -145,6 +146,7 @@ export function mapMessageRow(
     reactions: meta?.reactions ?? [],
     user_reaction: meta?.user_reaction ?? null,
     reply_count: meta?.reply_count ?? 0,
+    is_pinned: row.is_pinned ?? false,
   };
 }
 
