@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
+import { useAuth } from "@/src/components/auth/AuthProvider";
 import { fetchMessagesPageClient } from "@/src/lib/fan-zone/queries.client";
 import { mapMessageRow } from "@/src/lib/fan-zone/message-enrichment";
 import { MessageCard } from "@/src/components/fan-zone/MessageCard";
@@ -26,6 +27,7 @@ interface MessageFeedProps {
 
 export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageFeedProps) {
   const supabase = useMemo(() => createClient(), []);
+  const { user } = useAuth();
   const [messages, setMessages] = useState<MessageView[]>(initialMessages);
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -157,10 +159,6 @@ export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageF
 
   const refreshMessageEngagement = useCallback(
     async (messageId: number) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
       const [{ data: reactionRows }, { data: likeRows }] = await Promise.all([
         supabase
           .from("message_reactions")
@@ -189,7 +187,7 @@ export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageF
         ),
       );
     },
-    [supabase],
+    [supabase, user],
   );
 
   const scheduleEngagementRefresh = useCallback(

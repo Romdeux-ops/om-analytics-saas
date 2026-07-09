@@ -1,14 +1,10 @@
-import { getGuestModeFromCookies } from "@/src/app/actions/auth";
 import { AuthProvider } from "@/src/components/auth/AuthProvider";
-import { createClient } from "@/src/lib/supabase/server";
+import { NavPrefetch } from "@/src/components/ui/NavPrefetch";
+import { getAuthProfile, getAuthUser, getGuestModeFromCookies } from "@/src/lib/auth/session";
 
 export async function AppProviders({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const hasGuestCookie = await getGuestModeFromCookies();
+  const [user, hasGuestCookie] = await Promise.all([getAuthUser(), getGuestModeFromCookies()]);
+  const profile = user ? await getAuthProfile() : null;
   const initialGuest = hasGuestCookie && !user;
 
   return (
@@ -16,7 +12,9 @@ export async function AppProviders({ children }: { children: React.ReactNode }) 
       key={user?.id ?? (initialGuest ? "guest" : "anon")}
       initialGuest={initialGuest}
       initialUser={user}
+      initialProfile={profile}
     >
+      <NavPrefetch />
       {children}
     </AuthProvider>
   );

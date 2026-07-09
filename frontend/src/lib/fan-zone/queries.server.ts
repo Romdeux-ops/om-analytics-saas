@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/src/lib/auth/session";
 import { createClient } from "@/src/lib/supabase/server";
 import { PAGE_SIZE } from "./constants";
 import { buildRoomDebatesViews, type DebatePostRow } from "./debate-enrichment";
@@ -17,10 +18,7 @@ export async function getActiveRooms(): Promise<RoomView[]> {
 }
 
 async function getCurrentUserId(): Promise<string | undefined> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   return user?.id;
 }
 
@@ -28,9 +26,10 @@ export async function getMessagesPage(
   roomId: number,
   cursor?: string,
   limit = PAGE_SIZE,
+  currentUserId?: string,
 ): Promise<MessageFeedPage> {
   const supabase = await createClient();
-  const currentUserId = await getCurrentUserId();
+  const userId = currentUserId ?? (await getCurrentUserId());
 
   let query = supabase
     .from("messages")
@@ -51,7 +50,7 @@ export async function getMessagesPage(
   const rows = (data ?? []) as MessageRow[];
   const hasMore = rows.length > limit;
   const pageRows = hasMore ? rows.slice(0, limit) : rows;
-  const messages = await enrichMessages(supabase, pageRows, currentUserId);
+  const messages = await enrichMessages(supabase, pageRows, userId);
   const nextCursor = hasMore ? pageRows[pageRows.length - 1]?.created_at ?? null : null;
 
   return { messages, nextCursor };
@@ -126,12 +125,10 @@ export async function getRoomPolls(roomId: number, userId?: string): Promise<Pol
 }
 
 export async function getCurrentUserProfile(): Promise<ProfileView | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return null;
 
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("id, display_name, avatar_url, role")

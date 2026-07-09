@@ -57,17 +57,37 @@ export async function getCoach(
   return row?.coach ?? null;
 }
 
+export interface SquadPageData {
+  squad: PlayerView[];
+  coach: string | null;
+  totalMarketValue: number;
+}
+
+export async function getSquadPageData(
+  db: ReturnType<typeof createDb>,
+  clubName = OM_CLUB_NAME,
+): Promise<SquadPageData> {
+  const squad = await getSquad(db, clubName);
+
+  const [clubRow] = await db
+    .select({ coach: clubs.coach })
+    .from(clubs)
+    .where(eq(clubs.name, clubName))
+    .limit(1);
+
+  const totalMarketValue = squad.reduce((sum, player) => sum + (player.marketValue ?? 0), 0);
+
+  return {
+    squad,
+    coach: clubRow?.coach ?? null,
+    totalMarketValue,
+  };
+}
+
 export async function getSquadTotalMarketValue(
   db: ReturnType<typeof createDb>,
   clubName = OM_CLUB_NAME,
 ): Promise<number> {
-  const [row] = await db
-    .select({
-      total: sql<number>`COALESCE(SUM(${players.marketValue}), 0)`.mapWith(Number),
-    })
-    .from(players)
-    .innerJoin(clubs, eq(players.clubId, clubs.id))
-    .where(eq(clubs.name, clubName));
-
-  return row?.total ?? 0;
+  const { totalMarketValue } = await getSquadPageData(db, clubName);
+  return totalMarketValue;
 }

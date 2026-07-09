@@ -53,7 +53,7 @@ export function Button({
 
   if (href) {
     return (
-      <Link href={href} className={classes} {...rest}>
+      <Link href={href} prefetch className={classes} {...rest}>
         {children}
       </Link>
     );

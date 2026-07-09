@@ -28,10 +28,10 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
 
 function SimulationError({ message }: { message: string }) {
   return (
-    <div className="page-shell flex items-center justify-center min-h-screen">
-      <div className="relative z-10 text-center backdrop-blur-2xl bg-white/5 rounded-2xl border border-white/10 p-8 max-w-md">
-        <h2 className="text-2xl font-bold text-white mb-2 font-tech">Match introuvable</h2>
-        <p className="text-slate-400 mb-6">{message}</p>
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-2xl">
+        <h2 className="mb-2 font-tech text-2xl font-bold text-white">Match introuvable</h2>
+        <p className="mb-6 text-slate-400">{message}</p>
         <Button href="/" variant="outline">
           Retour au menu
         </Button>
