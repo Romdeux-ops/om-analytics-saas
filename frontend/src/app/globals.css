@@ -292,6 +292,23 @@ html.light .theme-icon-moon {
   animation: shimmer 2.2s linear infinite;
 }
 
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
 /* =========================================================================
    TRANSITION FLUIDE ENTRE THÈMES (clair <-> sombre)
    Faible spécificité (:where) => les transitions des composants gardent priorité

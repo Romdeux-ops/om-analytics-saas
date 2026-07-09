@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import {
   getNextOmMatch as getNextOmMatchDb,
   getUpcomingMatches as getUpcomingMatchesDb,
@@ -10,5 +11,9 @@ export async function getNextOmMatch(): Promise<MatchView | null> {
 }
 
 export async function getUpcomingMatches(limit = 10): Promise<MatchView[]> {
-  return getUpcomingMatchesDb(getDb(), limit);
+  return unstable_cache(
+    async () => getUpcomingMatchesDb(getDb(), limit),
+    ["upcoming-matches", String(limit)],
+    { revalidate: 30, tags: ["matches"] },
+  )();
 }

@@ -12,5 +12,7 @@ export {
   getSquad,
   getCoach,
   getSquadTotalMarketValue,
+  getSquadPageData,
   type PlayerView,
+  type SquadPageData,
 } from "./queries/players";

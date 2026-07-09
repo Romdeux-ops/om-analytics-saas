@@ -4,8 +4,8 @@ import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { NewsCard } from "@/src/components/home/NewsCard";
 import { getLatestNews } from "@/src/lib/data/news";
 
-export async function NewsFeed() {
-  const news = await getLatestNews(5);
+export function NewsFeed() {
+  const news = getLatestNews(5);
   const [featured, ...rest] = news;
 
   return (

@@ -37,8 +37,8 @@ function StandingLine({ row }: { row: StandingRow }) {
   );
 }
 
-export async function StandingsCard() {
-  const standings = await getStandings(5);
+export function StandingsCard() {
+  const standings = getStandings(5);
   const season = getCompetition("ligue1").season;
 
   return (

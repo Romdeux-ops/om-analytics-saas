@@ -36,18 +36,20 @@ interface AuthProviderProps {
   children: ReactNode;
   initialGuest?: boolean;
   initialUser?: User | null;
+  initialProfile?: ProfileView | null;
 }
 
 export function AuthProvider({
   children,
   initialGuest = false,
   initialUser = null,
+  initialProfile = null,
 }: AuthProviderProps) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
   const [user, setUser] = useState<User | null>(initialUser);
-  const [profile, setProfile] = useState<ProfileView | null>(null);
+  const [profile, setProfile] = useState<ProfileView | null>(initialProfile);
   const [isGuest, setIsGuest] = useState(initialGuest);
   const [isLoading, setIsLoading] = useState(!initialUser && !initialGuest);
   const [modalOpen, setModalOpen] = useState(false);
@@ -77,13 +79,40 @@ export function AuthProvider({
   );
 
   useEffect(() => {
-    async function init() {
-      if (initialUser) {
-        setIsLoading(false);
-        await fetchProfile(initialUser);
-        return;
-      }
+    if (initialGuest) {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const nextUser = session?.user ?? null;
+        setUser(nextUser);
+        if (nextUser) {
+          setIsGuest(false);
+          await fetchProfile(nextUser);
+        } else {
+          setProfile(null);
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
 
+    if (initialUser) {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const nextUser = session?.user ?? null;
+        setUser(nextUser);
+        if (nextUser) {
+          setIsGuest(false);
+          await fetchProfile(nextUser);
+        } else {
+          setProfile(null);
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }
+
+    async function init() {
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -113,7 +142,7 @@ export function AuthProvider({
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, fetchProfile, initialUser]);
+  }, [supabase, fetchProfile, initialUser, initialGuest]);
 
   const openAuthModal = useCallback((intent: AuthIntent = "login") => {
     setModalIntent(intent);

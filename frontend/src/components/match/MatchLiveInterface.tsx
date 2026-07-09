@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Activity, Zap, Shield, TrendingUp, ArrowLeft } from "lucide-react";
+import { Play, Pause, Activity, Zap, Shield, TrendingUp } from "lucide-react";
 import { simulateMatchAction } from "@/src/app/actions/match";
 import type { MatchEvent, MatchView } from "@/src/lib/types/match";
 
@@ -98,26 +97,15 @@ export default function MatchLiveInterface({ matchData }: { matchData?: MatchVie
   }, [isPlaying, currentMinute, match.match_log]);
 
   return (
-    <div className="page-shell">
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 min-h-screen flex flex-col gap-6">
-        <header className="flex justify-between items-center h-16 shrink-0">
+    <div className="flex min-h-[70vh] w-full max-w-[1600px] flex-col gap-6">
+        <header className="flex h-16 shrink-0 items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm"
-            >
-              <ArrowLeft size={16} />
-              <span className="hidden sm:inline">Menu</span>
-            </Link>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center text-white font-black font-tech">
-              OM
-            </div>
             <div>
-              <h1 className="text-xl font-bold text-white leading-none tracking-tight font-tech">
+              <h1 className="font-tech text-xl font-bold leading-none tracking-tight text-white">
                 SIMULATION LIVE
               </h1>
-              <p className="text-xs text-slate-500 font-medium tracking-wider uppercase mt-1">
-                Moteur IA
+              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+                {match.home_team_name} vs {match.away_team_name}
               </p>
             </div>
           </div>
@@ -215,7 +203,6 @@ export default function MatchLiveInterface({ matchData }: { matchData?: MatchVie
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
