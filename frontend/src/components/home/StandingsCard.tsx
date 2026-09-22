@@ -26,7 +26,7 @@ function StandingLine({ row }: { row: StandingRow }) {
         row.isOm ? "om-highlight" : "hover:bg-white/[0.04]",
       )}
     >
-      <RankBadge rank={row.rank} isOm={row.isOm} />
+      <RankBadge rank={row.rank} isOm={row.isOm} zone={row.zone} />
       <TeamCell clubName={row.clubName} isOm={row.isOm} label={shortTeamName(row.clubName)} />
       <span className="hidden text-center text-xs tabular-nums text-slate-500 sm:block">
         {row.played}
@@ -75,7 +75,7 @@ export function StandingsCard() {
         </ul>
 
         <p className="mt-auto pt-4 text-[10px] uppercase tracking-widest text-slate-600">
-          Classement pré-saison — top 5
+          Classement après J5 — top 5
         </p>
       </div>
     </Card>
