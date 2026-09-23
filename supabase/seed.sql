@@ -5,7 +5,9 @@ VALUES
   ('Olympique de Marseille', 15000000, 80000000, 100000000, 85, 'Bruno Genesio'),
   ('Paris Saint-Germain', 200000000, 300000000, 500000000, 90, NULL);
 
--- Effectif OM 2026-2027 (27 joueurs — remplace l'ancien effectif de démo)
+-- Effectif OM 2026-2027 (25 joueurs — mercato d'été : départs Greenwood, Timber,
+-- Balerdi, Medina, Traoré, Rulli, Aubameyang, Lago ; arrivées De Lange, Vermot,
+-- Koum, Bezahaf, Kamissoko, Abdallah, Mmadi)
 INSERT INTO players (
   club_id, name, position, position_label, jersey_number, age,
   overall_rating, market_value, wage, matches_played, goals, assists
@@ -14,33 +16,35 @@ SELECT c.id, p.name, p.position::player_position, p.position_label, p.jersey_num
        p.rating, p.market_value, p.wage, 0, 0, 0
 FROM clubs c
 CROSS JOIN (VALUES
-  ('Mason Greenwood', 'FWD', 'Ailier droit', 10, 24, 75, 55000000::bigint, 0::bigint),
-  ('Igor Paixão', 'FWD', 'Ailier gauche', 14, 26, 75, 35000000::bigint, 0::bigint),
-  ('Amine Gouiri', 'FWD', 'Avant-centre', 9, 26, 75, 28000000::bigint, 0::bigint),
-  ('Quinten Timber', 'MID', 'Milieu central', 27, 25, 75, 25000000::bigint, 0::bigint),
-  ('Timothy Weah', 'MID', 'Milieu droit', NULL::integer, 26, 75, 20000000::bigint, 0::bigint),
-  ('Leonardo Balerdi', 'DEF', 'Défenseur central', 5, 27, 75, 18000000::bigint, 0::bigint),
-  ('Facundo Medina', 'DEF', 'Défenseur central', 32, 27, 75, 18000000::bigint, 0::bigint),
-  ('Nayef Aguerd', 'DEF', 'Défenseur central', 21, 30, 75, 15000000::bigint, 0::bigint),
-  ('Pierre-Emile Højbjerg', 'MID', 'Milieu défensif', 23, 30, 75, 15000000::bigint, 0::bigint),
-  ('Hamed Traoré', 'FWD', 'Ailier gauche', NULL::integer, 26, 75, 15000000::bigint, 0::bigint),
-  ('Angel Gomes', 'MID', 'Milieu offensif', NULL::integer, 25, 75, 10000000::bigint, 0::bigint),
+  -- Gardiens
+  ('Jeffrey de Lange', 'GK', 'Gardien de but', 1, 28, 75, 2500000::bigint, 0::bigint),
+  ('Jelle Van Neck', 'GK', 'Gardien de but', 40, 22, 75, NULL::bigint, 0::bigint),
+  ('Theo Vermot', 'GK', 'Gardien de but', 92, 29, 75, NULL::bigint, 0::bigint),
+  -- Défenseurs
+  ('Timothy Weah', 'DEF', 'Arrière droit', 22, 26, 75, 20000000::bigint, 0::bigint),
   ('CJ Egan-Riley', 'DEF', 'Défenseur central', 4, 23, 75, 9000000::bigint, 0::bigint),
-  ('Emerson', 'DEF', 'Arrière gauche', 33, 31, 75, 9000000::bigint, 0::bigint),
-  ('Bamo Meïté', 'DEF', 'Défenseur central', NULL::integer, 24, 75, 7000000::bigint, 0::bigint),
-  ('Gerónimo Rulli', 'GK', 'Gardien de but', 1, 34, 75, 6000000::bigint, 0::bigint),
-  ('Himad Abdelli', 'MID', 'Milieu offensif', 8, 26, 75, 5000000::bigint, 0::bigint),
-  ('Amine Harit', 'FWD', 'Ailier gauche', NULL::integer, 29, 75, 5000000::bigint, 0::bigint),
-  ('Tochukwu Nnadi', 'MID', 'Milieu défensif', 6, 23, 75, 4500000::bigint, 0::bigint),
-  ('Neal Maupay', 'FWD', 'Avant-centre', NULL::integer, 29, 75, 4000000::bigint, 0::bigint),
-  ('Faris Moumbagna', 'FWD', 'Avant-centre', NULL::integer, 26, 75, 3500000::bigint, 0::bigint),
-  ('Ulisses Garcia', 'DEF', 'Arrière gauche', NULL::integer, 30, 75, 3000000::bigint, 0::bigint),
-  ('Geoffrey Kondogbia', 'MID', 'Milieu défensif', 19, 33, 75, 3000000::bigint, 0::bigint),
-  ('Jeffrey de Lange', 'GK', 'Gardien de but', 12, 28, 75, 2500000::bigint, 0::bigint),
   ('Derek Cornelius', 'DEF', 'Défenseur central', 13, 28, 75, 2500000::bigint, 0::bigint),
-  ('Pierre-Emerick Aubameyang', 'FWD', 'Avant-centre', 17, 37, 75, 2500000::bigint, 0::bigint),
-  ('Ange Lago', 'FWD', 'Avant-centre', 78, 21, 75, 100000::bigint, 0::bigint),
-  ('Jelle Van Neck', 'GK', 'Gardien de but', 40, 22, 75, NULL::bigint, 0::bigint)
+  ('Bamo Meïté', 'DEF', 'Défenseur central', 18, 24, 75, 7000000::bigint, 0::bigint),
+  ('Nayef Aguerd', 'DEF', 'Défenseur central', 21, 30, 75, 15000000::bigint, 0::bigint),
+  ('Ulisses Garcia', 'DEF', 'Arrière gauche', 25, 30, 75, 3000000::bigint, 0::bigint),
+  ('Emerson Palmieri', 'DEF', 'Arrière gauche', 33, 32, 75, 9000000::bigint, 0::bigint),
+  ('Alexi Koum', 'DEF', 'Défenseur central', 46, 20, 75, 1500000::bigint, 0::bigint),
+  ('Kelyann Bezahaf', 'DEF', 'Arrière droit', 74, 20, 75, 300000::bigint, 0::bigint),
+  -- Milieux
+  ('Tochukwu Nnadi', 'MID', 'Milieu défensif', 6, 23, 75, 4500000::bigint, 0::bigint),
+  ('Angel Gomes', 'MID', 'Milieu offensif', 7, 26, 75, 10000000::bigint, 0::bigint),
+  ('Himad Abdelli', 'MID', 'Milieu central', 8, 26, 75, 5000000::bigint, 0::bigint),
+  ('Geoffrey Kondogbia', 'MID', 'Milieu défensif', 19, 33, 75, 3000000::bigint, 0::bigint),
+  ('Pierre-Emile Højbjerg', 'MID', 'Milieu défensif', 23, 31, 75, 15000000::bigint, 0::bigint),
+  ('Nouhoum Kamissoko', 'MID', 'Milieu central', 42, 21, 75, 1000000::bigint, 0::bigint),
+  -- Attaquants
+  ('Amine Gouiri', 'FWD', 'Avant-centre', 9, 26, 75, 28000000::bigint, 0::bigint),
+  ('Neal Maupay', 'FWD', 'Avant-centre', 11, 30, 75, 4000000::bigint, 0::bigint),
+  ('Igor Paixão', 'FWD', 'Ailier gauche', 14, 26, 75, 35000000::bigint, 0::bigint),
+  ('Faris Moumbagna', 'FWD', 'Avant-centre', 29, 26, 75, 3500000::bigint, 0::bigint),
+  ('Tadjidine Mmadi', 'FWD', 'Ailier gauche', 43, 19, 75, 800000::bigint, 0::bigint),
+  ('Amine Harit', 'FWD', 'Ailier droit', 77, 29, 75, 5000000::bigint, 0::bigint),
+  ('Keyliane Abdallah', 'FWD', 'Ailier droit', 48, 20, 75, 50000::bigint, 0::bigint)
 ) AS p(name, position, position_label, jersey_number, age, rating, market_value, wage)
 WHERE c.name = 'Olympique de Marseille';
 

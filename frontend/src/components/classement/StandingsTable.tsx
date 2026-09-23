@@ -6,10 +6,11 @@ import {
   PointsCell,
   RankBadge,
   TeamCell,
+  ZONE_META,
 } from "@/src/components/classement/standing-cells";
 import { fullTeamName } from "@/src/lib/ui/teams";
 import { cn } from "@/src/lib/ui/cn";
-import type { StandingRow } from "@/src/lib/types/standing";
+import type { StandingRow, StandingZone } from "@/src/lib/types/standing";
 
 const ROW_GRID =
   "grid min-w-[32rem] grid-cols-[2rem_minmax(8rem,1fr)_2rem_2rem_2rem_2rem_2.5rem_2.5rem_2.5rem_3rem] gap-x-2 sm:min-w-0 sm:grid-cols-[2rem_minmax(10rem,1fr)_2rem_2rem_2rem_2rem_2.5rem_2.5rem_2.5rem_3rem]";
@@ -24,7 +25,7 @@ function StandingLine({ row }: { row: StandingRow }) {
         row.isOm ? "om-highlight" : "hover:bg-white/[0.04]",
       )}
     >
-      <RankBadge rank={row.rank} isOm={row.isOm} />
+      <RankBadge rank={row.rank} isOm={row.isOm} zone={row.zone} />
       <TeamCell clubName={row.clubName} isOm={row.isOm} label={fullTeamName(row.clubName)} />
       <span className="text-center text-xs tabular-nums text-slate-500">{row.played}</span>
       <span className="text-center text-xs tabular-nums text-slate-400">{row.won}</span>
@@ -38,27 +39,46 @@ function StandingLine({ row }: { row: StandingRow }) {
   );
 }
 
-interface StandingsTableProps {
-  standings: readonly StandingRow[];
-  season: string;
+/** Légende des zones présentes dans le classement, dans l'ordre de première apparition. */
+function ZoneLegend({ standings }: { standings: readonly StandingRow[] }) {
+  const zones: StandingZone[] = [];
+  for (const row of standings) {
+    if (row.zone && !zones.includes(row.zone)) zones.push(row.zone);
+  }
+  if (zones.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-2">
+      {zones.map((zone) => (
+        <span key={zone} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <span className={cn("h-2 w-2 rounded-full", ZONE_META[zone].dot)} />
+          {ZONE_META[zone].label}
+        </span>
+      ))}
+    </div>
+  );
 }
 
-export function StandingsTable({ standings, season }: StandingsTableProps) {
+interface StandingsTableProps {
+  standings: readonly StandingRow[];
+  title: string;
+  season: string;
+  badgeLabel: string;
+}
+
+export function StandingsTable({ standings, title, season, badgeLabel }: StandingsTableProps) {
   return (
     <Card className="flex flex-col">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-tech text-lg font-black uppercase tracking-tight text-white">
-            Ligue 1 <span className="text-slate-500">·</span>{" "}
+            {title} <span className="text-slate-500">·</span>{" "}
             <span className="text-gradient">{season}</span>
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Classement pré-saison — les statistiques seront mises à jour au coup d&apos;envoi
-          </p>
         </div>
         <Badge variant="gold">
           <CalendarClock size={10} />
-          Saison à venir
+          {badgeLabel}
         </Badge>
       </div>
 
@@ -88,9 +108,12 @@ export function StandingsTable({ standings, season }: StandingsTableProps) {
         </ul>
       </div>
 
-      <p className="mt-5 border-t border-white/5 pt-4 text-[10px] uppercase tracking-widest text-slate-600">
-        {standings.length} clubs · Données statiques en attendant le début de saison
-      </p>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4">
+        <ZoneLegend standings={standings} />
+        <p className="text-[10px] uppercase tracking-widest text-slate-600">
+          {standings.length} clubs
+        </p>
+      </div>
     </Card>
   );
 }

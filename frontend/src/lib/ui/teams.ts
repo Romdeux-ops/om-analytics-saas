@@ -20,6 +20,15 @@ const SHORT_NAMES: Record<string, string> = {
   Strasbourg: "RCSA",
   Toulouse: "TFC",
   Troyes: "ESTAC",
+  // Europa League 2026-2027
+  "Beşiktaş": "BJK",
+  Olympiacos: "OLY",
+  "Sturm Graz": "STU",
+  Leverkusen: "B04",
+  "Levski Sofia": "LEV",
+  Celta: "CEL",
+  Celtic: "CTC",
+  Anderlecht: "RSCA",
   // Legacy / DB names
   "Olympique de Marseille": "OM",
   "Paris Saint-Germain": "PSG",
@@ -51,6 +60,14 @@ const FULL_NAMES: Record<string, string> = {
   Strasbourg: "RC Strasbourg",
   Toulouse: "Toulouse FC",
   Troyes: "ESTAC Troyes",
+  "Beşiktaş": "Beşiktaş JK",
+  Olympiacos: "Olympiacos FC",
+  "Sturm Graz": "SK Sturm Graz",
+  Leverkusen: "Bayer Leverkusen",
+  "Levski Sofia": "PFC Levski Sofia",
+  Celta: "Celta de Vigo",
+  Celtic: "Celtic FC",
+  Anderlecht: "RSC Anderlecht",
 };
 
 /** Nom court d'un club, sinon fallback sur le nom d'origine. */

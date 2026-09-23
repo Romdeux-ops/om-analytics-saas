@@ -1,3 +1,12 @@
+/** Zone de qualification/relégation affichée par un bandeau coloré dans le tableau. */
+export type StandingZone =
+  | "champions-league"
+  | "europa-league"
+  | "conference-league"
+  | "relegation"
+  | "playoffs-direct"
+  | "playoffs-qualifiers";
+
 export interface StandingRow {
   rank: number;
   clubName: string;
@@ -9,4 +18,5 @@ export interface StandingRow {
   goalsAgainst: number;
   points: number;
   isOm: boolean;
+  zone?: StandingZone;
 }

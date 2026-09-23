@@ -28,6 +28,48 @@ function formatFixtureDate(fixture: CalendarFixture): string {
   }).format(date);
 }
 
+type OmResult = "win" | "draw" | "loss";
+
+/** Résultat du match du point de vue de l'OM, ou null si non joué / OM absent. */
+function getOmResult(fixture: CalendarFixture): OmResult | null {
+  if (!fixture.played || fixture.homeScore == null || fixture.awayScore == null) return null;
+  const homeOm = isOmTeam(fixture.homeTeam);
+  const awayOm = isOmTeam(fixture.awayTeam);
+  if (!homeOm && !awayOm) return null;
+  if (fixture.homeScore === fixture.awayScore) return "draw";
+  const omWon = homeOm
+    ? fixture.homeScore > fixture.awayScore
+    : fixture.awayScore > fixture.homeScore;
+  return omWon ? "win" : "loss";
+}
+
+const RESULT_STYLES: Record<
+  OmResult,
+  { row: string; bar: string; score: string; badge: string; label: string }
+> = {
+  win: {
+    row: "border-emerald-400/15 bg-emerald-500/[0.06] hover:border-emerald-400/25 hover:bg-emerald-500/[0.09]",
+    bar: "from-emerald-400/0 via-emerald-400/70 to-emerald-400/0",
+    score: "text-emerald-300",
+    badge: "border-emerald-400/30 bg-emerald-500/15 text-emerald-300",
+    label: "Victoire",
+  },
+  draw: {
+    row: "border-slate-400/15 bg-slate-400/[0.05] hover:border-slate-400/25 hover:bg-slate-400/[0.08]",
+    bar: "from-slate-400/0 via-slate-400/60 to-slate-400/0",
+    score: "text-slate-300",
+    badge: "border-slate-400/30 bg-slate-500/15 text-slate-300",
+    label: "Nul",
+  },
+  loss: {
+    row: "border-red-400/15 bg-red-500/[0.06] hover:border-red-400/25 hover:bg-red-500/[0.09]",
+    bar: "from-red-400/0 via-red-400/70 to-red-400/0",
+    score: "text-red-300",
+    badge: "border-red-400/30 bg-red-500/15 text-red-300",
+    label: "Défaite",
+  },
+};
+
 interface FixtureRowProps {
   fixture: CalendarFixture;
   /** Affiche un badge de compétition (utile dans le calendrier général) */
@@ -38,17 +80,24 @@ export function FixtureRow({ fixture, showCompetition = false }: FixtureRowProps
   const homeOm = isOmTeam(fixture.homeTeam);
   const awayOm = isOmTeam(fixture.awayTeam);
   const involvesOm = homeOm || awayOm;
+  const result = getOmResult(fixture);
+  const style = result ? RESULT_STYLES[result] : null;
 
   return (
     <div
       className={cn(
         "group/row relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-all sm:flex-row sm:items-center sm:gap-4",
-        involvesOm && "om-highlight",
-        !involvesOm && "hover:border-white/10 hover:bg-white/[0.04]",
+        style ? style.row : involvesOm && "om-highlight",
+        !involvesOm && !style && "hover:border-white/10 hover:bg-white/[0.04]",
       )}
     >
-      {involvesOm && (
-        <span className="pointer-events-none absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-cyan-400/0 via-cyan-400/60 to-cyan-400/0" />
+      {(style || involvesOm) && (
+        <span
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b",
+            style ? style.bar : "from-cyan-400/0 via-cyan-400/60 to-cyan-400/0",
+          )}
+        />
       )}
 
       <div className="flex shrink-0 items-center gap-2">
@@ -72,6 +121,7 @@ export function FixtureRow({ fixture, showCompetition = false }: FixtureRowProps
           <ScoreBlock
             homeScore={fixture.homeScore ?? 0}
             awayScore={fixture.awayScore ?? 0}
+            className={style?.score}
           />
         ) : (
           <span className="shrink-0 px-2 font-tech text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -82,11 +132,12 @@ export function FixtureRow({ fixture, showCompetition = false }: FixtureRowProps
       </div>
 
       <div className="flex shrink-0 items-center justify-end gap-2 sm:ml-auto">
+        {style && <Badge className={style.badge}>{style.label}</Badge>}
         {fixture.played && fixture.isSimulated ? (
           <Badge variant="muted">Simulé</Badge>
-        ) : fixture.played ? null : (
+        ) : !fixture.played ? (
           <Badge variant={involvesOm ? "om" : "muted"}>À venir</Badge>
-        )}
+        ) : null}
         {fixture.timeTbd && !fixture.played && (
           <span className="text-[10px] uppercase tracking-wider text-slate-600">Horaire TBD</span>
         )}
@@ -124,9 +175,22 @@ function TeamSide({
   );
 }
 
-function ScoreBlock({ homeScore, awayScore }: { homeScore: number; awayScore: number }) {
+function ScoreBlock({
+  homeScore,
+  awayScore,
+  className,
+}: {
+  homeScore: number;
+  awayScore: number;
+  className?: string;
+}) {
   return (
-    <span className="flex shrink-0 items-center gap-1.5 font-tech text-lg font-black tabular-nums text-white">
+    <span
+      className={cn(
+        "flex shrink-0 items-center gap-1.5 font-tech text-lg font-black tabular-nums text-white",
+        className,
+      )}
+    >
       <span>{homeScore}</span>
       <span className="text-slate-500">-</span>
       <span>{awayScore}</span>

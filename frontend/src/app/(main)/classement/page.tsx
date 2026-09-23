@@ -7,6 +7,7 @@ import { Reveal } from "@/src/components/ui/Reveal";
 import {
   COMPETITIONS,
   getCompetition,
+  getEuropaStandings,
   getLigue1Standings,
 } from "@/src/lib/data/competitions";
 
@@ -14,9 +15,24 @@ export const dynamic = "force-static";
 
 export default function ClassementPage() {
   const ligue1 = getCompetition("ligue1");
+  const europa = getCompetition("europa");
   const panels = {
-    ligue1: <StandingsTable standings={getLigue1Standings()} season={ligue1.season} />,
-    europa: <DrawPlaceholder competition={getCompetition("europa")} />,
+    ligue1: (
+      <StandingsTable
+        standings={getLigue1Standings()}
+        title={ligue1.label}
+        season={ligue1.season}
+        badgeLabel="Journée 5"
+      />
+    ),
+    europa: (
+      <StandingsTable
+        standings={getEuropaStandings()}
+        title={europa.label}
+        season={europa.season}
+        badgeLabel="Journée 1 · Phase de ligue"
+      />
+    ),
     coupe: <DrawPlaceholder competition={getCompetition("coupe")} />,
   };
 
