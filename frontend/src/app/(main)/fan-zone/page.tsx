@@ -1,6 +1,5 @@
-import nextDynamic from "next/dynamic";
 import { MessagesSquare } from "lucide-react";
-import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
+import { FanZoneView } from "@/src/components/fan-zone/FanZoneView";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
 import { getAuthUser } from "@/src/lib/auth/session";
 import {
@@ -9,12 +8,6 @@ import {
   getRoomDebates,
   getRoomPolls,
 } from "@/src/lib/fan-zone/queries.server";
-
-const FanZoneView = nextDynamic(
-  () =>
-    import("@/src/components/fan-zone/FanZoneView").then((mod) => ({ default: mod.FanZoneView })),
-  { loading: () => <CardSkeleton rows={5} /> },
-);
 
 export const dynamic = "force-dynamic";
 

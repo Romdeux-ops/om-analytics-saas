@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/src/lib/ui/cn";
 
 type ButtonVariant = "primary" | "gold" | "ghost" | "outline";
@@ -11,9 +12,12 @@ interface ButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   disabled?: boolean;
+  /** Conserve le libellé et affiche un indicateur, désactive le contrôle. */
+  loading?: boolean;
   onClick?: () => void;
   type?: "button" | "submit";
   "aria-label"?: string;
+  "aria-busy"?: boolean;
 }
 
 const variants: Record<ButtonVariant, string> = {
@@ -40,12 +44,14 @@ export function Button({
   variant = "primary",
   size = "md",
   disabled,
+  loading = false,
   onClick,
   type = "button",
   ...rest
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 font-semibold uppercase tracking-wide transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none",
+    "pressable inline-flex cursor-pointer items-center justify-center gap-2 font-semibold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50",
     sizes[size],
     variants[variant],
     className,
@@ -60,7 +66,15 @@ export function Button({
   }
 
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={classes} {...rest}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
+      className={classes}
+      {...rest}
+    >
+      {loading && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
       {children}
     </button>
   );

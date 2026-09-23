@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { Play, Zap } from "lucide-react";
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
-import { Button } from "@/src/components/ui/Button";
 import { Badge } from "@/src/components/ui/Badge";
 import { Card } from "@/src/components/ui/Card";
 import { TeamCrest } from "@/src/components/ui/TeamCrest";
@@ -19,7 +19,11 @@ function formatShortDate(date: Date) {
 
 function MatchRow({ match }: { match: MatchView }) {
   return (
-    <div className="group/row relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-all hover:-translate-y-0.5 hover:border-cyan-400/25 hover:bg-white/[0.04]">
+    <Link
+      href={`/simulation/${match.id}`}
+      prefetch
+      className="pressable group/row relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 hover:-translate-y-0.5 hover:border-cyan-400/25 hover:bg-white/[0.04]"
+    >
       <span className="pointer-events-none absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-cyan-400/0 via-cyan-400/60 to-cyan-400/0 opacity-0 transition-opacity group-hover/row:opacity-100" />
 
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -42,16 +46,11 @@ function MatchRow({ match }: { match: MatchView }) {
         </div>
       </div>
 
-      <Button
-        href={`/simulation/${match.id}`}
-        variant="primary"
-        size="sm"
-        className="shrink-0 transition-transform group-hover/row:scale-105"
-      >
+      <span className="pointer-events-none inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-slate-950 shadow-lg shadow-cyan-500/25 transition-transform duration-150 group-hover/row:scale-105">
         <Play size={14} />
         Simuler
-      </Button>
-    </div>
+      </span>
+    </Link>
   );
 }
 

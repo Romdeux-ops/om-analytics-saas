@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { X } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/src/components/ui/Button";
-import { cn } from "@/src/lib/ui/cn";
+import { Modal } from "@/src/components/ui/Modal";
 import { createRoomAction } from "@/src/lib/fan-zone/admin-actions";
 import {
   MAX_ROOM_DESCRIPTION_LENGTH,
@@ -29,26 +28,10 @@ function slugPreview(name: string) {
 }
 
 export function CreateRoomModal({ open, onClose, onCreated }: CreateRoomModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -72,27 +55,7 @@ export function CreateRoomModal({ open, onClose, onCreated }: CreateRoomModalPro
   const preview = slugPreview(name.trim());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-room-title"
-        className={cn(
-          "relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-[var(--bg-raise)] p-6 shadow-2xl",
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
-          aria-label="Fermer"
-        >
-          <X size={18} />
-        </button>
-
+    <Modal open={open} onClose={onClose} titleId="create-room-title">
         <h2 id="create-room-title" className="font-tech text-xl font-bold text-white">
           Nouveau salon
         </h2>
@@ -138,11 +101,10 @@ export function CreateRoomModal({ open, onClose, onCreated }: CreateRoomModalPro
             </p>
           )}
 
-          <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-            {loading ? "Création..." : "Créer le salon"}
+          <Button type="submit" variant="primary" className="w-full" loading={loading}>
+            Créer le salon
           </Button>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

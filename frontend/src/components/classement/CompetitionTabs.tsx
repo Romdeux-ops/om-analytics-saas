@@ -15,6 +15,8 @@ interface CompetitionTabsProps<Id extends string> {
   competitions: TabDescriptor<Id>[];
   selected: Id;
   onSelect: (id: Id) => void;
+  /** Précharge le panneau au survol, sans changer l'onglet actif. */
+  onPrefetch?: (id: Id) => void;
   ariaLabel?: string;
 }
 
@@ -22,6 +24,7 @@ export function CompetitionTabs<Id extends string>({
   competitions,
   selected,
   onSelect,
+  onPrefetch,
   ariaLabel = "Compétitions",
 }: CompetitionTabsProps<Id>) {
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -71,8 +74,9 @@ export function CompetitionTabs<Id extends string>({
             tabIndex={isActive ? 0 : -1}
             onClick={() => onSelect(comp.id)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
+            onPointerEnter={() => onPrefetch?.(comp.id)}
             className={cn(
-              "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all sm:flex-none sm:px-5",
+              "pressable flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold sm:flex-none sm:px-5",
               isActive
                 ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white shadow-[0_0_20px_-8px_rgba(34,211,238,0.5)] ring-1 ring-cyan-400/30"
                 : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200",

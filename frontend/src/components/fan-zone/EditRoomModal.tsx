@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { X } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/src/components/ui/Button";
-import { cn } from "@/src/lib/ui/cn";
+import { Modal } from "@/src/components/ui/Modal";
 import { updateRoomAction } from "@/src/lib/fan-zone/admin-actions";
 import {
   MAX_ROOM_DESCRIPTION_LENGTH,
@@ -25,23 +24,10 @@ export function EditRoomModal({ open, room, onClose, onUpdated }: EditRoomModalP
 }
 
 function EditRoomModalForm({ room, onClose, onUpdated }: Omit<EditRoomModalProps, "open">) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState(room.name);
   const [description, setDescription] = useState(room.description ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -61,27 +47,7 @@ function EditRoomModalForm({ room, onClose, onUpdated }: Omit<EditRoomModalProps
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-room-title"
-        className={cn(
-          "relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-[var(--bg-raise)] p-6 shadow-2xl",
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
-          aria-label="Fermer"
-        >
-          <X size={18} />
-        </button>
-
+    <Modal open onClose={onClose} titleId="edit-room-title">
         <h2 id="edit-room-title" className="font-tech text-xl font-bold text-white">
           Modifier le salon
         </h2>
@@ -122,11 +88,10 @@ function EditRoomModalForm({ room, onClose, onUpdated }: Omit<EditRoomModalProps
             </p>
           )}
 
-          <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-            {loading ? "Enregistrement..." : "Enregistrer"}
+          <Button type="submit" variant="primary" className="w-full" loading={loading}>
+            Enregistrer
           </Button>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

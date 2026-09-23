@@ -271,7 +271,7 @@ export function MessageCard({
               <button
                 type="button"
                 onClick={() => setAdminMenuOpen((v) => !v)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="pressable cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
                 aria-label="Actions admin"
                 aria-expanded={adminMenuOpen}
                 disabled={adminLoading}
@@ -295,7 +295,7 @@ export function MessageCard({
                         type="button"
                         role="menuitem"
                         onClick={handlePinToggle}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-200 hover:bg-white/10"
+                        className="pressable flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-200 hover:bg-white/10"
                       >
                         <Pin size={13} />
                         {displayMessage.is_pinned ? "Désépingler" : "Épingler"}
@@ -305,7 +305,7 @@ export function MessageCard({
                       type="button"
                       role="menuitem"
                       onClick={handleDelete}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-red-400 hover:bg-red-500/10"
+                      className="pressable flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-red-400 hover:bg-red-500/10"
                     >
                       <Trash2 size={13} />
                       Supprimer
@@ -339,7 +339,7 @@ export function MessageCard({
             type="button"
             onClick={handleOpenReplies}
             aria-expanded={false}
-            className="mt-2 flex items-center gap-1 text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300"
+            className="pressable mt-2 flex cursor-pointer items-center gap-1 text-xs font-medium text-cyan-400 hover:text-cyan-300"
           >
             <ChevronDown size={14} />
             {replyCountLabel(displayMessage.reply_count)}
@@ -356,7 +356,10 @@ export function MessageCard({
         {repliesOpen && !compact && (
           <div className="mt-3 space-y-1 border-l-2 border-violet-400/20 pl-3">
             {loadingReplies ? (
-              <p className="text-xs text-slate-500">Chargement des réponses...</p>
+              <div className="space-y-2 py-1" aria-busy="true" aria-label="Chargement des réponses">
+                <div className="h-10 animate-pulse rounded-xl bg-white/[0.04]" />
+                <div className="h-10 animate-pulse rounded-xl bg-white/[0.03]" />
+              </div>
             ) : allReplies.length === 0 ? (
               <p className="text-xs text-slate-500">Aucune réponse pour l&apos;instant.</p>
             ) : (
@@ -374,7 +377,7 @@ export function MessageCard({
                   <button
                     type="button"
                     onClick={() => setShowAllReplies(true)}
-                    className="py-2 text-xs font-medium text-violet-400 transition-colors hover:text-violet-300"
+                    className="pressable cursor-pointer py-2 text-xs font-medium text-violet-400 hover:text-violet-300"
                   >
                     Voir plus ({hiddenReplyCount} réponse{hiddenReplyCount > 1 ? "s" : ""})
                   </button>

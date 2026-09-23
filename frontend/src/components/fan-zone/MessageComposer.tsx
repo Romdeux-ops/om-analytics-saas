@@ -82,7 +82,7 @@ export function MessageComposer({ roomId, onOptimisticPost, onPostError }: Messa
         <span className="text-xs text-slate-500">
           {content.length}/{MAX_CONTENT_LENGTH}
         </span>
-        <Button type="submit" variant="primary" size="sm" disabled={submitting || !content.trim()}>
+        <Button type="submit" variant="primary" size="sm" loading={submitting} disabled={!content.trim()}>
           <Send size={14} />
           Publier
         </Button>

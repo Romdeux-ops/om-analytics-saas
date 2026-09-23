@@ -44,7 +44,7 @@ export function ReplyComposer({
         maxLength={MAX_REPLY_LENGTH}
         className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-violet-400/40"
       />
-      <Button type="submit" variant="primary" size="sm" disabled={submitting || !content.trim()}>
+      <Button type="submit" variant="primary" size="sm" loading={submitting} disabled={!content.trim()}>
         <Send size={14} />
       </Button>
       {onCancel && (

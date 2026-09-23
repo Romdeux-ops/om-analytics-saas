@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Activity, Zap, Shield, TrendingUp } from "lucide-react";
 import { simulateMatchAction } from "@/src/app/actions/match";
+import { Button } from "@/src/components/ui/Button";
 import type { MatchEvent, MatchView } from "@/src/lib/types/match";
 
 const mockMatchData: MatchView = {
@@ -17,28 +18,25 @@ const mockMatchData: MatchView = {
   away_score: 0,
 };
 
+const OM_PLAYERS = ["Aubameyang", "Harit", "Veretout", "Clauss", "Balerdi", "Lopez"];
+const PSG_PLAYERS = ["Mbappé", "Dembélé", "Vitinha", "Hakimi", "Marquinhos", "Donnarumma"];
+
+type Ratings = {
+  om: { score: string; width: number }[];
+  psg: { score: string; width: number }[];
+};
+
 export default function MatchLiveInterface({ matchData }: { matchData?: MatchView }) {
   const [match, setMatch] = useState(matchData || mockMatchData);
-  const [currentMinute, setCurrentMinute] = useState(0);
-  const [displayEvents, setDisplayEvents] = useState<MatchEvent[]>([]);
-  const [liveScore, setLiveScore] = useState({ home: 0, away: 0 });
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [ratings, setRatings] = useState<Ratings | null>(null);
 
-  const omPlayers = useMemo(
-    () => ["Aubameyang", "Harit", "Veretout", "Clauss", "Balerdi", "Lopez"],
-    [],
-  );
-  const psgPlayers = useMemo(
-    () => ["Mbappé", "Dembélé", "Vitinha", "Hakimi", "Marquinhos", "Donnarumma"],
-    [],
-  );
-  const [ratings, setRatings] = useState<{ om: { score: string; width: number }[]; psg: { score: string; width: number }[] } | null>(null);
+  const omPlayers = useMemo(() => OM_PLAYERS, []);
+  const psgPlayers = useMemo(() => PSG_PLAYERS, []);
 
   useEffect(() => {
     // Notes aléatoires générées uniquement côté client (au montage) pour
-    // éviter un mismatch d'hydratation dû à Math.random(). C'est une
-    // initialisation ponctuelle volontaire, d'où la désactivation de la règle.
+    // éviter un mismatch d'hydratation dû à Math.random().
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setRatings({
       om: omPlayers.map(() => ({
@@ -52,160 +50,196 @@ export default function MatchLiveInterface({ matchData }: { matchData?: MatchVie
     });
   }, [omPlayers, psgPlayers]);
 
-  const handleStart = async () => {
-    if (match.played || match.match_log.length > 0) {
-      if (currentMinute >= 90) {
-        setCurrentMinute(0);
-        setDisplayEvents([]);
-        setLiveScore({ home: 0, away: 0 });
-      }
-      setIsPlaying(!isPlaying);
-      return;
-    }
+  async function onSimulate() {
     setIsLoading(true);
     const result = await simulateMatchAction(match.id);
     setIsLoading(false);
     if ("details" in result && result.details) {
       setMatch(result.details);
-      setIsPlaying(true);
+      return true;
     }
-  };
+    return false;
+  }
+
+  return (
+    <LivePlayback match={match} isLoading={isLoading} onSimulate={onSimulate}>
+      <PlayerPerformances ratings={ratings} omPlayers={omPlayers} psgPlayers={psgPlayers} />
+    </LivePlayback>
+  );
+}
+
+function LivePlayback({
+  match,
+  isLoading,
+  onSimulate,
+  children,
+}: {
+  match: MatchView;
+  isLoading: boolean;
+  onSimulate: () => Promise<boolean>;
+  children: ReactNode;
+}) {
+  const [currentMinute, setCurrentMinute] = useState(0);
+  const [displayEvents, setDisplayEvents] = useState<MatchEvent[]>([]);
+  const [liveScore, setLiveScore] = useState({ home: 0, away: 0 });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const minuteRef = useRef(0);
+
+  async function handleStart() {
+    if (match.played || match.match_log.length > 0) {
+      if (minuteRef.current >= 90) {
+        minuteRef.current = 0;
+        setCurrentMinute(0);
+        setDisplayEvents([]);
+        setLiveScore({ home: 0, away: 0 });
+      }
+      setIsPlaying((playing) => !playing);
+      return;
+    }
+    const started = await onSimulate();
+    if (started) setIsPlaying(true);
+  }
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && currentMinute < 90) {
-      interval = setInterval(() => {
-        setCurrentMinute((prev) => {
-          const next = prev + 1;
-          const newEvents = match.match_log.filter((e) => e.minute === next);
-          if (newEvents.length > 0) {
-            setDisplayEvents((curr) => [
-              ...newEvents.filter(
-                (ne) => !curr.some((e) => e.minute === ne.minute && e.type === ne.type),
-              ),
-              ...curr,
-            ]);
-            if (newEvents[newEvents.length - 1].current_score) {
-              setLiveScore(newEvents[newEvents.length - 1].current_score);
-            }
-          }
-          return next;
-        });
-      }, 150);
-    }
+    if (!isPlaying) return;
+    const log = match.match_log;
+    const interval = setInterval(() => {
+      if (minuteRef.current >= 90) return;
+      const next = minuteRef.current + 1;
+      minuteRef.current = next;
+      setCurrentMinute(next);
+      const newEvents = log.filter((e) => e.minute === next);
+      if (newEvents.length === 0) return;
+      setDisplayEvents((curr) => [
+        ...newEvents.filter(
+          (ne) => !curr.some((e) => e.minute === ne.minute && e.type === ne.type),
+        ),
+        ...curr,
+      ]);
+      const score = newEvents[newEvents.length - 1].current_score;
+      if (score) setLiveScore(score);
+    }, 150);
     return () => clearInterval(interval);
-  }, [isPlaying, currentMinute, match.match_log]);
+  }, [isPlaying, match.match_log]);
 
   return (
     <div className="flex min-h-[70vh] w-full max-w-[1600px] flex-col gap-6">
-        <header className="flex h-16 shrink-0 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="font-tech text-xl font-bold leading-none tracking-tight text-white">
-                SIMULATION LIVE
-              </h1>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
-                {match.home_team_name} vs {match.away_team_name}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleStart}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-bold text-sm uppercase tracking-wide hover:scale-105 transition-transform disabled:opacity-50"
-          >
-            {isLoading ? (
-              "Chargement..."
-            ) : isPlaying ? (
-              <>
-                <Pause size={14} /> Pause
-              </>
-            ) : (
-              <>
-                <Play size={14} /> Lancer Simulation
-              </>
-            )}
-          </button>
-        </header>
-
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            <ScoreBoard
-              home={match.home_team_name}
-              away={match.away_team_name}
-              score={liveScore}
-              minute={currentMinute}
-            />
-
-            <div className="grid grid-cols-3 gap-6 h-32">
-              <StatCard
-                label="Possession"
-                value={`${50 + Math.round(Math.sin(currentMinute) * 5)}%`}
-                icon={<Activity size={18} />}
-                color="text-cyan-400"
-              />
-              <StatCard
-                label="Danger (xG)"
-                value={(displayEvents.length * 0.12).toFixed(2)}
-                icon={<Zap size={18} />}
-                color="text-amber-400"
-              />
-              <StatCard
-                label="Défense"
-                value="Haut"
-                icon={<Shield size={18} />}
-                color="text-emerald-400"
-              />
-            </div>
-
-            <div className="flex-1 bento-card p-6 min-h-[300px] flex flex-col">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                  Performances Joueurs (Live)
-                </h3>
-              </div>
-              <div className="flex-1 grid grid-cols-2 gap-12 overflow-y-auto no-scrollbar">
-                {ratings ? (
-                  <>
-                    <PlayerList players={omPlayers} ratings={ratings.om} color="bg-cyan-500" />
-                    <PlayerList players={psgPlayers} ratings={ratings.psg} color="bg-white" />
-                  </>
-                ) : (
-                  <div className="col-span-2 flex items-center justify-center text-slate-600 text-sm">
-                    En attente de données...
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-4 bento-card p-0 flex flex-col h-full overflow-hidden relative min-h-[400px]">
-            <div className="p-5 border-b border-white/5 bg-white/5 backdrop-blur-md z-10">
-              <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                Fil du match
-              </h3>
-            </div>
-            <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 relative">
-              <AnimatePresence mode="popLayout">
-                {displayEvents.map((event, i) => (
-                  <FeedItem key={`${event.minute}-${i}`} event={event} />
-                ))}
-              </AnimatePresence>
-              {displayEvents.length === 0 && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 opacity-50">
-                  <TrendingUp size={32} className="mb-2" />
-                  <span className="text-xs uppercase tracking-widest">
-                    En attente du coup d&apos;envoi
-                  </span>
-                </div>
-              )}
-            </div>
+      <header className="flex h-16 shrink-0 items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="font-tech text-xl font-bold leading-none tracking-tight text-white">
+              SIMULATION LIVE
+            </h1>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+              {match.home_team_name} vs {match.away_team_name}
+            </p>
           </div>
         </div>
+        <Button onClick={handleStart} loading={isLoading}>
+          {isPlaying ? (
+            <>
+              <Pause size={14} /> Pause
+            </>
+          ) : (
+            <>
+              <Play size={14} /> Lancer Simulation
+            </>
+          )}
+        </Button>
+      </header>
+
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          <ScoreBoard
+            home={match.home_team_name}
+            away={match.away_team_name}
+            score={liveScore}
+            minute={currentMinute}
+          />
+
+          <div className="grid grid-cols-3 gap-6 h-32">
+            <StatCard
+              label="Possession"
+              value={`${50 + Math.round(Math.sin(currentMinute) * 5)}%`}
+              icon={<Activity size={18} />}
+              color="text-cyan-400"
+            />
+            <StatCard
+              label="Danger (xG)"
+              value={(displayEvents.length * 0.12).toFixed(2)}
+              icon={<Zap size={18} />}
+              color="text-amber-400"
+            />
+            <StatCard
+              label="Défense"
+              value="Haut"
+              icon={<Shield size={18} />}
+              color="text-emerald-400"
+            />
+          </div>
+
+          {children}
+        </div>
+
+        <div className="lg:col-span-4 bento-card p-0 flex flex-col h-full overflow-hidden relative min-h-[400px]">
+          <div className="p-5 border-b border-white/5 bg-white/5 z-10">
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              Fil du match
+            </h3>
+          </div>
+          <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 relative">
+            <AnimatePresence>
+              {displayEvents.map((event, i) => (
+                <FeedItem key={`${event.minute}-${event.type}-${i}`} event={event} />
+              ))}
+            </AnimatePresence>
+            {displayEvents.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 opacity-50">
+                <TrendingUp size={32} className="mb-2" />
+                <span className="text-xs uppercase tracking-widest">
+                  En attente du coup d&apos;envoi
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
+const PlayerPerformances = memo(function PlayerPerformances({
+  ratings,
+  omPlayers,
+  psgPlayers,
+}: {
+  ratings: Ratings | null;
+  omPlayers: string[];
+  psgPlayers: string[];
+}) {
+  return (
+    <div className="flex-1 bento-card p-6 min-h-[300px] flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+          Performances Joueurs (Live)
+        </h3>
+      </div>
+      <div className="flex-1 grid grid-cols-2 gap-12 overflow-y-auto no-scrollbar">
+        {ratings ? (
+          <>
+            <PlayerList players={omPlayers} ratings={ratings.om} color="bg-cyan-500" />
+            <PlayerList players={psgPlayers} ratings={ratings.psg} color="bg-white" />
+          </>
+        ) : (
+          <div className="col-span-2 flex items-center justify-center text-slate-600 text-sm">
+            En attente de données...
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
 
 function ScoreBoard({
   home,
@@ -246,7 +280,7 @@ function ScoreBoard({
               {score.away}
             </span>
           </div>
-          <div className="px-4 py-1 rounded-full border border-white/10 bg-black/30 backdrop-blur-md text-cyan-400 font-mono font-bold text-lg">
+          <div className="px-4 py-1 rounded-full border border-white/10 bg-black/30 text-cyan-400 font-mono font-bold text-lg">
             {minute}
             <span className="animate-pulse">&apos;</span>
           </div>
@@ -268,15 +302,14 @@ function FeedItem({ event }: { event: MatchEvent }) {
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, x: 20, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      className={`p-4 rounded-xl border backdrop-blur-md flex gap-4 ${
+      className={`p-4 rounded-xl border flex gap-4 ${
         isGoal
           ? "bg-cyan-900/10 border-cyan-500/40 shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]"
           : isCard
             ? "bg-amber-900/10 border-amber-500/40"
-            : "bg-white/5 border-white/5 hover:bg-white/10"
+            : "bg-white/5 border-white/5"
       }`}
     >
       <span
@@ -316,7 +349,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="bento-card flex flex-col items-center justify-center gap-2 hover:bg-white/5">
+    <div className="bento-card flex flex-col items-center justify-center gap-2">
       <div className={`p-2 rounded-lg bg-white/5 ${color}`}>{icon}</div>
       <span className="text-2xl font-bold text-white font-tech">{value}</span>
       <span className="text-[10px] text-slate-500 uppercase tracking-widest">{label}</span>
@@ -336,9 +369,9 @@ function PlayerList({
   return (
     <div className="space-y-3">
       {players.map((p, i) => (
-        <div key={p} className="group">
+        <div key={p}>
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-slate-300 group-hover:text-white transition-colors">{p}</span>
+            <span className="text-slate-300">{p}</span>
             <span
               className={`font-mono font-bold ${parseFloat(ratings[i].score) > 7 ? "text-white" : "text-slate-500"}`}
             >
@@ -349,7 +382,7 @@ function PlayerList({
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${ratings[i].width}%` }}
-              className={`h-full ${color} opacity-60 group-hover:opacity-100`}
+              className={`h-full ${color}`}
             />
           </div>
         </div>

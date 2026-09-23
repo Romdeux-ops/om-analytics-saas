@@ -21,8 +21,8 @@ function StandingLine({ row }: { row: StandingRow }) {
     <li
       className={cn(
         ROW_GRID,
-        "items-center rounded-xl px-2 py-2 transition-colors",
-        row.isOm ? "om-highlight" : "hover:bg-white/[0.04]",
+        "items-center rounded-xl px-2 py-2",
+        row.isOm && "om-highlight",
       )}
     >
       <RankBadge rank={row.rank} isOm={row.isOm} zone={row.zone} />
