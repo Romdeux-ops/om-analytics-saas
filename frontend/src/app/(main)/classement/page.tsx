@@ -3,7 +3,6 @@ import { ClassementView } from "@/src/components/classement/ClassementView";
 import { StandingsTable } from "@/src/components/classement/StandingsTable";
 import { DrawPlaceholder } from "@/src/components/classement/DrawPlaceholder";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
-import { Reveal } from "@/src/components/ui/Reveal";
 import {
   COMPETITIONS,
   getCompetition,
@@ -45,9 +44,7 @@ export default function ClassementPage() {
         accent="gold"
       />
 
-      <Reveal>
-        <ClassementView competitions={COMPETITIONS} panels={panels} />
-      </Reveal>
+      <ClassementView competitions={COMPETITIONS} panels={panels} />
     </div>
   );
 }

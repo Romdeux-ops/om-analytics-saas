@@ -44,7 +44,7 @@ export function MessageActions({
         type="button"
         onClick={() => requireAuth(onToggleLike)}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+          "pressable inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
           userLiked
             ? "border-rose-400/40 bg-rose-500/15 text-rose-300"
             : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-rose-400/30 hover:text-rose-300",
@@ -60,7 +60,7 @@ export function MessageActions({
         <button
           type="button"
           onClick={() => requireAuth(() => setPickerOpen((v) => !v))}
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition-colors hover:border-violet-400/30 hover:text-violet-300"
+          className="pressable inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 hover:border-violet-400/30 hover:text-violet-300"
           aria-expanded={pickerOpen}
           aria-label="Ajouter une réaction"
         >
@@ -87,7 +87,7 @@ export function MessageActions({
                   role="menuitem"
                   onClick={() => handleReaction(emoji)}
                   className={cn(
-                    "rounded-lg px-2 py-1 text-base transition-colors hover:bg-white/10",
+                    "pressable cursor-pointer rounded-lg px-2 py-1 text-base hover:bg-white/10",
                     userReaction === emoji && "bg-violet-500/20 ring-1 ring-violet-400/30",
                   )}
                   aria-label={`Réagir ${emoji}`}
@@ -104,7 +104,7 @@ export function MessageActions({
         <button
           type="button"
           onClick={() => requireAuth(onStartReply)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition-colors hover:border-cyan-400/30 hover:text-cyan-300"
+          className="pressable inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 hover:border-cyan-400/30 hover:text-cyan-300"
           aria-label="Répondre"
         >
           <MessageCircle size={13} />
@@ -118,7 +118,7 @@ export function MessageActions({
           type="button"
           onClick={() => handleReaction(r.emoji)}
           className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
+            "pressable inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs",
             userReaction === r.emoji
               ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
               : "border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]",

@@ -8,7 +8,6 @@ import { NextMatchHighlight } from "@/src/components/calendrier/NextMatchHighlig
 import { DrawPlaceholder } from "@/src/components/classement/DrawPlaceholder";
 import type { TabDescriptor } from "@/src/components/classement/CompetitionTabs";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
-import { Reveal } from "@/src/components/ui/Reveal";
 import { COMPETITIONS, getCompetition } from "@/src/lib/data/competitions";
 import { getAllOmFixtures, getOmFixtures } from "@/src/lib/data/calendar";
 
@@ -51,10 +50,8 @@ export default function CalendrierPage() {
         accent="cyan"
       />
 
-      <Reveal>
-        <NextMatchHighlight />
-        <CalendarView tabs={tabs} panels={panels} />
-      </Reveal>
+      <NextMatchHighlight />
+      <CalendarView tabs={tabs} panels={panels} />
     </div>
   );
 }

@@ -342,8 +342,8 @@ export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageF
 
       {cursor && (
         <div className="flex justify-center pt-2">
-          <Button variant="ghost" size="sm" onClick={loadMore} disabled={loadingMore}>
-            {loadingMore ? "Chargement..." : "Charger plus"}
+          <Button variant="ghost" size="sm" onClick={loadMore} loading={loadingMore}>
+            Charger plus
           </Button>
         </div>
       )}

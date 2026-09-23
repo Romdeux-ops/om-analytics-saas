@@ -83,7 +83,7 @@ export function AdminToolbar({
             variant="outline"
             size="sm"
             onClick={handleDeleteRoom}
-            disabled={deleting}
+            loading={deleting}
             className="text-red-300 hover:text-red-200"
           >
             <Trash2 size={14} />

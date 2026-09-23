@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CompetitionTabs } from "@/src/components/classement/CompetitionTabs";
 import type { TabDescriptor } from "@/src/components/classement/CompetitionTabs";
+import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { AdminToolbar } from "@/src/components/fan-zone/AdminToolbar";
 import { GuestBanner } from "@/src/components/fan-zone/GuestBanner";
 import { MessageFeed } from "@/src/components/fan-zone/MessageFeed";
@@ -49,21 +50,30 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
     [rooms],
   );
 
-  useEffect(() => {
-    const room = rooms.find((r) => r.slug === selectedSlug);
-    if (!room || loadedSlugsRef.current.has(selectedSlug)) return;
+  const loadRoom = useCallback((slug: string, showLoading: boolean) => {
+    const room = rooms.find((r) => r.slug === slug);
+    if (!room || loadedSlugsRef.current.has(slug)) return;
 
-    loadedSlugsRef.current.add(selectedSlug);
-    setLoadingSlug(selectedSlug);
+    loadedSlugsRef.current.add(slug);
+    if (showLoading) setLoadingSlug(slug);
 
     fetchRoomFeedClient(room.id)
       .then((feed) => {
-        setFeedsBySlug((prev) => ({ ...prev, [selectedSlug]: feed }));
+        setFeedsBySlug((prev) => ({ ...prev, [slug]: feed }));
+      })
+      .catch(() => {
+        loadedSlugsRef.current.delete(slug);
       })
       .finally(() => {
-        setLoadingSlug((current) => (current === selectedSlug ? null : current));
+        if (showLoading) {
+          setLoadingSlug((current) => (current === slug ? null : current));
+        }
       });
-  }, [selectedSlug, rooms]);
+  }, [rooms]);
+
+  useEffect(() => {
+    loadRoom(selectedSlug, true);
+  }, [selectedSlug, loadRoom]);
 
   const feed = feedsBySlug[selectedSlug];
   const selectedRoom = rooms.find((r) => r.slug === selectedSlug) ?? rooms[0];
@@ -180,6 +190,7 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
         competitions={tabs}
         selected={selectedSlug}
         onSelect={setSelectedSlug}
+        onPrefetch={(slug) => loadRoom(slug, false)}
         ariaLabel="Salons"
       />
 
@@ -192,7 +203,7 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
       >
         <div className="lg:col-span-3">
           {isLoading || !feed ? (
-            <p className="py-8 text-center text-sm text-slate-500">Chargement du salon...</p>
+            <CardSkeleton rows={5} />
           ) : (
             <MessageFeed
               key={selectedRoom.id}

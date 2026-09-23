@@ -19,7 +19,7 @@ export function AppHeader() {
   return (
     <header className="mb-8 md:mb-10">
       <div className="flex items-center justify-between gap-4">
-        <Link href="/" className="group flex shrink-0 items-center gap-4" aria-label="OM Analytics — accueil">
+        <Link href="/" prefetch className="pressable group flex shrink-0 items-center gap-4" aria-label="OM Analytics — accueil">
           <div className="relative">
             <span className="absolute -inset-1.5 rounded-2xl bg-gradient-to-tr from-cyan-500/40 to-blue-600/40 opacity-70 blur-md transition-opacity group-hover:opacity-100" />
             <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 font-black font-tech text-lg text-slate-950 shadow-lg shadow-cyan-500/30 ring-1 ring-white/20">
@@ -50,7 +50,7 @@ export function AppHeader() {
                 prefetch
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors",
+                  "pressable flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium",
                   active
                     ? "border border-cyan-400/25 bg-cyan-500/15 text-white shadow-sm shadow-cyan-500/10"
                     : "text-slate-300 hover:bg-white/8 hover:text-white",
@@ -90,7 +90,7 @@ export function AppHeader() {
               prefetch
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm",
+                "pressable flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium sm:px-4 sm:text-sm",
                 active
                   ? "border border-cyan-400/25 bg-cyan-500/15 text-white"
                   : "text-slate-300 hover:bg-white/8 hover:text-white",

@@ -48,21 +48,21 @@ const RESULT_STYLES: Record<
   { row: string; bar: string; score: string; badge: string; label: string }
 > = {
   win: {
-    row: "border-emerald-400/15 bg-emerald-500/[0.06] hover:border-emerald-400/25 hover:bg-emerald-500/[0.09]",
+    row: "border-emerald-400/15 bg-emerald-500/[0.06]",
     bar: "from-emerald-400/0 via-emerald-400/70 to-emerald-400/0",
     score: "text-emerald-300",
     badge: "border-emerald-400/30 bg-emerald-500/15 text-emerald-300",
     label: "Victoire",
   },
   draw: {
-    row: "border-slate-400/15 bg-slate-400/[0.05] hover:border-slate-400/25 hover:bg-slate-400/[0.08]",
+    row: "border-slate-400/15 bg-slate-400/[0.05]",
     bar: "from-slate-400/0 via-slate-400/60 to-slate-400/0",
     score: "text-slate-300",
     badge: "border-slate-400/30 bg-slate-500/15 text-slate-300",
     label: "Nul",
   },
   loss: {
-    row: "border-red-400/15 bg-red-500/[0.06] hover:border-red-400/25 hover:bg-red-500/[0.09]",
+    row: "border-red-400/15 bg-red-500/[0.06]",
     bar: "from-red-400/0 via-red-400/70 to-red-400/0",
     score: "text-red-300",
     badge: "border-red-400/30 bg-red-500/15 text-red-300",
@@ -86,9 +86,8 @@ export function FixtureRow({ fixture, showCompetition = false }: FixtureRowProps
   return (
     <div
       className={cn(
-        "group/row relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-all sm:flex-row sm:items-center sm:gap-4",
+        "relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 sm:flex-row sm:items-center sm:gap-4",
         style ? style.row : involvesOm && "om-highlight",
-        !involvesOm && !style && "hover:border-white/10 hover:bg-white/[0.04]",
       )}
     >
       {(style || involvesOm) && (

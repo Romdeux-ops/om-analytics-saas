@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/src/components/ui/Button";
-import { cn } from "@/src/lib/ui/cn";
+import { Modal } from "@/src/components/ui/Modal";
 import { createPollAction } from "@/src/lib/fan-zone/admin-actions";
 import {
   MAX_POLL_OPTION_LABEL_LENGTH,
@@ -22,27 +22,11 @@ interface CreatePollModalProps {
 }
 
 export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePollModalProps) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [closesAt, setClosesAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
 
   function updateOption(index: number, value: string) {
     setOptions((prev) => prev.map((o, i) => (i === index ? value.slice(0, MAX_POLL_OPTION_LABEL_LENGTH) : o)));
@@ -84,27 +68,12 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-poll-title"
-        className={cn(
-          "relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[var(--bg-raise)] p-6 shadow-2xl",
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
-          aria-label="Fermer"
-        >
-          <X size={18} />
-        </button>
-
+    <Modal
+      open={open}
+      onClose={onClose}
+      titleId="create-poll-title"
+      className="max-h-[90vh] overflow-y-auto"
+    >
         <h2 id="create-poll-title" className="font-tech text-xl font-bold text-white">
           Nouveau sondage
         </h2>
@@ -145,7 +114,7 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
                     <button
                       type="button"
                       onClick={() => removeOption(index)}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-red-400"
+                      className="pressable cursor-pointer rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-red-400"
                       aria-label={`Supprimer l'option ${index + 1}`}
                     >
                       <Trash2 size={14} />
@@ -181,11 +150,10 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
             </p>
           )}
 
-          <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-            {loading ? "Création..." : "Créer le sondage"}
+          <Button type="submit" variant="primary" className="w-full" loading={loading}>
+            Créer le sondage
           </Button>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

@@ -1,16 +1,25 @@
 "use client";
 
+import { useRef } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/src/lib/ui/cn";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { setTheme } = useTheme();
+  const switchTimer = useRef<number | null>(null);
 
   // La classe posée sur <html> par next-themes est la source de vérité :
   // fiable même avant l'hydratation (contrairement à `resolvedTheme`).
   const toggle = () => {
-    const isLight = document.documentElement.classList.contains("light");
+    const root = document.documentElement;
+    root.classList.add("theme-switching");
+    if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
+    switchTimer.current = window.setTimeout(() => {
+      root.classList.remove("theme-switching");
+      switchTimer.current = null;
+    }, 400);
+    const isLight = root.classList.contains("light");
     setTheme(isLight ? "dark" : "light");
   };
 
@@ -21,7 +30,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label="Basculer entre le thème clair et sombre"
       title="Changer de thème"
       className={cn(
-        "group relative inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 backdrop-blur-md transition-all hover:border-cyan-400/40 hover:bg-white/[0.08] hover:text-white",
+        "pressable group relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 hover:border-cyan-400/40 hover:bg-white/[0.08] hover:text-white",
         className,
       )}
     >

@@ -91,7 +91,7 @@ export function PollCard({ poll, featured = false, onClosed }: PollCardProps) {
               variant="ghost"
               size="sm"
               onClick={handleClosePoll}
-              disabled={closing}
+              loading={closing}
               className="text-amber-300 hover:text-amber-200"
             >
               <Lock size={13} />
@@ -115,7 +115,7 @@ export function PollCard({ poll, featured = false, onClosed }: PollCardProps) {
                 disabled={hasVoted || isClosed || voting}
                 onClick={() => handleVote(option.id)}
                 className={cn(
-                  "relative w-full overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors",
+                  "pressable relative w-full cursor-pointer overflow-hidden rounded-xl border px-4 py-3 text-left disabled:cursor-not-allowed",
                   isSelected
                     ? "border-violet-400/40 bg-violet-500/10"
                     : "border-white/10 bg-white/[0.02] hover:border-violet-400/25 hover:bg-white/[0.04]",

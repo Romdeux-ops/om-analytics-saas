@@ -31,9 +31,8 @@ export function Card({
   const classes = cn(
     variants[variant],
     padded && "p-5 md:p-6",
-    "transition-all duration-300",
     interactive &&
-      "cursor-pointer group hover:-translate-y-0.5 hover:border-cyan-400/40 hover:shadow-[var(--shadow-glow)]",
+      "bento-interactive pressable cursor-pointer group hover:-translate-y-0.5 hover:border-cyan-400/40 hover:shadow-[var(--shadow-glow)]",
     className,
   );
 

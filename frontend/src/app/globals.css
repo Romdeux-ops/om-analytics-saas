@@ -55,10 +55,6 @@
   border-color: var(--glass-border);
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   background-color: var(--bg-deep);
   color: var(--text-primary);
@@ -79,6 +75,31 @@ body {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 10px;
+}
+
+/* Dans @layer base pour que cursor-default / cursor-pointer des utilitaires gagnent. */
+@layer base {
+  :where(a[href], button:not(:disabled), [role="tab"], [role="menuitem"]) {
+    cursor: pointer;
+  }
+  :where(button:disabled) {
+    cursor: not-allowed;
+  }
+
+  /* Champs : bordure de focus animée, même teinte que le focus global */
+  :where(input, textarea, select) {
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+}
+
+/* Retour au clic, partagé par boutons, cartes, onglets et liens */
+.pressable {
+  transition-property: transform, background-color, border-color, box-shadow, filter, color, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pressable:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 /* =========================================================================
@@ -138,14 +159,12 @@ body {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
     var(--bg-raise);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 /* Reflet lumineux en haut de carte */
@@ -159,8 +178,25 @@ body {
   opacity: 0;
   transition: opacity 0.3s ease;
 }
-.bento-card:hover::after {
+.bento-card.bento-interactive:hover::after {
   opacity: 1;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .modal-panel {
+    animation: modal-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 
 /* Bordure lumineuse animée (héros) */
@@ -310,13 +346,12 @@ html.light .theme-icon-moon {
 }
 
 /* =========================================================================
-   TRANSITION FLUIDE ENTRE THÈMES (clair <-> sombre)
-   Faible spécificité (:where) => les transitions des composants gardent priorité
+   TRANSITION DE THÈME — uniquement pendant le toggle (~400 ms)
    ========================================================================= */
 @media (prefers-reduced-motion: no-preference) {
-  :where(body, header, footer, main, section, article, div, span, p, h1, h2, h3, li, a, nav, button, code) {
-    transition: background-color 0.45s ease, border-color 0.45s ease,
-      color 0.35s ease, box-shadow 0.45s ease;
+  html.theme-switching :where(body, header, footer, main, section, article, div, span, p, h1, h2, h3, li, a, nav, button, code) {
+    transition: background-color 0.4s ease, border-color 0.4s ease,
+      color 0.35s ease, box-shadow 0.4s ease;
   }
 }
 
@@ -445,7 +480,6 @@ html.light .to-white\/\[0\.02\] { --tw-gradient-to: rgba(15, 42, 84, 0.03); }
    ACCESSIBILITÉ — mouvement réduit
    ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
   *,
   *::before,
   *::after {

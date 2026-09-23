@@ -105,7 +105,7 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
               onClick={() => {
                 void requireAuth(() => setReplying(true));
               }}
-              className="mt-2 text-xs font-medium text-cyan-400/80 hover:text-cyan-300"
+              className="pressable mt-2 cursor-pointer text-xs font-medium text-cyan-400/80 hover:text-cyan-300"
             >
               Répondre
             </button>
@@ -126,7 +126,7 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
                   type="button"
                   onClick={loadReplies}
                   disabled={loadingReplies}
-                  className="text-xs font-medium text-slate-400 hover:text-slate-300"
+                  className="pressable cursor-pointer text-xs font-medium text-slate-400 hover:text-slate-300 disabled:cursor-not-allowed"
                 >
                   {loadingReplies
                     ? "Chargement..."
@@ -331,7 +331,7 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              disabled={closing}
+              loading={closing}
               className="text-amber-300 hover:text-amber-200"
             >
               <Lock size={13} />
@@ -386,7 +386,8 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
               type="button"
               variant="primary"
               size="sm"
-              disabled={submitting || !content.trim()}
+              loading={submitting}
+              disabled={!content.trim()}
               onClick={handleSubmit}
               className="self-end"
             >
