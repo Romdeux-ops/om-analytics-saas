@@ -37,7 +37,7 @@ export default function CalendrierPage() {
       />
     ),
     ligue1: <FixtureList fixtures={getOmFixtures("ligue1")} title="Ligue 1" season={SEASON} />,
-    europa: <DrawPlaceholder competition={getCompetition("europa")} />,
+    europa: <FixtureList fixtures={getOmFixtures("europa")} title="Europa League" season={SEASON} />,
     coupe: <DrawPlaceholder competition={getCompetition("coupe")} />,
   };
 
