@@ -8,11 +8,11 @@ import type { CompetitionId } from "@/src/lib/types/competition";
  * au 28 mars 2027. Données 100 % statiques (scores/simulation plus tard).
  */
 export const OM_LIGUE1_FIXTURES: readonly CalendarFixture[] = [
-  { competition: "ligue1", matchday: 1, homeTeam: "Marseille", awayTeam: "Strasbourg", date: "2026-08-30T12:00:00+02:00", timeTbd: true, played: true, homeScore: 4, awayScore: 0 },
-  { competition: "ligue1", matchday: 2, homeTeam: "Monaco", awayTeam: "Marseille", date: "2026-09-06T12:00:00+02:00", timeTbd: true, played: true, homeScore: 2, awayScore: 0 },
-  { competition: "ligue1", matchday: 3, homeTeam: "Marseille", awayTeam: "Paris FC", date: "2026-09-11T12:00:00+02:00", timeTbd: true, played: true, homeScore: 2, awayScore: 3 },
-  { competition: "ligue1", matchday: 4, homeTeam: "Rennes", awayTeam: "Marseille", date: "2026-09-17T12:00:00+02:00", timeTbd: true, played: true, homeScore: 1, awayScore: 0 },
-  { competition: "ligue1", matchday: 5, homeTeam: "Marseille", awayTeam: "Paris-SG", date: "2026-09-20T12:00:00+02:00", timeTbd: true, played: true, homeScore: 1, awayScore: 2 },
+  { competition: "ligue1", matchday: 1, homeTeam: "Marseille", awayTeam: "Strasbourg", date: "2026-08-21T20:45:00+02:00", timeTbd: false, played: true, homeScore: 4, awayScore: 0 },
+  { competition: "ligue1", matchday: 2, homeTeam: "Monaco", awayTeam: "Marseille", date: "2026-08-30T20:45:00+02:00", timeTbd: false, played: true, homeScore: 2, awayScore: 0 },
+  { competition: "ligue1", matchday: 3, homeTeam: "Marseille", awayTeam: "Paris FC", date: "2026-09-06T20:45:00+02:00", timeTbd: false, played: true, homeScore: 2, awayScore: 3 },
+  { competition: "ligue1", matchday: 4, homeTeam: "Rennes", awayTeam: "Marseille", date: "2026-09-11T20:45:00+02:00", timeTbd: false, played: true, homeScore: 1, awayScore: 0 },
+  { competition: "ligue1", matchday: 5, homeTeam: "Marseille", awayTeam: "Paris-SG", date: "2026-09-20T20:45:00+02:00", timeTbd: false, played: true, homeScore: 1, awayScore: 2 },
   { competition: "ligue1", matchday: 6, homeTeam: "Troyes", awayTeam: "Marseille", date: "2026-10-11T20:45:00+02:00", timeTbd: false, played: false },
   { competition: "ligue1", matchday: 7, homeTeam: "Angers", awayTeam: "Marseille", date: "2026-10-18T15:00:00+02:00", timeTbd: false, played: false },
   { competition: "ligue1", matchday: 8, homeTeam: "Marseille", awayTeam: "Le Havre", date: "2026-10-25T17:15:00+01:00", timeTbd: false, played: false },
@@ -38,7 +38,7 @@ export const OM_LIGUE1_FIXTURES: readonly CalendarFixture[] = [
   { competition: "ligue1", matchday: 28, homeTeam: "Le Havre", awayTeam: "Marseille", date: "2027-04-17T12:00:00+02:00", timeTbd: true, played: false },
   { competition: "ligue1", matchday: 29, homeTeam: "Marseille", awayTeam: "Auxerre", date: "2027-04-24T12:00:00+02:00", timeTbd: true, played: false },
   { competition: "ligue1", matchday: 30, homeTeam: "Toulouse", awayTeam: "Marseille", date: "2027-05-01T12:00:00+02:00", timeTbd: true, played: false },
-  { competition: "ligue1", matchday: 31, homeTeam: "Marseille", awayTeam: "Nice", date: "2027-05-08T12:00:00+02:00", timeTbd: true, played: false },
+  { competition: "ligue1", matchday: 31, homeTeam: "Nice", awayTeam: "Marseille", date: "2027-05-08T12:00:00+02:00", timeTbd: true, played: false },
   { competition: "ligue1", matchday: 32, homeTeam: "Marseille", awayTeam: "Lens", date: "2027-05-16T12:00:00+02:00", timeTbd: true, played: false },
   { competition: "ligue1", matchday: 33, homeTeam: "Paris FC", awayTeam: "Marseille", date: "2027-05-22T12:00:00+02:00", timeTbd: true, played: false },
   { competition: "ligue1", matchday: 34, homeTeam: "Marseille", awayTeam: "Lorient", date: "2027-05-29T12:00:00+02:00", timeTbd: true, played: false },
@@ -46,9 +46,9 @@ export const OM_LIGUE1_FIXTURES: readonly CalendarFixture[] = [
 
 /** Europa League : phase de ligue tirée le 28 août 2026 (8 journées, nouveau format UEFA). */
 export const OM_EUROPA_FIXTURES: readonly CalendarFixture[] = [
-  { competition: "europa", matchday: 1, homeTeam: "Beşiktaş", awayTeam: "Marseille", date: "2026-09-20T21:00:00+02:00", timeTbd: true, played: true, homeScore: 4, awayScore: 1 },
+  { competition: "europa", matchday: 1, homeTeam: "Beşiktaş", awayTeam: "Marseille", date: "2026-09-17T21:00:00+02:00", timeTbd: false, played: true, homeScore: 4, awayScore: 1 },
   { competition: "europa", matchday: 2, homeTeam: "Marseille", awayTeam: "Olympiacos", date: "2026-10-15T21:00:00+02:00", timeTbd: false, played: false },
-  { competition: "europa", matchday: 3, homeTeam: "Marseille", awayTeam: "Sturm Graz", date: "2026-10-22T18:45:00+02:00", timeTbd: false, played: false },
+  { competition: "europa", matchday: 3, homeTeam: "Sturm Graz", awayTeam: "Marseille", date: "2026-10-22T18:45:00+02:00", timeTbd: false, played: false },
   { competition: "europa", matchday: 4, homeTeam: "Leverkusen", awayTeam: "Marseille", date: "2026-11-05T21:00:00+01:00", timeTbd: false, played: false },
   { competition: "europa", matchday: 5, homeTeam: "Marseille", awayTeam: "Levski Sofia", date: "2026-11-26T18:45:00+01:00", timeTbd: false, played: false },
   { competition: "europa", matchday: 6, homeTeam: "Marseille", awayTeam: "Celta", date: "2026-12-10T18:45:00+01:00", timeTbd: false, played: false },
