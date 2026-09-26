@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const GUEST_COOKIE = "om_guest";
-const PUBLIC_PATHS = ["/welcome", "/auth/callback"];
+const PUBLIC_PATHS = ["/welcome", "/auth/callback", "/api/revalidate"];
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 

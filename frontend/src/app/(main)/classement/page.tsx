@@ -8,28 +8,33 @@ import {
   getCompetition,
   getEuropaStandings,
   getLigue1Standings,
+  standingsMatchday,
 } from "@/src/lib/data/competitions";
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
-export default function ClassementPage() {
+export default async function ClassementPage() {
   const ligue1 = getCompetition("ligue1");
   const europa = getCompetition("europa");
+  const [ligue1Standings, europaStandings] = await Promise.all([
+    getLigue1Standings(),
+    getEuropaStandings(),
+  ]);
   const panels = {
     ligue1: (
       <StandingsTable
-        standings={getLigue1Standings()}
+        standings={ligue1Standings}
         title={ligue1.label}
         season={ligue1.season}
-        badgeLabel="Journée 5"
+        badgeLabel={`Journée ${standingsMatchday(ligue1Standings)}`}
       />
     ),
     europa: (
       <StandingsTable
-        standings={getEuropaStandings()}
+        standings={europaStandings}
         title={europa.label}
         season={europa.season}
-        badgeLabel="Journée 1 · Phase de ligue"
+        badgeLabel={`Journée ${standingsMatchday(europaStandings)} · Phase de ligue`}
       />
     ),
     coupe: <DrawPlaceholder competition={getCompetition("coupe")} />,

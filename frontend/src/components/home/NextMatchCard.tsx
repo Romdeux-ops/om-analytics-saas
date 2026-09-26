@@ -31,8 +31,8 @@ function formatMatchDate(dateStr: string, timeTbd: boolean) {
   }).format(date);
 }
 
-export function NextMatchCard() {
-  const fixture = getNextOmFixture();
+export async function NextMatchCard() {
+  const fixture = await getNextOmFixture();
 
   if (!fixture) {
     return (

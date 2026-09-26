@@ -8,7 +8,7 @@ import {
   TeamCell,
 } from "@/src/components/classement/standing-cells";
 import { getStandings } from "@/src/lib/data/standings";
-import { getCompetition } from "@/src/lib/data/competitions";
+import { getCompetition, standingsMatchday } from "@/src/lib/data/competitions";
 import { shortTeamName } from "@/src/lib/ui/teams";
 import { cn } from "@/src/lib/ui/cn";
 import type { StandingRow } from "@/src/lib/types/standing";
@@ -37,8 +37,10 @@ function StandingLine({ row }: { row: StandingRow }) {
   );
 }
 
-export function StandingsCard() {
-  const standings = getStandings(5);
+export async function StandingsCard() {
+  const allStandings = await getStandings();
+  const standings = allStandings.slice(0, 5);
+  const matchday = standingsMatchday(allStandings);
   const season = getCompetition("ligue1").season;
 
   return (
@@ -75,7 +77,7 @@ export function StandingsCard() {
         </ul>
 
         <p className="mt-auto pt-4 text-[10px] uppercase tracking-widest text-slate-600">
-          Classement après J5 — top 5
+          Classement après J{matchday} — top 5
         </p>
       </div>
     </Card>

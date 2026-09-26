@@ -1,6 +1,7 @@
-import type { Competition } from "@/src/lib/types/competition";
+import type { Competition, CompetitionId } from "@/src/lib/types/competition";
 import type { StandingRow } from "@/src/lib/types/standing";
 import { isOmTeam } from "@/src/lib/ui/teams";
+import { getFootballSnapshot } from "@/src/lib/data/football";
 
 /** 18 clubs de Ligue 1 — saison 2026-2027 */
 export const LIGUE1_TEAMS = [
@@ -88,8 +89,18 @@ const LIGUE1_STANDINGS: readonly StandingRow[] = LIGUE1_STANDINGS_RAW.map((row, 
   isOm: isOmTeam(row.clubName),
 }));
 
-export function getLigue1Standings(): readonly StandingRow[] {
-  return LIGUE1_STANDINGS;
+/** Classement synchronisé (football_snapshots) s'il existe, sinon le tableau statique. */
+async function standingsFor(
+  competition: CompetitionId,
+  fallback: readonly StandingRow[],
+): Promise<readonly StandingRow[]> {
+  const snapshot = await getFootballSnapshot(competition);
+  if (!snapshot || snapshot.standings.length === 0) return fallback;
+  return snapshot.standings.map((row) => ({ ...row, isOm: isOmTeam(row.clubName) }));
+}
+
+export async function getLigue1Standings(): Promise<readonly StandingRow[]> {
+  return standingsFor("ligue1", LIGUE1_STANDINGS);
 }
 
 /**
@@ -143,6 +154,11 @@ const EUROPA_STANDINGS: readonly StandingRow[] = EUROPA_STANDINGS_RAW.map((row, 
   isOm: isOmTeam(row.clubName),
 }));
 
-export function getEuropaStandings(): readonly StandingRow[] {
-  return EUROPA_STANDINGS;
+export async function getEuropaStandings(): Promise<readonly StandingRow[]> {
+  return standingsFor("europa", EUROPA_STANDINGS);
+}
+
+/** Journée atteinte d'après le classement (nombre max de matchs joués). */
+export function standingsMatchday(standings: readonly StandingRow[]): number {
+  return standings.reduce((max, row) => Math.max(max, row.played), 0);
 }

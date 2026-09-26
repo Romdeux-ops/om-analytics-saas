@@ -1,11 +1,13 @@
 import type { CalendarFixture } from "@/src/lib/types/fixture";
 import type { CompetitionId } from "@/src/lib/types/competition";
+import { getFootballSnapshot } from "@/src/lib/data/football";
 
 /**
  * Calendrier Ligue 1 2026-2027 — matchs de l'OM (34 journées).
  * Noms normalisés vers competitions.ts (Paris-SG, Lyon, Lille…).
  * Offsets Europe/Paris : CEST (+02:00) puis CET (+01:00) du 25 oct. 2026
- * au 28 mars 2027. Données 100 % statiques (scores/simulation plus tard).
+ * au 28 mars 2027. Les données synchronisées (table football_snapshots,
+ * `bun run football:sync`) priment ; ces tableaux servent de repli.
  */
 export const OM_LIGUE1_FIXTURES: readonly CalendarFixture[] = [
   { competition: "ligue1", matchday: 1, homeTeam: "Marseille", awayTeam: "Strasbourg", date: "2026-08-21T20:45:00+02:00", timeTbd: false, played: true, homeScore: 4, awayScore: 0 },
@@ -65,25 +67,33 @@ const FIXTURES_BY_COMPETITION: Record<CompetitionId, readonly CalendarFixture[]>
   coupe: OM_COUPE_FIXTURES,
 };
 
+const COMPETITION_IDS = Object.keys(FIXTURES_BY_COMPETITION) as CompetitionId[];
+
 function byDate(a: CalendarFixture, b: CalendarFixture): number {
   return new Date(a.date).getTime() - new Date(b.date).getTime();
 }
 
+async function fixturesFor(competition: CompetitionId): Promise<readonly CalendarFixture[]> {
+  const snapshot = await getFootballSnapshot(competition);
+  return snapshot && snapshot.fixtures.length > 0
+    ? snapshot.fixtures
+    : FIXTURES_BY_COMPETITION[competition];
+}
+
 /** Matchs d'une compétition (par défaut Ligue 1), triés par date. */
-export function getOmFixtures(competition: CompetitionId = "ligue1"): readonly CalendarFixture[] {
-  return [...FIXTURES_BY_COMPETITION[competition]].sort(byDate);
+export async function getOmFixtures(
+  competition: CompetitionId = "ligue1",
+): Promise<readonly CalendarFixture[]> {
+  return [...(await fixturesFor(competition))].sort(byDate);
 }
 
 /** Calendrier général : toutes compétitions fusionnées et triées par date. */
-export function getAllOmFixtures(): readonly CalendarFixture[] {
-  return [
-    ...OM_LIGUE1_FIXTURES,
-    ...OM_EUROPA_FIXTURES,
-    ...OM_COUPE_FIXTURES,
-  ].sort(byDate);
+export async function getAllOmFixtures(): Promise<readonly CalendarFixture[]> {
+  const lists = await Promise.all(COMPETITION_IDS.map(fixturesFor));
+  return lists.flat().sort(byDate);
 }
 
 /** Premier match non joué, toutes compétitions confondues, trié par date. */
-export function getNextOmFixture(): CalendarFixture | null {
-  return getAllOmFixtures().find((f) => !f.played) ?? null;
+export async function getNextOmFixture(): Promise<CalendarFixture | null> {
+  return (await getAllOmFixtures()).find((f) => !f.played) ?? null;
 }
