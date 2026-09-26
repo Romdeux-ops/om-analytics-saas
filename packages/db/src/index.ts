@@ -16,3 +16,8 @@ export {
   type PlayerView,
   type SquadPageData,
 } from "./queries/players";
+export {
+  getFootballSnapshots,
+  upsertFootballSnapshot,
+  type FootballSnapshot,
+} from "./queries/football";

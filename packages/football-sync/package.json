@@ -1,0 +1,17 @@
+{
+  "name": "@om/football-sync",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "bun --env-file=../../frontend/.env.local run src/index.ts",
+    "sync:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --dry-run"
+  },
+  "dependencies": {
+    "@om/db": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "typescript": "^5.8.2"
+  }
+}

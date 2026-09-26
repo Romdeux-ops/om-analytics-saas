@@ -31,8 +31,8 @@ function formatMatchDate(dateStr: string, timeTbd: boolean): string {
   }).format(date);
 }
 
-export function NextMatchHighlight() {
-  const fixture = getNextOmFixture();
+export async function NextMatchHighlight() {
+  const fixture = await getNextOmFixture();
 
   if (!fixture) {
     return (

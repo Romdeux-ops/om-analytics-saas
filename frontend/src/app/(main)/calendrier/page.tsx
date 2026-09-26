@@ -13,9 +13,16 @@ import { getAllOmFixtures, getOmFixtures } from "@/src/lib/data/calendar";
 
 const SEASON = "2026-2027";
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
-export default function CalendrierPage() {
+export default async function CalendrierPage() {
+  const [allFixtures, ligue1Fixtures, europaFixtures, coupeFixtures] = await Promise.all([
+    getAllOmFixtures(),
+    getOmFixtures("ligue1"),
+    getOmFixtures("europa"),
+    getOmFixtures("coupe"),
+  ]);
+
   const tabs: TabDescriptor<CalendarTabId>[] = [
     { id: "general", label: "Calendrier général", shortLabel: "Tous", season: SEASON },
     ...COMPETITIONS.map((c) => ({
@@ -29,16 +36,25 @@ export default function CalendrierPage() {
   const panels: Record<CalendarTabId, React.ReactNode> = {
     general: (
       <FixtureList
-        fixtures={getAllOmFixtures()}
+        fixtures={allFixtures}
         title="Calendrier général"
         season={SEASON}
         showCompetition
-        note="Toutes compétitions confondues. L'Europa League et la Coupe de France seront ajoutées ici dès les tirages effectués."
+        note={
+          coupeFixtures.length === 0
+            ? "Toutes compétitions confondues. La Coupe de France sera ajoutée ici dès le tirage effectué."
+            : undefined
+        }
       />
     ),
-    ligue1: <FixtureList fixtures={getOmFixtures("ligue1")} title="Ligue 1" season={SEASON} />,
-    europa: <FixtureList fixtures={getOmFixtures("europa")} title="Europa League" season={SEASON} />,
-    coupe: <DrawPlaceholder competition={getCompetition("coupe")} />,
+    ligue1: <FixtureList fixtures={ligue1Fixtures} title="Ligue 1" season={SEASON} />,
+    europa: <FixtureList fixtures={europaFixtures} title="Europa League" season={SEASON} />,
+    coupe:
+      coupeFixtures.length > 0 ? (
+        <FixtureList fixtures={coupeFixtures} title="Coupe de France" season={SEASON} />
+      ) : (
+        <DrawPlaceholder competition={getCompetition("coupe")} />
+      ),
   };
 
   return (
