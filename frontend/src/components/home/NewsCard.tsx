@@ -1,3 +1,6 @@
+import Image from "next/image";
+import Link from "next/link";
+import { BarChart3, ExternalLink } from "lucide-react";
 import { cn } from "@/src/lib/ui/cn";
 import type { NewsItem, NewsCategory } from "@/src/lib/types/news";
 
@@ -37,36 +40,69 @@ function CategoryChip({ category }: { category: NewsCategory }) {
   );
 }
 
+const CARD_CLASS =
+  "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:border-white/15 hover:bg-white/[0.04]";
+
+function NewsLink({ item, className, children }: { item: NewsItem; className: string; children: React.ReactNode }) {
+  if (item.isAuto) {
+    return (
+      <Link href={item.url} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a href={item.url} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+    </a>
+  );
+}
+
 export function NewsCard({ item, featured = false }: { item: NewsItem; featured?: boolean }) {
   return (
-    <article
-      className={cn(
-        "relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4",
-        featured && "md:p-6",
-      )}
-    >
-      <div className="relative flex items-center gap-2">
-        <CategoryChip category={item.category} />
-        <span className="text-[10px] text-slate-500">{timeAgo(item.publishedAt)}</span>
-      </div>
-
-      <h3
-        className={cn(
-          "relative mt-3 font-bold leading-snug text-white",
-          featured ? "font-tech text-xl md:text-2xl" : "text-sm line-clamp-3",
+    <NewsLink item={item} className={cn(CARD_CLASS, featured && "md:p-6")}>
+      <article className="flex flex-1 flex-col">
+        {featured && item.imageUrl && (
+          <Image
+            src={item.imageUrl}
+            alt=""
+            width={470}
+            height={247}
+            unoptimized
+            className="-mx-4 -mt-4 mb-4 aspect-[470/247] w-[calc(100%+2rem)] max-w-none object-cover md:-mx-6 md:-mt-6 md:w-[calc(100%+3rem)]"
+          />
         )}
-      >
-        {item.title}
-      </h3>
 
-      <p
-        className={cn(
-          "relative mt-2 leading-relaxed text-slate-400",
-          featured ? "text-sm line-clamp-3" : "text-xs line-clamp-2",
+        <div className="relative flex items-center gap-2">
+          <CategoryChip category={item.category} />
+          <span className="text-[10px] text-slate-500">{timeAgo(item.publishedAt)}</span>
+        </div>
+
+        <h3
+          className={cn(
+            "relative mt-3 font-bold leading-snug text-white group-hover:text-cyan-100",
+            featured ? "font-tech text-xl md:text-2xl" : "text-sm line-clamp-3",
+          )}
+        >
+          {item.title}
+        </h3>
+
+        {item.excerpt && (
+          <p
+            className={cn(
+              "relative mt-2 leading-relaxed text-slate-400",
+              featured ? "text-sm line-clamp-3" : "text-xs line-clamp-2",
+            )}
+          >
+            {item.excerpt}
+          </p>
         )}
-      >
-        {item.excerpt}
-      </p>
-    </article>
+
+        <p className="mt-auto flex items-center gap-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          {item.isAuto ? <BarChart3 size={11} className="text-cyan-400" /> : <ExternalLink size={11} />}
+          {item.source}
+        </p>
+      </article>
+    </NewsLink>
   );
 }

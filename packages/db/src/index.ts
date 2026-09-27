@@ -21,3 +21,11 @@ export {
   upsertFootballSnapshot,
   type FootballSnapshot,
 } from "./queries/football";
+export {
+  getLatestNewsItems,
+  getNewsItemsSince,
+  upsertNewsItems,
+  replaceAutoNewsItems,
+  pruneNewsItems,
+  type NewsItemRecord,
+} from "./queries/news";

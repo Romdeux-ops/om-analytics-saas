@@ -1,3 +1,5 @@
+import { normalize } from "./text";
+
 /**
  * Noms canoniques utilisés par le front (frontend/src/lib/ui/teams.ts) :
  * les API renvoient "Paris Saint-Germain FC", "Bayer Leverkusen", "Besiktas"…
@@ -65,15 +67,6 @@ const NOISE_TOKENS = new Set([
   "fc", "afc", "ac", "sc", "sk", "nk", "as", "rc", "cf", "jk", "fk",
   "sco", "ogc", "rsc", "pfc", "tsg", "1901", "04", "29",
 ]);
-
-function normalize(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
 
 function stripNoise(normalized: string): string {
   return normalized
