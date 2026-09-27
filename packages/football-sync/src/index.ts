@@ -1,13 +1,25 @@
 import {
   createDb,
+  getNewsItemsSince,
+  pruneNewsItems,
+  replaceAutoNewsItems,
   upsertFootballSnapshot,
+  upsertNewsItems,
+  type Db,
   type FootballCompetitionId,
   type SnapshotFixture,
   type SnapshotStanding,
 } from "@om/db";
+import { buildAutoNews, type CompetitionData } from "./auto-news";
 import { currentSeasonYear } from "./dates";
 import { europaZone, fetchEspnFixtures, fetchEspnStandings } from "./espn";
 import { fetchLigue1 } from "./football-data";
+import { fetchPressArticles } from "./news";
+
+const DAY = 24 * 60 * 60 * 1000;
+/** Fenêtre de comparaison pour écarter une info déjà publiée par une autre source. */
+const DEDUPE_WINDOW = 3 * DAY;
+const NEWS_RETENTION = 14 * DAY;
 
 interface SyncJob {
   competition: FootballCompetitionId;
@@ -24,16 +36,15 @@ function buildJobs(): SyncJob[] {
   const jobs: SyncJob[] = [];
   const token = process.env.FOOTBALL_DATA_TOKEN;
 
-  if (token) {
-    jobs.push({
-      competition: "ligue1",
-      source: "football-data.org",
-      allowEmpty: false,
-      run: () => fetchLigue1(token, seasonYear),
-    });
-  } else {
-    console.warn("⚠ FOOTBALL_DATA_TOKEN absent : Ligue 1 ignorée.");
-  }
+  jobs.push({
+    competition: "ligue1",
+    source: "football-data.org",
+    allowEmpty: false,
+    run: () =>
+      token
+        ? fetchLigue1(token, seasonYear)
+        : Promise.reject(new Error("FOOTBALL_DATA_TOKEN absent : Ligue 1 non synchronisée.")),
+  });
 
   jobs.push(
     {
@@ -74,11 +85,35 @@ async function triggerRevalidation(): Promise<void> {
   console.log("✓ Cache du site invalidé.");
 }
 
+/** Articles de presse + actus générées. Renvoie le nombre de lignes écrites. */
+async function syncNews(
+  db: Db | null,
+  data: Partial<Record<FootballCompetitionId, CompetitionData>>,
+): Promise<number> {
+  const autoNews = buildAutoNews(data);
+  const since = new Date(Date.now() - DEDUPE_WINDOW);
+  const existing = db ? await getNewsItemsSince(db, since) : [];
+  const articles = await fetchPressArticles(existing, since);
+  console.log(`✓ actus : ${articles.length} nouveaux articles, ${autoNews.length} actus générées`);
+
+  if (!db) {
+    console.log(JSON.stringify({ autoNews, articles: articles.slice(-3) }, null, 2));
+    return 0;
+  }
+
+  await upsertNewsItems(db, articles);
+  // Sans données Ligue 1 fraîches, on garde les actus générées précédemment.
+  if (data.ligue1) await replaceAutoNewsItems(db, autoNews);
+  await pruneNewsItems(db, new Date(Date.now() - NEWS_RETENTION));
+  return articles.length + (data.ligue1 ? autoNews.length : 0);
+}
+
 async function main() {
-  console.log(`Synchronisation football — saison ${seasonYear}-${seasonYear + 1}${dryRun ? " (dry run)" : ""}`);
+  console.log(`Synchronisation football + actus — saison ${seasonYear}-${seasonYear + 1}${dryRun ? " (dry run)" : ""}`);
 
   const db = dryRun ? null : createDb();
   const jobs = buildJobs();
+  const competitionData: Partial<Record<FootballCompetitionId, CompetitionData>> = {};
   let failures = 0;
   let written = 0;
 
@@ -106,6 +141,8 @@ async function main() {
       continue;
     }
 
+    competitionData[job.competition] = { fixtures, standings };
+
     if (dryRun) {
       console.log(JSON.stringify({ fixtures: fixtures.slice(0, 3), standings: standings.slice(0, 3) }, null, 2));
       continue;
@@ -113,6 +150,13 @@ async function main() {
 
     await upsertFootballSnapshot(db!, { competition: job.competition, fixtures, standings, source: job.source });
     written++;
+  }
+
+  try {
+    written += await syncNews(db, competitionData);
+  } catch (error) {
+    failures++;
+    console.error("✗ actus :", error);
   }
 
   if (written > 0) {

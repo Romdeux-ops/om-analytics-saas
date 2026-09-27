@@ -4,8 +4,8 @@ import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { NewsCard } from "@/src/components/home/NewsCard";
 import { getLatestNews } from "@/src/lib/data/news";
 
-export function NewsFeed() {
-  const news = getLatestNews(5);
+export async function NewsFeed() {
+  const news = await getLatestNews(5);
   const [featured, ...rest] = news;
 
   return (
@@ -16,7 +16,7 @@ export function NewsFeed() {
         icon={<Newspaper size={16} />}
         action={
           <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Mock
+            Presse &amp; résultats
           </span>
         }
       />

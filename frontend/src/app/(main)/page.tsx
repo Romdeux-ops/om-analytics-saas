@@ -30,7 +30,7 @@ export default function Home() {
           <span className="font-tech font-bold text-slate-400">OM ANALYTICS</span> — simulation
           sportive par IA
         </p>
-        <p className="uppercase tracking-widest">Saison 2025/26 · Données mock &amp; live</p>
+        <p className="uppercase tracking-widest">Saison 2026/27 · Données live</p>
       </footer>
     </>
   );

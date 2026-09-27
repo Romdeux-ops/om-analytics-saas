@@ -4,8 +4,8 @@ on:
   schedule:
     # Horaires en UTC : toutes les 30 min de 14h à 1h (heure de Paris), créneaux des matchs.
     - cron: "*/30 12-23 * * *"
-    # Rattrapage matinal (reports, horaires fixés par la LFP/UEFA).
-    - cron: "0 5 * * *"
+    # Toutes les heures de 8h à 13h (heure de Paris) : actus du matin, horaires fixés, reports.
+    - cron: "0 6-11 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -25,7 +25,7 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Sync Ligue 1 (football-data.org) + Europa / Coupe (ESPN)
+      - name: Sync Ligue 1 (football-data.org) + Europa / Coupe (ESPN) + actus (RSS)
         run: bun run football:sync
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
