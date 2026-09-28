@@ -8,11 +8,17 @@ const GUEST_COOKIE = "om_guest";
 
 /** Déduplique getUser() au sein d'une même requête RSC. */
 export const getAuthUser = cache(async (): Promise<User | null> => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    if (error) return null;
+    return user;
+  } catch {
+    return null;
+  }
 });
 
 /** Déduplique la lecture du cookie invité au sein d'une même requête RSC. */
