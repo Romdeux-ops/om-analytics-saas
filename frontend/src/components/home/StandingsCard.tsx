@@ -7,7 +7,7 @@ import {
   RankBadge,
   TeamCell,
 } from "@/src/components/classement/standing-cells";
-import { getStandings } from "@/src/lib/data/standings";
+import { getStandings, standingsAroundOm } from "@/src/lib/data/standings";
 import { getCompetition, standingsMatchday } from "@/src/lib/data/competitions";
 import { shortTeamName } from "@/src/lib/ui/teams";
 import { cn } from "@/src/lib/ui/cn";
@@ -39,7 +39,7 @@ function StandingLine({ row }: { row: StandingRow }) {
 
 export async function StandingsCard() {
   const allStandings = await getStandings();
-  const standings = allStandings.slice(0, 5);
+  const standings = standingsAroundOm(allStandings);
   const matchday = standingsMatchday(allStandings);
   const season = getCompetition("ligue1").season;
 
@@ -77,7 +77,7 @@ export async function StandingsCard() {
         </ul>
 
         <p className="mt-auto pt-4 text-[10px] uppercase tracking-widest text-slate-600">
-          Classement après J{matchday} — top 5
+          Classement après J{matchday} — autour de l&apos;OM
         </p>
       </div>
     </Card>
