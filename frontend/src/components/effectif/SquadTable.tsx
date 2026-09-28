@@ -102,7 +102,7 @@ export function SquadTable({ players, season = "2026-2027" }: SquadTableProps) {
       </div>
 
       <p className="mt-6 border-t border-white/5 pt-4 text-[10px] uppercase tracking-widest text-slate-600">
-        MJ = matchs joués · B = buts · PD = passes décisives · Stats à venir
+        MJ = matchs joués · B = buts · PD = passes décisives · Ligue 1 après J5
       </p>
     </Card>
   );
