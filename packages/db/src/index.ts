@@ -23,9 +23,17 @@ export {
 } from "./queries/football";
 export {
   getLatestNewsItems,
+  getNewsItemsByKind,
   getNewsItemsSince,
   upsertNewsItems,
   replaceAutoNewsItems,
-  pruneNewsItems,
+  deleteUnlistedPressArticles,
+  pruneStalePressArticles,
   type NewsItemRecord,
 } from "./queries/news";
+export {
+  isQualityPressSource,
+  pickDistinctPress,
+  titlesAreSimilar,
+  PRESS_MENU_KEEP,
+} from "./news-quality";

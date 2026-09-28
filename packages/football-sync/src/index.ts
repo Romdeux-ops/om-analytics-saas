@@ -1,7 +1,9 @@
 import {
   createDb,
+  deleteUnlistedPressArticles,
   getNewsItemsSince,
-  pruneNewsItems,
+  PRESS_MENU_KEEP,
+  pruneStalePressArticles,
   replaceAutoNewsItems,
   upsertFootballSnapshot,
   upsertNewsItems,
@@ -18,7 +20,7 @@ import { fetchPressArticles } from "./news";
 
 const DAY = 24 * 60 * 60 * 1000;
 /** Fenêtre de comparaison pour écarter une info déjà publiée par une autre source. */
-const DEDUPE_WINDOW = 3 * DAY;
+const DEDUPE_WINDOW = 14 * DAY;
 const NEWS_RETENTION = 14 * DAY;
 
 interface SyncJob {
@@ -30,6 +32,7 @@ interface SyncJob {
 }
 
 const dryRun = process.argv.includes("--dry-run");
+const pressOnly = process.argv.includes("--press-only");
 const seasonYear = currentSeasonYear();
 
 function buildJobs(): SyncJob[] {
@@ -85,33 +88,67 @@ async function triggerRevalidation(): Promise<void> {
   console.log("✓ Cache du site invalidé.");
 }
 
-/** Articles de presse + actus générées. Renvoie le nombre de lignes écrites. */
-async function syncNews(
+/** Actus générées depuis les résultats. Sans Ligue 1 fraîche, on garde les précédentes. */
+async function syncAutoNews(
   db: Db | null,
   data: Partial<Record<FootballCompetitionId, CompetitionData>>,
 ): Promise<number> {
   const autoNews = buildAutoNews(data);
+  console.log(`✓ actus générées : ${autoNews.length}`);
+  if (!db || !data.ligue1) return 0;
+  await replaceAutoNewsItems(db, autoNews);
+  return autoNews.length;
+}
+
+/**
+ * Presse uniquement. Aucun article de qualité trouvé : on n'écrit rien.
+ * Le hors-liste est retiré ; un article ancien n'est purgé que s'il reste assez de plus récents.
+ */
+async function syncPress(db: Db | null): Promise<number> {
   const since = new Date(Date.now() - DEDUPE_WINDOW);
   const existing = db ? await getNewsItemsSince(db, since) : [];
   const articles = await fetchPressArticles(existing, since);
-  console.log(`✓ actus : ${articles.length} nouveaux articles, ${autoNews.length} actus générées`);
+  console.log(`✓ presse : ${articles.length} nouveaux articles`);
 
   if (!db) {
-    console.log(JSON.stringify({ autoNews, articles: articles.slice(-3) }, null, 2));
+    console.log(JSON.stringify({ articles: articles.slice(-3) }, null, 2));
     return 0;
   }
 
-  await upsertNewsItems(db, articles);
-  // Sans données Ligue 1 fraîches, on garde les actus générées précédemment.
-  if (data.ligue1) await replaceAutoNewsItems(db, autoNews);
-  await pruneNewsItems(db, new Date(Date.now() - NEWS_RETENTION));
-  return articles.length + (data.ligue1 ? autoNews.length : 0);
+  if (articles.length > 0) await upsertNewsItems(db, articles);
+  const removed = await deleteUnlistedPressArticles(db);
+  const pruned = await pruneStalePressArticles(db, new Date(Date.now() - NEWS_RETENTION), PRESS_MENU_KEEP);
+  if (removed > 0 || pruned > 0) {
+    console.log(`✓ presse : ${removed} hors liste retirés, ${pruned} articles anciens purgés`);
+  }
+  return articles.length + removed + pruned;
 }
 
 async function main() {
-  console.log(`Synchronisation football + actus — saison ${seasonYear}-${seasonYear + 1}${dryRun ? " (dry run)" : ""}`);
-
   const db = dryRun ? null : createDb();
+
+  if (pressOnly) {
+    console.log(`Synchronisation presse${dryRun ? " (dry run)" : ""}`);
+    let failures = 0;
+    let written = 0;
+    try {
+      written = await syncPress(db);
+    } catch (error) {
+      failures++;
+      console.error("✗ presse :", error);
+    }
+    if (written > 0) {
+      try {
+        await triggerRevalidation();
+      } catch (error) {
+        failures++;
+        console.error("✗ Revalidation du site :", error);
+      }
+    }
+    process.exit(failures > 0 ? 1 : 0);
+  }
+
+  console.log(`Synchronisation football — saison ${seasonYear}-${seasonYear + 1}${dryRun ? " (dry run)" : ""}`);
   const jobs = buildJobs();
   const competitionData: Partial<Record<FootballCompetitionId, CompetitionData>> = {};
   let failures = 0;
@@ -153,10 +190,10 @@ async function main() {
   }
 
   try {
-    written += await syncNews(db, competitionData);
+    written += await syncAutoNews(db, competitionData);
   } catch (error) {
     failures++;
-    console.error("✗ actus :", error);
+    console.error("✗ actus générées :", error);
   }
 
   if (written > 0) {

@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
 import { XMLParser } from "fast-xml-parser";
-import type { NewsItemCategory, NewsItemRecord } from "@om/db";
+import { isQualityPressSource, titlesAreSimilar, type NewsItemCategory, type NewsItemRecord } from "@om/db";
 import { normalize } from "./text";
 
 const LA_PROVENCE_FEED = "https://www.laprovence.com/rss/om.xml";
 const GOOGLE_NEWS_FEED =
-  "https://news.google.com/rss/search?q=%22Olympique+de+Marseille%22+when:2d&hl=fr&gl=FR&ceid=FR:fr";
+  "https://news.google.com/rss/search?q=%22Olympique+de+Marseille%22+when:7d&hl=fr&gl=FR&ceid=FR:fr";
 
 /** Google News remonte aussi des articles qui citent l'OM en passant : on exige une mention dans le titre. */
 const OM_MENTION = /\bom\b|marseill|olympien|velodrome|phoceen/;
@@ -20,15 +20,6 @@ const CATEGORY_RULES: [NewsItemCategory, RegExp][] = [
   ["mercato", /mercato|transfert|recru|\bsign(e|er|ature)\b|\bpret\b|prete|\boffre\b|\bpiste\b|\bcible\b|contrat|prolong|clause|courtis|interesse|\bpropose\b/],
   ["match", /\bmatch|victoire|defaite|\bnul\b|\bcompo|\bscore|\bbuts?\b|buteur|ligue 1|europa|coupe de france|journee|conference de presse|resume|\bnotes\b|classement|adversaire|arbitr|avant match|deplacement|reception|\bchoc\b|classique|rencontre/],
 ];
-
-/** Mots trop fréquents pour distinguer deux articles. */
-const STOPWORDS = new Set([
-  "om", "marseille", "olympique", "les", "des", "pour", "avec", "une", "dans", "sur", "est",
-  "qui", "que", "son", "ses", "aux", "pas", "plus", "apres", "avant", "face", "contre", "cette",
-  "par", "mais", "fait", "tout", "deja", "encore", "ils", "elle", "leur", "etre",
-]);
-
-const DUPLICATE_THRESHOLD = 0.5;
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -66,17 +57,6 @@ function articleId(url: string): string {
 export function categorize(title: string, excerpt = ""): NewsItemCategory {
   const text = normalize(`${title} ${excerpt}`);
   return CATEGORY_RULES.find(([, rule]) => rule.test(text))?.[0] ?? "club";
-}
-
-function tokens(title: string): Set<string> {
-  return new Set(normalize(title).split(" ").filter((t) => t.length >= 3 && !STOPWORDS.has(t)));
-}
-
-function similarity(a: Set<string>, b: Set<string>): number {
-  if (a.size < 3 || b.size < 3) return 0;
-  let shared = 0;
-  for (const token of a) if (b.has(token)) shared++;
-  return shared / (a.size + b.size - shared);
 }
 
 function toDate(pubDate: string | undefined): string | null {
@@ -119,7 +99,16 @@ async function fetchGoogleNews(): Promise<NewsItemRecord[]> {
     const rawTitle = clean(item.title);
     const title = rawTitle.endsWith(` - ${source}`) ? rawTitle.slice(0, -(source.length + 3)) : rawTitle;
     const publishedAt = toDate(item.pubDate);
-    if (!url || !title || !publishedAt || !OM_MENTION.test(normalize(title)) || isExcluded(title)) return [];
+    if (
+      !url ||
+      !title ||
+      !publishedAt ||
+      !isQualityPressSource(source) ||
+      !OM_MENTION.test(normalize(title)) ||
+      isExcluded(title)
+    ) {
+      return [];
+    }
     return [
       {
         id: articleId(textOf(item.guid) || url),
@@ -137,9 +126,10 @@ async function fetchGoogleNews(): Promise<NewsItemRecord[]> {
 }
 
 /**
- * Articles publiés depuis `since`, sans doublons entre eux ni avec `existing` (déjà en base
- * sur la même période). La Provence passe en premier (image + extrait), puis Google News du
- * plus ancien au plus récent : pour une même info, on garde la première source qui l'a publiée.
+ * Articles de presse publiés depuis `since`, sources de la liste blanche uniquement,
+ * sans doublons entre eux ni avec les articles de qualité déjà en base.
+ * La Provence passe en premier (image + extrait), puis Google News du plus ancien au plus récent :
+ * pour une même info, on garde la première source qui l'a publiée.
  */
 export async function fetchPressArticles(
   existing: NewsItemRecord[],
@@ -160,17 +150,14 @@ export async function fetchPressArticles(
     ...(google.status === "fulfilled" ? google.value.sort(byDate) : []),
   ].filter((item) => item.publishedAt >= cutoff);
 
-  const kept: { item: NewsItemRecord; tokens: Set<string> }[] = existing
-    .filter((item) => item.kind === "article")
-    .map((item) => ({ item, tokens: tokens(item.title) }));
-  const keptIds = new Set(kept.map(({ item }) => item.id));
+  const kept = existing.filter((item) => item.kind === "article" && isQualityPressSource(item.source));
+  const keptIds = new Set(kept.map((item) => item.id));
   const fresh: NewsItemRecord[] = [];
 
   for (const item of candidates) {
-    if (keptIds.has(item.id)) continue;
-    const itemTokens = tokens(item.title);
-    if (kept.some((k) => similarity(k.tokens, itemTokens) >= DUPLICATE_THRESHOLD)) continue;
-    kept.push({ item, tokens: itemTokens });
+    if (!isQualityPressSource(item.source) || keptIds.has(item.id)) continue;
+    if (kept.some((known) => titlesAreSimilar(known.title, item.title))) continue;
+    kept.push(item);
     keptIds.add(item.id);
     fresh.push(item);
   }
