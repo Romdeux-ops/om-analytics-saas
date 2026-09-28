@@ -24,6 +24,22 @@ function redirectWithCookies(url: URL, source: NextResponse) {
   return response;
 }
 
+/** Jeton émis avant un `db reset` : la base auth ne le connaît plus. */
+function isStaleSession(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String(error.code) : "";
+  if (code === "refresh_token_not_found" || code === "session_not_found") return true;
+  const name = "name" in error ? String(error.name) : "";
+  const status = "status" in error ? Number(error.status) : 0;
+  return name === "AuthApiError" && status === 400;
+}
+
+function clearSupabaseCookies(response: NextResponse, request: NextRequest) {
+  for (const { name } of request.cookies.getAll()) {
+    if (name.startsWith("sb-")) response.cookies.delete(name);
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicPath = PUBLIC_PATHS.some(
@@ -57,9 +73,20 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
+  let dropSession = false;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      dropSession = isStaleSession(error);
+    } else {
+      user = data.user;
+    }
+  } catch (error) {
+    dropSession = isStaleSession(error);
+  }
+
+  if (dropSession) clearSupabaseCookies(supabaseResponse, request);
 
   if (user && hasGuestCookie) {
     supabaseResponse.cookies.delete(GUEST_COOKIE);
@@ -74,7 +101,9 @@ export async function middleware(request: NextRequest) {
   if (!user && !hasGuestCookie && !isPublicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/welcome";
-    return redirectWithCookies(url, supabaseResponse);
+    const response = redirectWithCookies(url, supabaseResponse);
+    if (dropSession) clearSupabaseCookies(response, request);
+    return response;
   }
 
   return supabaseResponse;
