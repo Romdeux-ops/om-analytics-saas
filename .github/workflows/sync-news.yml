@@ -1,15 +1,13 @@
-name: Sync football data
+name: Sync press articles
 
 on:
   schedule:
-    # Horaires en UTC : toutes les 30 min de 14h à 1h (heure de Paris), créneaux des matchs.
-    - cron: "*/30 12-23 * * *"
-    # Toutes les heures de 8h à 13h (heure de Paris) : horaires fixés, reports.
-    - cron: "0 6-11 * * *"
+    # Toutes les 6 h UTC : environ 8 h, 14 h, 20 h et 2 h à Paris en été.
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 concurrency:
-  group: football-sync
+  group: news-sync
   cancel-in-progress: false
 
 jobs:
@@ -25,10 +23,9 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Sync Ligue 1 (football-data.org) + Europa / Coupe (ESPN) + actus générées
-        run: bun run football:sync
+      - name: Sync presse (RSS)
+        run: bun run football:sync:press
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
           SITE_URL: ${{ vars.SITE_URL }}

@@ -15,6 +15,8 @@
     "db:push": "bun run --cwd packages/db db:push",
     "db:studio": "bun run --cwd packages/db db:studio",
     "football:sync": "bun run --cwd packages/football-sync sync",
-    "football:sync:dry": "bun run --cwd packages/football-sync sync:dry"
+    "football:sync:dry": "bun run --cwd packages/football-sync sync:dry",
+    "football:sync:press": "bun run --cwd packages/football-sync sync:press",
+    "football:sync:press:dry": "bun run --cwd packages/football-sync sync:press:dry"
   }
 }

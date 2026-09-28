@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "sync": "bun --env-file=../../frontend/.env.local run src/index.ts",
-    "sync:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --dry-run"
+    "sync:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --dry-run",
+    "sync:press": "bun --env-file=../../frontend/.env.local run src/index.ts --press-only",
+    "sync:press:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --press-only --dry-run"
   },
   "dependencies": {
     "@om/db": "*",
