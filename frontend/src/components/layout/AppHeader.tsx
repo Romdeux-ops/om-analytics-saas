@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@/src/components/ui/Badge";
 import { ThemeToggle } from "@/src/components/ui/ThemeToggle";
+import { NavProgress } from "@/src/components/layout/NavProgress";
 import { MAIN_NAV_LINKS } from "@/src/lib/navigation";
 import { cn } from "@/src/lib/ui/cn";
 
@@ -15,11 +17,24 @@ function isNavActive(pathname: string, href: string) {
 
 export function AppHeader() {
   const pathname = usePathname();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const activePath = pendingHref ?? pathname;
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
 
   return (
     <header className="mb-8 md:mb-10">
       <div className="flex items-center justify-between gap-4">
-        <Link href="/" prefetch className="pressable group flex shrink-0 items-center gap-4" aria-label="OM Analytics — accueil">
+        <Link
+          href="/"
+          prefetch
+          onClick={() => setPendingHref("/")}
+          className="pressable group flex shrink-0 items-center gap-4"
+          aria-label="OM Analytics — accueil"
+        >
+          <NavProgress />
           <div className="relative">
             <span className="absolute -inset-1.5 rounded-2xl bg-gradient-to-tr from-cyan-500/40 to-blue-600/40 opacity-70 blur-md transition-opacity group-hover:opacity-100" />
             <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 font-black font-tech text-lg text-slate-950 shadow-lg shadow-cyan-500/30 ring-1 ring-white/20">
@@ -42,12 +57,13 @@ export function AppHeader() {
           aria-label="Navigation principale"
         >
           {MAIN_NAV_LINKS.map(({ href, label, icon: Icon, live }) => {
-            const active = isNavActive(pathname, href);
+            const active = isNavActive(activePath, href);
             return (
               <Link
                 key={href}
                 href={href}
                 prefetch
+                onClick={() => setPendingHref(href)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "pressable flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium",
@@ -56,6 +72,7 @@ export function AppHeader() {
                     : "text-slate-300 hover:bg-white/8 hover:text-white",
                 )}
               >
+                <NavProgress />
                 <Icon size={15} className={active ? "text-cyan-300" : "text-cyan-400"} />
                 {label}
                 {live && (
@@ -82,12 +99,13 @@ export function AppHeader() {
         aria-label="Navigation principale"
       >
         {MAIN_NAV_LINKS.map(({ href, label, icon: Icon, live }) => {
-          const active = isNavActive(pathname, href);
+          const active = isNavActive(activePath, href);
           return (
             <Link
               key={href}
               href={href}
               prefetch
+              onClick={() => setPendingHref(href)}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "pressable flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium sm:px-4 sm:text-sm",
@@ -96,6 +114,7 @@ export function AppHeader() {
                   : "text-slate-300 hover:bg-white/8 hover:text-white",
               )}
             >
+              <NavProgress />
               <Icon size={14} className={active ? "text-cyan-300" : "text-cyan-400"} />
               {label}
               {live && (

@@ -1,9 +1,15 @@
-import MatchLiveInterface from "@/src/components/match/MatchLiveInterface";
+import nextDynamic from "next/dynamic";
 import { Button } from "@/src/components/ui/Button";
+import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getMatchById } from "@om/db";
 import { getDb } from "@/src/lib/db";
 
 export const dynamic = "force-dynamic";
+
+const MatchLiveInterface = nextDynamic(
+  () => import("@/src/components/match/MatchLiveInterface"),
+  { loading: () => <CardSkeleton rows={6} className="min-h-[50vh]" /> },
+);
 
 interface SimulationPageProps {
   params: Promise<{ matchId: string }>;

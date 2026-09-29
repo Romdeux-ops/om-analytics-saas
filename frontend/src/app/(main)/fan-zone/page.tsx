@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { MessagesSquare } from "lucide-react";
 import { FanZoneView } from "@/src/components/fan-zone/FanZoneView";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
+import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getAuthUser } from "@/src/lib/auth/session";
 import {
   getActiveRooms,
@@ -8,12 +10,41 @@ import {
   getRoomDebates,
   getRoomPolls,
 } from "@/src/lib/fan-zone/queries.server";
-
-export const dynamic = "force-dynamic";
+import type { RoomView } from "@/src/lib/fan-zone/types";
 
 export default async function FanZonePage() {
-  const [user, rooms] = await Promise.all([getAuthUser(), getActiveRooms()]);
+  const rooms = await getActiveRooms();
   const defaultSlug = rooms[0]?.slug ?? "tribune-principale";
+  const roomNames = rooms.map((r) => r.name).join(" · ");
+
+  return (
+    <div className="mx-auto max-w-5xl">
+      <PageSectionHeader
+        title={
+          <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
+            Fan Zone
+          </span>
+        }
+        subtitle={roomNames || "Communauté OM"}
+        icon={<MessagesSquare size={18} />}
+        accent="violet"
+      />
+
+      <Suspense fallback={<CardSkeleton rows={5} />}>
+        <FanZoneFeed rooms={rooms} defaultSlug={defaultSlug} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function FanZoneFeed({
+  rooms,
+  defaultSlug,
+}: {
+  rooms: RoomView[];
+  defaultSlug: string;
+}) {
+  const user = await getAuthUser();
   const defaultRoom = rooms.find((r) => r.slug === defaultSlug) ?? rooms[0];
 
   let initialFeed: {
@@ -31,22 +62,5 @@ export default async function FanZonePage() {
     initialFeed = { messages, polls, debates };
   }
 
-  const roomNames = rooms.map((r) => r.name).join(" · ");
-
-  return (
-    <div className="mx-auto max-w-5xl">
-      <PageSectionHeader
-        title={
-          <span className="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">
-            Fan Zone
-          </span>
-        }
-        subtitle={roomNames || "Communauté OM"}
-        icon={<MessagesSquare size={18} />}
-        accent="violet"
-      />
-
-      <FanZoneView rooms={rooms} initialFeed={initialFeed} defaultSlug={defaultSlug} />
-    </div>
-  );
+  return <FanZoneView rooms={rooms} initialFeed={initialFeed} defaultSlug={defaultSlug} />;
 }

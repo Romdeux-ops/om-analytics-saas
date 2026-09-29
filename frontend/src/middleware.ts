@@ -18,9 +18,17 @@ function copyCookies(from: NextResponse, to: NextResponse) {
   });
 }
 
+function copyHeaders(from: NextResponse, to: NextResponse) {
+  from.headers.forEach((value, key) => {
+    if (key.toLowerCase() === "set-cookie") return;
+    to.headers.set(key, value);
+  });
+}
+
 function redirectWithCookies(url: URL, source: NextResponse) {
   const response = NextResponse.redirect(url);
   copyCookies(source, response);
+  copyHeaders(source, response);
   return response;
 }
 
@@ -47,7 +55,7 @@ export async function middleware(request: NextRequest) {
   );
   const hasGuestCookie = request.cookies.get(GUEST_COOKIE)?.value === "1";
 
-  // Invité sans session Supabase : pas besoin d'appeler getUser() à chaque navigation.
+  // Invité sans session Supabase : pas besoin de vérifier le JWT à chaque navigation.
   if (hasGuestCookie && !isPublicPath && pathname !== "/welcome" && !hasSupabaseAuthCookies(request)) {
     return NextResponse.next({ request });
   }
@@ -62,11 +70,14 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: CookieToSet[]) {
+        setAll(cookiesToSet: CookieToSet[], headers: Record<string, string>) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
+          );
+          Object.entries(headers).forEach(([key, value]) =>
+            supabaseResponse.headers.set(key, value),
           );
         },
       },
@@ -76,11 +87,12 @@ export async function middleware(request: NextRequest) {
   let user: { id: string } | null = null;
   let dropSession = false;
   try {
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getClaims();
     if (error) {
       dropSession = isStaleSession(error);
     } else {
-      user = data.user;
+      const sub = data?.claims?.sub;
+      user = typeof sub === "string" ? { id: sub } : null;
     }
   } catch (error) {
     dropSession = isStaleSession(error);
@@ -114,4 +126,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-
