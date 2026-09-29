@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const MAIN_ROUTES = ["/calendrier", "/classement", "/effectif", "/fan-zone"] as const;
+const MAIN_ROUTES = ["/", "/calendrier", "/classement", "/effectif", "/fan-zone"] as const;
 
 /** Précharge les routes principales dès le montage pour des transitions instantanées. */
 export function NavPrefetch() {

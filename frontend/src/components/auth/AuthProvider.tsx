@@ -25,6 +25,7 @@ interface AuthContextValue {
   isAdmin: boolean;
   isLoading: boolean;
   openAuthModal: (intent?: AuthIntent) => void;
+  enterGuestMode: () => void;
   requireAuth: <T>(action: () => T | Promise<T>) => Promise<T | undefined>;
   requireAdmin: <T>(action: () => T | Promise<T>) => Promise<T | undefined>;
   signOut: () => Promise<void>;
@@ -47,11 +48,12 @@ export function AuthProvider({
 }: AuthProviderProps) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
+  const seeded = initialUser !== null || initialGuest;
 
   const [user, setUser] = useState<User | null>(initialUser);
   const [profile, setProfile] = useState<ProfileView | null>(initialProfile);
   const [isGuest, setIsGuest] = useState(initialGuest);
-  const [isLoading, setIsLoading] = useState(!initialUser && !initialGuest);
+  const [isLoading, setIsLoading] = useState(!seeded);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalIntent, setModalIntent] = useState<AuthIntent>("login");
 
@@ -79,59 +81,10 @@ export function AuthProvider({
   );
 
   useEffect(() => {
-    if (initialGuest) {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        const nextUser = session?.user ?? null;
-        setUser(nextUser);
-        if (nextUser) {
-          setIsGuest(false);
-          await fetchProfile(nextUser);
-        } else {
-          setProfile(null);
-        }
-      });
-      return () => subscription.unsubscribe();
-    }
+    let cancelled = false;
 
-    if (initialUser) {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        const nextUser = session?.user ?? null;
-        setUser(nextUser);
-        if (nextUser) {
-          setIsGuest(false);
-          await fetchProfile(nextUser);
-        } else {
-          setProfile(null);
-        }
-      });
-
-      return () => subscription.unsubscribe();
-    }
-
-    async function init() {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-
-      if (authUser) {
-        setUser(authUser);
-        setIsGuest(false);
-        await fetchProfile(authUser);
-      }
-
-      setIsLoading(false);
-    }
-
-    init();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const nextUser = session?.user ?? null;
+    const applyUser = async (nextUser: User | null) => {
+      if (cancelled) return;
       setUser(nextUser);
       if (nextUser) {
         setIsGuest(false);
@@ -139,14 +92,38 @@ export function AuthProvider({
       } else {
         setProfile(null);
       }
+      setIsLoading(false);
+    };
+
+    if (!seeded) {
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        void applyUser(session?.user ?? null);
+      });
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "INITIAL_SESSION" && seeded) return;
+      await applyUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase, fetchProfile, initialUser, initialGuest]);
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [supabase, fetchProfile, seeded]);
 
   const openAuthModal = useCallback((intent: AuthIntent = "login") => {
     setModalIntent(intent);
     setModalOpen(true);
+  }, []);
+
+  const enterGuestMode = useCallback(() => {
+    setUser(null);
+    setProfile(null);
+    setIsGuest(true);
+    setIsLoading(false);
   }, []);
 
   const requireAuth = useCallback(
@@ -179,9 +156,10 @@ export function AuthProvider({
     router.refresh();
 
     const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
+    const authUser = session?.user ?? null;
     if (authUser) {
       setUser(authUser);
       setIsGuest(false);
@@ -209,11 +187,23 @@ export function AuthProvider({
       isAdmin,
       isLoading,
       openAuthModal,
+      enterGuestMode,
       requireAuth,
       requireAdmin,
       signOut,
     }),
-    [user, profile, isGuest, isAdmin, isLoading, openAuthModal, requireAuth, requireAdmin, signOut],
+    [
+      user,
+      profile,
+      isGuest,
+      isAdmin,
+      isLoading,
+      openAuthModal,
+      enterGuestMode,
+      requireAuth,
+      requireAdmin,
+      signOut,
+    ],
   );
 
   return (
@@ -237,4 +227,3 @@ export function useAuth() {
   }
   return ctx;
 }
-

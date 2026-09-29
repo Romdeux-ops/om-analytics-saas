@@ -9,10 +9,11 @@ import { useAuth } from "@/src/components/auth/AuthProvider";
 
 export function WelcomeActions() {
   const router = useRouter();
-  const { openAuthModal } = useAuth();
+  const { openAuthModal, enterGuestMode } = useAuth();
 
   async function handleGuest() {
     await setGuestModeAction();
+    enterGuestMode();
     router.push("/");
     router.refresh();
   }
