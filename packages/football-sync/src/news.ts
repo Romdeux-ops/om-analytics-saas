@@ -1,19 +1,37 @@
 import { createHash } from "node:crypto";
 import { XMLParser } from "fast-xml-parser";
-import { isQualityPressSource, titlesAreSimilar, type NewsItemCategory, type NewsItemRecord } from "@om/db";
+import {
+  isExcludedPressTitle,
+  isQualityPressSource,
+  titlesAreSimilar,
+  type NewsItemCategory,
+  type NewsItemRecord,
+} from "@om/db";
 import { normalize } from "./text";
 
 const LA_PROVENCE_FEED = "https://www.laprovence.com/rss/om.xml";
 const GOOGLE_NEWS_FEED =
   "https://news.google.com/rss/search?q=%22Olympique+de+Marseille%22+when:7d&hl=fr&gl=FR&ceid=FR:fr";
 
-/** Google News remonte aussi des articles qui citent l'OM en passant : on exige une mention dans le titre. */
-const OM_MENTION = /\bom\b|marseill|olympien|velodrome|phoceen/;
+/** Mentions obligatoires garantissant que l'article traite de l'équipe première ou du club OM. */
+const OM_MENTION =
+  /\bom\b|olympique|olympien|velodrome|phoceen|marseillais|\bgenesio\b|\bde zerbi\b|\blongoria\b|\bbenatia\b|\bmccourt\b/;
 
-/** Sujets hors équipe première masculine, exclus du fil (titre seulement : "réservé aux abonnés"…). */
-const EXCLUDED_TOPICS = /feminin|reserve/;
+function isOmRelated(title: string, excerpt = ""): boolean {
+  const text = normalize(`${title} ${excerpt}`);
+  return (
+    OM_MENTION.test(text) ||
+    (text.includes("marseille") &&
+      (text.includes("joueur") ||
+        text.includes("club") ||
+        text.includes("ligue 1") ||
+        text.includes("gouiri") ||
+        text.includes("cornelius")))
+  );
+}
 
-const isExcluded = (title: string) => EXCLUDED_TOPICS.test(normalize(title));
+const isExcluded = (title: string, excerpt = "") =>
+  isExcludedPressTitle(title) || !isOmRelated(title, excerpt);
 
 const CATEGORY_RULES: [NewsItemCategory, RegExp][] = [
   ["blessure", /bless|forfait|infirmerie|indisponib|suspen|entorse|claquage|rechute|lesion|fracture|incertain|operation/],
@@ -74,7 +92,7 @@ async function fetchLaProvence(): Promise<NewsItemRecord[]> {
     // Les articles "Premium" sont réservés aux abonnés de La Provence.
     if (!url || !title || !publishedAt || /premium/i.test(categories)) return [];
     const excerpt = clean(item.description) || null;
-    if (isExcluded(title)) return [];
+    if (isExcluded(title, excerpt ?? "")) return [];
     return [
       {
         id: articleId(url),
@@ -99,14 +117,7 @@ async function fetchGoogleNews(): Promise<NewsItemRecord[]> {
     const rawTitle = clean(item.title);
     const title = rawTitle.endsWith(` - ${source}`) ? rawTitle.slice(0, -(source.length + 3)) : rawTitle;
     const publishedAt = toDate(item.pubDate);
-    if (
-      !url ||
-      !title ||
-      !publishedAt ||
-      !isQualityPressSource(source) ||
-      !OM_MENTION.test(normalize(title)) ||
-      isExcluded(title)
-    ) {
+    if (!url || !title || !publishedAt || !isQualityPressSource(source) || isExcluded(title)) {
       return [];
     }
     return [

@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
 import { createDb } from "../client";
-import { isQualityPressSource } from "../news-quality";
+import { isQualityPressSource, isExcludedPressTitle } from "../news-quality";
 import { newsItems, type NewsItemCategory, type NewsItemKind } from "../schema";
 
 export interface NewsItemRecord {
@@ -104,6 +104,16 @@ export async function deleteUnlistedPressArticles(db: Db): Promise<number> {
     .from(newsItems)
     .where(eq(newsItems.kind, "article"));
   const ids = rows.filter((row) => !isQualityPressSource(row.source)).map((row) => row.id);
+  return deleteNewsByIds(db, ids);
+}
+
+/** Retire les articles exclus (foot féminin, équipes jeunes, tickers de direct...) de la base. */
+export async function deleteExcludedPressArticles(db: Db): Promise<number> {
+  const rows = await db
+    .select({ id: newsItems.id, title: newsItems.title })
+    .from(newsItems)
+    .where(eq(newsItems.kind, "article"));
+  const ids = rows.filter((row) => isExcludedPressTitle(row.title)).map((row) => row.id);
   return deleteNewsByIds(db, ids);
 }
 
