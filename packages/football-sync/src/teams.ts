@@ -62,6 +62,42 @@ const ALIASES: Record<string, string> = {
   "RC Celta": "Celta",
 };
 
+/**
+ * IDs ESPN pour chaque club — utilisés par l'endpoint roster
+ * `/apis/site/v2/sports/soccer/{league}/teams/{id}/roster`.
+ * Ligue 1 IDs validés via site.web.api.espn.com.
+ */
+export const ESPN_TEAM_IDS: Record<string, { id: string; league: string }> = {
+  // Ligue 1 2026-2027
+  Angers:       { id: "7868", league: "fra.1" },
+  Auxerre:      { id: "172",  league: "fra.1" },
+  Brest:        { id: "6997", league: "fra.1" },
+  "Le Havre":   { id: "3236", league: "fra.1" },
+  "Le Mans":    { id: "2697", league: "fra.1" },
+  Lens:         { id: "175",  league: "fra.1" },
+  Lille:        { id: "166",  league: "fra.1" },
+  Lorient:      { id: "273",  league: "fra.1" },
+  Lyon:         { id: "167",  league: "fra.1" },
+  Marseille:    { id: "176",  league: "fra.1" },
+  Monaco:       { id: "174",  league: "fra.1" },
+  Nice:         { id: "2502", league: "fra.1" },
+  "Paris FC":   { id: "6851", league: "fra.1" },
+  "Paris-SG":   { id: "160",  league: "fra.1" },
+  Rennes:       { id: "169",  league: "fra.1" },
+  Strasbourg:   { id: "180",  league: "fra.1" },
+  Toulouse:     { id: "179",  league: "fra.1" },
+  Troyes:       { id: "170",  league: "fra.1" },
+  // Europa League 2026-2027
+  "Beşiktaş":       { id: "194",  league: "uefa.europa" },
+  Olympiacos:       { id: "400",  league: "uefa.europa" },
+  "Sturm Graz":     { id: "3566", league: "uefa.europa" },
+  Leverkusen:       { id: "132",  league: "ger.1" },
+  "Levski Sofia":   { id: "2673", league: "uefa.europa" },
+  Celta:            { id: "3842", league: "esp.1" },
+  Celtic:           { id: "345",  league: "sco.1" },
+  Anderlecht:       { id: "2559", league: "bel.1" },
+};
+
 /** Préfixes/suffixes juridiques ignorés pour la correspondance approximative. */
 const NOISE_TOKENS = new Set([
   "fc", "afc", "ac", "sc", "sk", "nk", "as", "rc", "cf", "jk", "fk",
