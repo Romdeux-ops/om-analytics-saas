@@ -43,6 +43,67 @@ const ESPN_TEAM_IDS: Record<string, { id: string; league: string }> = {
   Anderlecht:       { id: "2559", league: "bel.1" },
 };
 
+const ALIASES: Record<string, string> = {
+  "Olympique de Marseille": "Marseille",
+  OM: "Marseille",
+  OLM: "Marseille",
+  MAR: "Marseille",
+  "Paris Saint-Germain": "Paris-SG",
+  PSG: "Paris-SG",
+  "Paris SG": "Paris-SG",
+  "Olympique Lyonnais": "Lyon",
+  OL: "Lyon",
+  LOSC: "Lille",
+  "LOSC Lille": "Lille",
+  "Stade Rennais": "Rennes",
+  "Stade Brestois": "Brest",
+  "RC Strasbourg Alsace": "Strasbourg",
+  "RC Strasbourg": "Strasbourg",
+  "AJ Auxerre": "Auxerre",
+  "ESTAC Troyes": "Troyes",
+  "ES Troyes AC": "Troyes",
+  "Olympiakos": "Olympiacos",
+  "Olympiacos Piraeus": "Olympiacos",
+  "Olympiacos FC": "Olympiacos",
+  "Bayer Leverkusen": "Leverkusen",
+  "Bayer 04 Leverkusen": "Leverkusen",
+  "Celta Vigo": "Celta",
+  "Celta de Vigo": "Celta",
+  "RC Celta": "Celta",
+  "Angers SCO": "Angers",
+  "Le Havre AC": "Le Havre",
+  HAC: "Le Havre",
+  "Le Mans FC": "Le Mans",
+  "RC Lens": "Lens",
+  "FC Lorient": "Lorient",
+  "AS Monaco": "Monaco",
+  "OGC Nice": "Nice",
+  "Toulouse FC": "Toulouse",
+  "Beşiktaş JK": "Beşiktaş",
+  Besiktas: "Beşiktaş",
+  "SK Sturm Graz": "Sturm Graz",
+  "PFC Levski Sofia": "Levski Sofia",
+  "Celtic FC": "Celtic",
+  "RSC Anderlecht": "Anderlecht",
+};
+
+export function resolveTeamName(name: string): string {
+  if (ESPN_TEAM_IDS[name]) return name;
+  if (ALIASES[name]) return ALIASES[name];
+  const trimmed = name.trim();
+  if (ESPN_TEAM_IDS[trimmed]) return trimmed;
+  if (ALIASES[trimmed]) return ALIASES[trimmed];
+
+  const lower = trimmed.toLowerCase();
+  for (const [alias, target] of Object.entries(ALIASES)) {
+    if (alias.toLowerCase() === lower) return target;
+  }
+  for (const canon of Object.keys(ESPN_TEAM_IDS)) {
+    if (canon.toLowerCase() === lower || lower.includes(canon.toLowerCase())) return canon;
+  }
+  return name;
+}
+
 // ---------------------------------------------------------------------------
 // ESPN Roster Fetching (inline — pas de dépendance vers football-sync)
 // ---------------------------------------------------------------------------
@@ -229,9 +290,10 @@ function buildProbableLineup(roster: RosterPlayer[], formation: Formation = "4-3
  * Cache 1h via unstable_cache de Next.js.
  */
 export async function getProbableLineup(teamName: string): Promise<ProbableLineup> {
-  const entry = ESPN_TEAM_IDS[teamName];
+  const canonicalName = resolveTeamName(teamName);
+  const entry = ESPN_TEAM_IDS[canonicalName];
   if (!entry) {
-    throw new Error(`Équipe "${teamName}" non trouvée dans ESPN_TEAM_IDS`);
+    throw new Error(`Équipe "${teamName}" (résolue en "${canonicalName}") non trouvée dans ESPN_TEAM_IDS`);
   }
 
   return unstable_cache(
@@ -239,7 +301,7 @@ export async function getProbableLineup(teamName: string): Promise<ProbableLineu
       const roster = await fetchEspnRoster(entry.id, entry.league);
       return buildProbableLineup(roster);
     },
-    [`lineup-${teamName}`],
+    [`lineup-${canonicalName}`],
     { revalidate: 3600, tags: ["lineups"] },
   )();
 }

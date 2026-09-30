@@ -135,14 +135,36 @@ export async function simulateMatch(
   const homePlayers = squad.filter((p) => p.clubId === matchRow.homeTeamId);
   const awayPlayers = squad.filter((p) => p.clubId === matchRow.awayTeamId);
 
+  const [homeClub] = await db
+    .select({ reputation: clubs.reputation })
+    .from(clubs)
+    .where(eq(clubs.id, matchRow.homeTeamId))
+    .limit(1);
+
+  const [awayClub] = await db
+    .select({ reputation: clubs.reputation })
+    .from(clubs)
+    .where(eq(clubs.id, matchRow.awayTeamId))
+    .limit(1);
+
+  const homeStrength =
+    homePlayers.length > 0
+      ? calculateTeamStrength(homePlayers)
+      : (homeClub?.reputation ?? 72);
+
+  const awayStrength =
+    awayPlayers.length > 0
+      ? calculateTeamStrength(awayPlayers)
+      : (awayClub?.reputation ?? 72);
+
   const simulator = new MatchSimulator(
     {
       name: match.home_team_name,
-      strength: calculateTeamStrength(homePlayers),
+      strength: homeStrength,
     },
     {
       name: match.away_team_name,
-      strength: calculateTeamStrength(awayPlayers),
+      strength: awayStrength,
     },
   );
 

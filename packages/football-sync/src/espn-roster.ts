@@ -170,7 +170,6 @@ export async function fetchEspnRoster(
   const url = `${BASE_URL}/site/v2/sports/soccer/${league}/teams/${espnTeamId}/roster`;
   const res = await fetch(url, {
     headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
-    next: { revalidate: 3600 }, // cache 1h dans Next.js
   });
 
   if (!res.ok) {

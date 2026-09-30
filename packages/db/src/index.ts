@@ -1,5 +1,6 @@
 export { createDb, type Db } from "./client";
 export * from "./schema";
+export { eq, and, asc, desc, inArray, or } from "drizzle-orm";
 export {
   getMatchById,
   getFirstUnplayedMatch,
