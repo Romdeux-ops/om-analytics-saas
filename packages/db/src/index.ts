@@ -28,11 +28,13 @@ export {
   upsertNewsItems,
   replaceAutoNewsItems,
   deleteUnlistedPressArticles,
+  deleteExcludedPressArticles,
   pruneStalePressArticles,
   type NewsItemRecord,
 } from "./queries/news";
 export {
   isQualityPressSource,
+  isExcludedPressTitle,
   pickDistinctPress,
   titlesAreSimilar,
   PRESS_MENU_KEEP,

@@ -1,6 +1,7 @@
 import {
   createDb,
   deleteUnlistedPressArticles,
+  deleteExcludedPressArticles,
   getNewsItemsSince,
   PRESS_MENU_KEEP,
   pruneStalePressArticles,
@@ -117,11 +118,14 @@ async function syncPress(db: Db | null): Promise<number> {
 
   if (articles.length > 0) await upsertNewsItems(db, articles);
   const removed = await deleteUnlistedPressArticles(db);
+  const excluded = await deleteExcludedPressArticles(db);
   const pruned = await pruneStalePressArticles(db, new Date(Date.now() - NEWS_RETENTION), PRESS_MENU_KEEP);
-  if (removed > 0 || pruned > 0) {
-    console.log(`✓ presse : ${removed} hors liste retirés, ${pruned} articles anciens purgés`);
+  if (removed > 0 || excluded > 0 || pruned > 0) {
+    console.log(
+      `✓ presse : ${removed} hors liste retirés, ${excluded} exclus supprimés, ${pruned} articles anciens purgés`,
+    );
   }
-  return articles.length + removed + pruned;
+  return articles.length + removed + excluded + pruned;
 }
 
 async function main() {
