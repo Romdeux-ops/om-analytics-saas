@@ -3,12 +3,13 @@ import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getMatchById } from "@om/db";
 import { getDb } from "@/src/lib/db";
+import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
 
 export const dynamic = "force-dynamic";
 
-const MatchLiveInterface = nextDynamic(
-  () => import("@/src/components/match/MatchLiveInterface"),
-  { loading: () => <CardSkeleton rows={6} className="min-h-[50vh]" /> },
+const MatchPresentationView = nextDynamic(
+  () => import("@/src/components/presentation/MatchPresentationView").then((mod) => mod.MatchPresentationView),
+  { loading: () => <CardSkeleton rows={8} className="min-h-[70vh]" /> },
 );
 
 interface SimulationPageProps {
@@ -29,7 +30,9 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
     return <SimulationError message="Ce match n'existe pas ou a été supprimé." />;
   }
 
-  return <MatchLiveInterface matchData={match} />;
+  const presentationData = await getMatchPresentationData(match);
+
+  return <MatchPresentationView data={presentationData} />;
 }
 
 function SimulationError({ message }: { message: string }) {

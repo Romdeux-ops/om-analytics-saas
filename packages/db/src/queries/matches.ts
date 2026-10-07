@@ -19,6 +19,8 @@ export interface MatchView {
   played: boolean;
   home_score: number;
   away_score: number;
+  home_coach?: string | null;
+  away_coach?: string | null;
 }
 
 const OM_CLUB_NAME = "Olympique de Marseille";
@@ -33,6 +35,8 @@ function matchSelectFields() {
     played: matches.played,
     home_score: matches.homeScore,
     away_score: matches.awayScore,
+    home_coach: homeTeam.coach,
+    away_coach: awayTeam.coach,
   };
 }
 

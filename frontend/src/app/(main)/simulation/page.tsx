@@ -3,12 +3,13 @@ import { getFirstUnplayedMatch, getNextOmMatch } from "@om/db";
 import { getDb } from "@/src/lib/db";
 import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
+import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
 
 export const dynamic = "force-dynamic";
 
-const MatchLiveInterface = nextDynamic(
-  () => import("@/src/components/match/MatchLiveInterface"),
-  { loading: () => <CardSkeleton rows={6} className="min-h-[50vh]" /> },
+const MatchPresentationView = nextDynamic(
+  () => import("@/src/components/presentation/MatchPresentationView").then((mod) => mod.MatchPresentationView),
+  { loading: () => <CardSkeleton rows={8} className="min-h-[70vh]" /> },
 );
 
 export default async function SimulationIndexPage() {
@@ -34,5 +35,7 @@ export default async function SimulationIndexPage() {
     );
   }
 
-  return <MatchLiveInterface matchData={match} />;
+  const presentationData = await getMatchPresentationData(match);
+
+  return <MatchPresentationView data={presentationData} />;
 }

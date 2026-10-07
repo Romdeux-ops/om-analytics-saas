@@ -249,6 +249,107 @@ const FORMATION_SLOTS: Record<Formation, FormationSlot[]> = {
   ],
 };
 
+const KNOWN_SPECIFIC_ROLES: Record<string, { role: string; secondary?: string[] }> = {
+  // OM (Effectif 2026-2027)
+  "timothy weah": { role: "RB", secondary: ["RWB", "RW"] },
+  "weah": { role: "RB", secondary: ["RWB", "RW"] },
+  "emerson": { role: "LB", secondary: ["LWB"] },
+  "emerson palmieri": { role: "LB", secondary: ["LWB"] },
+  "ulisses garcia": { role: "LB", secondary: ["LWB"] },
+  "nayef aguerd": { role: "CB" },
+  "aguerd": { role: "CB" },
+  "cj egan-riley": { role: "CB", secondary: ["RB"] },
+  "egan-riley": { role: "CB", secondary: ["RB"] },
+  "derek cornelius": { role: "CB" },
+  "cornelius": { role: "CB" },
+  "bamo meïté": { role: "CB" },
+  "bamo meite": { role: "CB" },
+  "alexi koum": { role: "CB", secondary: ["LB"] },
+  "kelyann bezahaf": { role: "RB" },
+  "jeffrey de lange": { role: "GK" },
+  "de lange": { role: "GK" },
+  "théo vermot": { role: "GK" },
+  "theo vermot": { role: "GK" },
+  "jelle van neck": { role: "GK" },
+  "pierre-emile højbjerg": { role: "CDM", secondary: ["CM"] },
+  "pierre-emile hojbjerg": { role: "CDM", secondary: ["CM"] },
+  "højbjerg": { role: "CDM", secondary: ["CM"] },
+  "tochukwu nnadi": { role: "CDM", secondary: ["CM"] },
+  "nnadi": { role: "CDM", secondary: ["CM"] },
+  "geoffrey kondogbia": { role: "CDM", secondary: ["CM"] },
+  "kondogbia": { role: "CDM", secondary: ["CM"] },
+  "himad abdelli": { role: "CM", secondary: ["CAM"] },
+  "abdelli": { role: "CM", secondary: ["CAM"] },
+  "angel gomes": { role: "CM", secondary: ["CAM"] },
+  "gomes": { role: "CM", secondary: ["CAM"] },
+  "nouhoum kamissoko": { role: "CM" },
+  "amine gouiri": { role: "ST", secondary: ["CF"] },
+  "gouiri": { role: "ST", secondary: ["CF"] },
+  "neal maupay": { role: "ST" },
+  "maupay": { role: "ST" },
+  "faris moumbagna": { role: "ST" },
+  "moumbagna": { role: "ST" },
+  "igor paixão": { role: "LW", secondary: ["LM"] },
+  "igor paixao": { role: "LW", secondary: ["LM"] },
+  "paixão": { role: "LW", secondary: ["LM"] },
+  "amine harit": { role: "RW", secondary: ["CAM", "LW"] },
+  "harit": { role: "RW", secondary: ["CAM", "LW"] },
+  "keyliane abdallah": { role: "RW" },
+  "tadjidine mmadi": { role: "LW" },
+
+  // ESTAC Troyes
+  "zacharie boucher": { role: "GK" },
+  "hillel konaté": { role: "GK" },
+  "ismael boura": { role: "LB" },
+  "adrien monfray": { role: "CB" },
+  "paolo gozzi": { role: "CB" },
+  "paolo gozzi iweru": { role: "CB" },
+  "michel diaz": { role: "CB" },
+  "yvann titi": { role: "RB" },
+  "lucas maronnier": { role: "LB" },
+  "xavier chavalerin": { role: "CDM", secondary: ["CM"] },
+  "chavalerin": { role: "CDM", secondary: ["CM"] },
+  "youssouf m'changama": { role: "CM", secondary: ["CAM"] },
+  "junior olaitan": { role: "CAM", secondary: ["CM"] },
+  "cyriaque irie": { role: "RW" },
+  "jafet mpanzu": { role: "LW" },
+  "renaud ripart": { role: "ST" },
+  "ripart": { role: "ST" },
+  "nicolas de préville": { role: "ST" },
+  "tawfick issa": { role: "ST" },
+  "taïryk arconte": { role: "ST" },
+};
+
+function getPlayerRole(player: RosterPlayer): { role: string; secondary: string[] } {
+  const normName = player.displayName.toLowerCase().trim();
+  const shortNorm = player.shortName.toLowerCase().trim();
+
+  for (const [key, mapping] of Object.entries(KNOWN_SPECIFIC_ROLES)) {
+    if (normName === key || shortNorm === key || normName.includes(key)) {
+      return { role: mapping.role, secondary: mapping.secondary ?? [] };
+    }
+  }
+
+  const label = (player.positionLabel || "").toLowerCase();
+  if (player.position === "GK") return { role: "GK", secondary: [] };
+  if (player.position === "DEF") {
+    if (label.includes("left") || label.includes("gauch")) return { role: "LB", secondary: ["LWB"] };
+    if (label.includes("right") || label.includes("droit")) return { role: "RB", secondary: ["RWB"] };
+    return { role: "CB", secondary: [] };
+  }
+  if (player.position === "MID") {
+    if (label.includes("defensive") || label.includes("défensif")) return { role: "CDM", secondary: ["CM"] };
+    if (label.includes("attacking") || label.includes("offensif")) return { role: "CAM", secondary: ["CM"] };
+    return { role: "CM", secondary: ["CDM", "CAM"] };
+  }
+  if (player.position === "FWD") {
+    if (label.includes("left") || label.includes("gauch")) return { role: "LW", secondary: ["LM"] };
+    if (label.includes("right") || label.includes("droit")) return { role: "RW", secondary: ["RM"] };
+    return { role: "ST", secondary: ["CF"] };
+  }
+  return { role: "CM", secondary: [] };
+}
+
 function starterScore(p: RosterPlayer): number {
   return p.starts * 2 + p.subIns;
 }
@@ -260,25 +361,46 @@ function buildProbableLineup(roster: RosterPlayer[], formation: Formation = "4-3
     .sort((a, b) => starterScore(b) - starterScore(a));
 
   const used = new Set<string>();
-  const starters: LineupSlot[] = [];
+  const starters: (LineupSlot | null)[] = new Array(slots.length).fill(null);
 
-  for (const slot of slots) {
-    const candidate = available.find((p) => p.position === slot.position && !used.has(p.id));
+  // Passe 1 : Assignation par rôle spécifique exact (ex: RB pour Weah, ST pour Gouiri, RW pour Harit)
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    const candidate = available.find((p) => {
+      if (used.has(p.id)) return false;
+      const { role, secondary } = getPlayerRole(p);
+      return role === slot.role || secondary.includes(slot.role);
+    });
+
     if (candidate) {
       used.add(candidate.id);
-      starters.push({ player: candidate, role: slot.role, x: slot.x, y: slot.y });
-    } else {
-      const fallback = available.find((p) => !used.has(p.id));
+      starters[i] = { player: candidate, role: slot.role, x: slot.x, y: slot.y };
+    }
+  }
+
+  // Passe 2 : Remplir les slots restants avec les joueurs de même ligne générale (DEF, MID, FWD, GK)
+  for (let i = 0; i < slots.length; i++) {
+    if (!starters[i]) {
+      const slot = slots[i];
+      const fallback =
+        available.find((p) => !used.has(p.id) && p.position === slot.position) ??
+        available.find((p) => !used.has(p.id));
+
       if (fallback) {
         used.add(fallback.id);
-        starters.push({ player: fallback, role: slot.role, x: slot.x, y: slot.y });
+        starters[i] = { player: fallback, role: slot.role, x: slot.x, y: slot.y };
       }
     }
   }
 
+  // Remplaçants : les meilleurs restants (max 9)
   const substitutes = available.filter((p) => !used.has(p.id)).slice(0, 9);
 
-  return { formation, starters, substitutes };
+  return {
+    formation,
+    starters: starters.filter((s): s is LineupSlot => s !== null),
+    substitutes,
+  };
 }
 
 // ---------------------------------------------------------------------------
