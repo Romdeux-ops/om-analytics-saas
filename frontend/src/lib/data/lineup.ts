@@ -6,6 +6,7 @@ import type {
   PlayerPosition,
   ProbableLineup,
   RosterPlayer,
+  UnavailablePlayer,
 } from "@/src/lib/types/lineup";
 
 // ---------------------------------------------------------------------------
@@ -247,7 +248,35 @@ const FORMATION_SLOTS: Record<Formation, FormationSlot[]> = {
     { position: "FWD", role: "ST",  x: 50, y: 80 },
     { position: "FWD", role: "RW",  x: 78, y: 75 },
   ],
+  "4-2-2-2": [
+    { position: "GK",  role: "GK",  x: 50, y: 5 },
+    { position: "DEF", role: "LB",  x: 15, y: 25 },
+    { position: "DEF", role: "CB",  x: 38, y: 22 },
+    { position: "DEF", role: "CB",  x: 62, y: 22 },
+    { position: "DEF", role: "RB",  x: 85, y: 25 },
+    { position: "MID", role: "CDM", x: 35, y: 42 },
+    { position: "MID", role: "CDM", x: 65, y: 42 },
+    { position: "MID", role: "CAM", x: 25, y: 62 },
+    { position: "MID", role: "CAM", x: 75, y: 62 },
+    { position: "FWD", role: "ST",  x: 38, y: 80 },
+    { position: "FWD", role: "ST",  x: 62, y: 80 },
+  ],
+  "5-3-2": [
+    { position: "GK",  role: "GK",  x: 50, y: 5 },
+    { position: "DEF", role: "LWB", x: 12, y: 30 },
+    { position: "DEF", role: "CB",  x: 32, y: 22 },
+    { position: "DEF", role: "CB",  x: 50, y: 20 },
+    { position: "DEF", role: "CB",  x: 68, y: 22 },
+    { position: "DEF", role: "RWB", x: 88, y: 30 },
+    { position: "MID", role: "CM",  x: 30, y: 50 },
+    { position: "MID", role: "CDM", x: 50, y: 45 },
+    { position: "MID", role: "CM",  x: 70, y: 50 },
+    { position: "FWD", role: "ST",  x: 38, y: 78 },
+    { position: "FWD", role: "ST",  x: 62, y: 78 },
+  ],
 };
+
+export { FORMATION_SLOTS };
 
 const KNOWN_SPECIFIC_ROLES: Record<string, { role: string; secondary?: string[] }> = {
   // OM (Effectif 2026-2027)
@@ -354,8 +383,11 @@ function starterScore(p: RosterPlayer): number {
   return p.starts * 2 + p.subIns;
 }
 
-function buildProbableLineup(roster: RosterPlayer[], formation: Formation = "4-3-3"): ProbableLineup {
-  const slots = FORMATION_SLOTS[formation];
+export function buildProbableLineup(
+  roster: RosterPlayer[],
+  formation: Formation = "4-3-3",
+): ProbableLineup {
+  const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
   const available = roster
     .filter((p) => !p.isInjured)
     .sort((a, b) => starterScore(b) - starterScore(a));
@@ -396,10 +428,17 @@ function buildProbableLineup(roster: RosterPlayer[], formation: Formation = "4-3
   // Remplaçants : les meilleurs restants (max 9)
   const substitutes = available.filter((p) => !used.has(p.id)).slice(0, 9);
 
+  // Joueurs indisponibles (blessés recensés dans l'effectif)
+  const unavailable: UnavailablePlayer[] = roster
+    .filter((p) => p.isInjured)
+    .map((p) => ({ player: p, reason: "injured" as const }));
+
   return {
     formation,
     starters: starters.filter((s): s is LineupSlot => s !== null),
     substitutes,
+    unavailable,
+    allSquadPlayers: roster,
   };
 }
 

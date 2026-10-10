@@ -1,14 +1,13 @@
 "use client";
 
 import { memo } from "react";
-import Link from "next/link";
 import {
   Calendar,
   MapPin,
   Play,
   Swords,
-  ChevronDown,
   Trophy,
+  Lock,
 } from "lucide-react";
 import { TeamCrest } from "@/src/components/ui/TeamCrest";
 import { Badge } from "@/src/components/ui/Badge";
@@ -38,7 +37,7 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
   data,
   onLaunchSimulation,
 }: MatchHeroBannerProps) {
-  const { match, stadium, homeStanding, awayStanding, homeForm, awayForm, upcomingMatches } = data;
+  const { match, stadium, homeStanding, awayStanding, homeForm, awayForm } = data;
   const matchDate = new Date(match.date);
   const homeShort = shortTeamName(match.home_team_name);
   const awayShort = shortTeamName(match.away_team_name);
@@ -67,44 +66,6 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
             <span className="capitalize">{formatMatchDate(matchDate)}</span>
           </span>
         </div>
-
-        {/* Sélecteur de match rapide s'il y a d'autres matchs */}
-        {upcomingMatches.length > 1 && (
-          <div className="relative group">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-cyan-400/40 hover:bg-white/10 hover:text-white"
-            >
-              <span>Changer de match</span>
-              <ChevronDown size={13} className="text-slate-400 transition-transform group-hover:rotate-180" />
-            </button>
-            <div className="pointer-events-none absolute right-0 top-full z-50 mt-1 w-64 translate-y-1 rounded-2xl border border-white/10 bg-slate-900/95 p-1.5 opacity-0 shadow-2xl backdrop-blur-2xl transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-              <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Matchs à venir
-              </p>
-              <div className="max-h-60 space-y-1 overflow-y-auto no-scrollbar">
-                {upcomingMatches.map((m) => (
-                  <Link
-                    key={m.id}
-                    href={`/simulation/${m.id}`}
-                    className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
-                      m.id === match.id
-                        ? "bg-cyan-500/20 text-cyan-300 font-bold"
-                        : "text-slate-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    <span className="truncate">
-                      {shortTeamName(m.home_team_name)} vs {shortTeamName(m.away_team_name)}
-                    </span>
-                    <span className="text-[10px] text-slate-500 shrink-0 ml-2">
-                      {new Date(m.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Face-à-face central des deux équipes */}
@@ -161,14 +122,26 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
           <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
             AVANT-MATCH
           </span>
-          <button
-            type="button"
-            onClick={onLaunchSimulation}
-            className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-300 to-blue-500 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:scale-105 hover:shadow-cyan-400/40"
-          >
-            <Play size={13} className="fill-current transition-transform group-hover:scale-110" />
-            <span>Lancer la simulation</span>
-          </button>
+          {!data.isNextMatch ? (
+            <div className="flex flex-col items-center gap-1 text-center">
+              <span className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <Lock size={12} className="text-slate-500" />
+                <span>Simulation verrouillée</span>
+              </span>
+              <span className="text-[10px] text-slate-500">
+                Seul le prochain match au calendrier peut être simulé
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onLaunchSimulation}
+              className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-300 to-blue-500 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider text-slate-950 shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:scale-105 hover:shadow-cyan-400/40"
+            >
+              <Play size={13} className="fill-current transition-transform group-hover:scale-110" />
+              <span>Lancer la simulation</span>
+            </button>
+          )}
         </div>
 
         {/* Équipe Extérieur */}

@@ -43,6 +43,12 @@ export async function signInAction(
   return { ok: true };
 }
 
+export async function signInAsAdminDemoAction(): Promise<
+  { ok: true } | { ok: false; error: string }
+> {
+  return signInAction("admin@test.om", "password123");
+}
+
 export async function signUpAction(
   email: string,
   password: string,

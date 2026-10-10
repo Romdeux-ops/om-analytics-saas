@@ -96,3 +96,19 @@ export const matches = pgTable("matches", {
     .notNull()
     .defaultNow(),
 });
+
+export const matchCustomizations = pgTable("match_customizations", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id")
+    .notNull()
+    .unique()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  customLineup: jsonb("custom_lineup").$type<Record<string, unknown> | null>(),
+  customEditorial: jsonb("custom_editorial").$type<Record<string, unknown> | null>(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

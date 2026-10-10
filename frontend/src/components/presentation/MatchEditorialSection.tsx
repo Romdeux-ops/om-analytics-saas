@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import {
   Newspaper,
   ExternalLink,
@@ -10,16 +10,26 @@ import {
   TrendingUp,
   Clock,
   Sparkles,
+  Pencil,
 } from "lucide-react";
 import type { MatchEditorialPreview } from "@/src/lib/data/match-preview";
+import { MatchEditorialEditorModal } from "@/src/components/presentation/MatchEditorialEditorModal";
 
 interface MatchEditorialSectionProps {
   editorial: MatchEditorialPreview;
+  matchId?: number;
+  isAdmin?: boolean;
+  onEditorialUpdated?: (updated: MatchEditorialPreview) => void;
 }
 
 export const MatchEditorialSection = memo(function MatchEditorialSection({
   editorial,
+  matchId,
+  isAdmin = false,
+  onEditorialUpdated,
 }: MatchEditorialSectionProps) {
+  const [editorOpen, setEditorOpen] = useState(false);
+
   return (
     <section className="space-y-5">
       {/* En-tête */}
@@ -48,17 +58,52 @@ export const MatchEditorialSection = memo(function MatchEditorialSection({
           </div>
         </div>
 
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold ${
-            editorial.isFromPress
-              ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-              : "border-cyan-500/30 bg-cyan-500/10 text-cyan-300"
-          }`}
-        >
-          {editorial.isFromPress ? <Newspaper size={12} /> : <Sparkles size={12} />}
-          {editorial.sourceBadge}
-        </span>
+        <div className="flex items-center gap-2">
+          {/* Badge de personnalisation staff si actif */}
+          {editorial.isCustomized && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-[11px] font-bold text-cyan-200">
+              <Sparkles size={11} className="text-cyan-300" />
+              Édité par le staff OM Analytics
+            </span>
+          )}
+
+          {/* Bouton d'édition réservé à l'Admin */}
+          {isAdmin && matchId && (
+            <button
+              type="button"
+              onClick={() => setEditorOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-500/15 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-300 shadow-md transition-all hover:bg-amber-500/25 hover:border-amber-400/60"
+            >
+              <Pencil size={12} />
+              <span>Réécrire les textes IA</span>
+            </button>
+          )}
+
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold ${
+              editorial.isFromPress
+                ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                : "border-cyan-500/30 bg-cyan-500/10 text-cyan-300"
+            }`}
+          >
+            {editorial.isFromPress ? <Newspaper size={12} /> : <Sparkles size={12} />}
+            {editorial.sourceBadge}
+          </span>
+        </div>
       </div>
+
+      {/* Modal d'édition des textes IA */}
+      {isAdmin && matchId && (
+        <MatchEditorialEditorModal
+          open={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          matchId={matchId}
+          initialEditorial={editorial}
+          onSaved={(updated) => {
+            onEditorialUpdated?.(updated);
+          }}
+        />
+      )}
 
       {/* Carte Article Principal */}
       <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900/90 via-slate-950/95 to-black p-6 shadow-2xl backdrop-blur-2xl md:p-8">

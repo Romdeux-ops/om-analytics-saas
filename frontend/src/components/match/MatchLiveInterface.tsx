@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Activity, Zap, Shield, TrendingUp, Users } from "lucide-react";
 import { simulateMatchAction } from "@/src/app/actions/match";
 import { Button } from "@/src/components/ui/Button";
-import { LineupPitch, SubstitutesBench } from "@/src/components/simulation/LineupPitch";
+import { LineupPitch, SubstitutesBench, UnavailablePlayersSection } from "@/src/components/simulation/LineupPitch";
 import type { MatchEvent, MatchView } from "@/src/lib/types/match";
 import type { MatchLineups, ProbableLineup, RosterPlayer } from "@/src/lib/types/lineup";
 
@@ -61,14 +61,22 @@ function useMatchLineups(homeTeam: string, awayTeam: string) {
 // Composant principal
 // ---------------------------------------------------------------------------
 
-export default function MatchLiveInterface({ matchData }: { matchData: MatchView }) {
+export default function MatchLiveInterface({
+  matchData,
+  initialLineups,
+}: {
+  matchData: MatchView;
+  initialLineups?: MatchLineups | null;
+}) {
   const [match, setMatch] = useState(matchData);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { lineups, loading: lineupsLoading } = useMatchLineups(
+  const { lineups: fetchedLineups, loading: lineupsLoading } = useMatchLineups(
     match.home_team_name,
     match.away_team_name,
   );
+
+  const lineups = initialLineups ?? fetchedLineups;
 
   // Extraire les joueurs pour les performances live
   const homePlayers = useMemo(
@@ -113,10 +121,12 @@ export default function MatchLiveInterface({ matchData }: { matchData: MatchView
               <div className="space-y-3">
                 <LineupPitch lineup={lineups.home} teamName={lineups.homeTeam} />
                 <SubstitutesBench substitutes={lineups.home.substitutes} teamName={lineups.homeTeam} />
+                <UnavailablePlayersSection unavailable={lineups.home.unavailable ?? []} teamName={lineups.homeTeam} />
               </div>
               <div className="space-y-3">
                 <LineupPitch lineup={lineups.away} teamName={lineups.awayTeam} />
                 <SubstitutesBench substitutes={lineups.away.substitutes} teamName={lineups.awayTeam} />
+                <UnavailablePlayersSection unavailable={lineups.away.unavailable ?? []} teamName={lineups.awayTeam} />
               </div>
             </div>
           )}

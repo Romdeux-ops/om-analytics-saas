@@ -4,7 +4,14 @@ import type { RosterPlayer, PlayerPosition } from "./espn-roster";
 // Types
 // ---------------------------------------------------------------------------
 
-export type Formation = "4-3-3" | "4-4-2" | "3-5-2" | "4-2-3-1" | "3-4-3";
+export type Formation =
+  | "4-3-3"
+  | "4-4-2"
+  | "3-5-2"
+  | "4-2-3-1"
+  | "3-4-3"
+  | "4-2-2-2"
+  | "5-3-2";
 
 export interface LineupSlot {
   /** Joueur assigné */
@@ -16,6 +23,13 @@ export interface LineupSlot {
   y: number;
 }
 
+export type AbsenceReason = "injured" | "suspended";
+
+export interface UnavailablePlayer {
+  player: RosterPlayer;
+  reason: AbsenceReason;
+}
+
 export interface ProbableLineup {
   /** Formation détectée / par défaut */
   formation: Formation;
@@ -23,6 +37,10 @@ export interface ProbableLineup {
   starters: LineupSlot[];
   /** Remplaçants (typiquement 7-9) */
   substitutes: RosterPlayer[];
+  /** Joueurs indisponibles (blessés ou suspendus) */
+  unavailable?: UnavailablePlayer[];
+  /** Effectif complet du club */
+  allSquadPlayers?: RosterPlayer[];
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +119,32 @@ const FORMATION_SLOTS: Record<Formation, FormationSlot[]> = {
     { position: "FWD", role: "LW",  x: 22, y: 75 },
     { position: "FWD", role: "ST",  x: 50, y: 80 },
     { position: "FWD", role: "RW",  x: 78, y: 75 },
+  ],
+  "4-2-2-2": [
+    { position: "GK",  role: "GK",  x: 50, y: 5 },
+    { position: "DEF", role: "LB",  x: 15, y: 25 },
+    { position: "DEF", role: "CB",  x: 38, y: 22 },
+    { position: "DEF", role: "CB",  x: 62, y: 22 },
+    { position: "DEF", role: "RB",  x: 85, y: 25 },
+    { position: "MID", role: "CDM", x: 35, y: 42 },
+    { position: "MID", role: "CDM", x: 65, y: 42 },
+    { position: "MID", role: "CAM", x: 25, y: 62 },
+    { position: "MID", role: "CAM", x: 75, y: 62 },
+    { position: "FWD", role: "ST",  x: 38, y: 80 },
+    { position: "FWD", role: "ST",  x: 62, y: 80 },
+  ],
+  "5-3-2": [
+    { position: "GK",  role: "GK",  x: 50, y: 5 },
+    { position: "DEF", role: "LWB", x: 12, y: 30 },
+    { position: "DEF", role: "CB",  x: 32, y: 22 },
+    { position: "DEF", role: "CB",  x: 50, y: 20 },
+    { position: "DEF", role: "CB",  x: 68, y: 22 },
+    { position: "DEF", role: "RWB", x: 88, y: 30 },
+    { position: "MID", role: "CM",  x: 30, y: 50 },
+    { position: "MID", role: "CDM", x: 50, y: 45 },
+    { position: "MID", role: "CM",  x: 70, y: 50 },
+    { position: "FWD", role: "ST",  x: 38, y: 78 },
+    { position: "FWD", role: "ST",  x: 62, y: 78 },
   ],
 };
 
@@ -310,10 +354,17 @@ export function buildProbableLineup(
     .filter((p) => !used.has(p.id))
     .slice(0, 9);
 
+  // Joueurs indisponibles (blessés recensés dans l'effectif)
+  const unavailable: UnavailablePlayer[] = roster
+    .filter((p) => p.isInjured)
+    .map((p) => ({ player: p, reason: "injured" as const }));
+
   return {
     formation: selectedFormation,
     starters: starters.filter((s): s is LineupSlot => s !== null),
     substitutes,
+    unavailable,
+    allSquadPlayers: roster,
   };
 }
 

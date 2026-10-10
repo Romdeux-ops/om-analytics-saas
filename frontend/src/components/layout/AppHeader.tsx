@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Shield } from "lucide-react";
 import { Badge } from "@/src/components/ui/Badge";
 import { ThemeToggle } from "@/src/components/ui/ThemeToggle";
 import { NavProgress } from "@/src/components/layout/NavProgress";
 import { MAIN_NAV_LINKS } from "@/src/lib/navigation";
 import { cn } from "@/src/lib/ui/cn";
+import { useAuth } from "@/src/components/auth/AuthProvider";
+import { signInAsAdminDemoAction } from "@/src/app/actions/auth";
 
 function isNavActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -17,12 +19,16 @@ function isNavActive(pathname: string, href: string) {
 
 export function AppHeader() {
   const pathname = usePathname();
+  const { isAdmin, signOut } = useAuth();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  const activePath = pendingHref ?? pathname;
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  useEffect(() => {
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setPendingHref(null);
-  }, [pathname]);
+  }
+
+  const activePath = pendingHref ?? pathname;
 
   return (
     <header className="mb-8 md:mb-10">
@@ -86,6 +92,37 @@ export function AppHeader() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          {isAdmin ? (
+            <div className="flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+              <Shield size={12} className="text-amber-400" />
+              <span>Admin</span>
+              <button
+                type="button"
+                onClick={async () => {
+                  await signOut();
+                  window.location.reload();
+                }}
+                className="ml-1 text-[10px] text-slate-400 hover:text-white underline"
+                title="Se déconnecter"
+              >
+                (Quitter)
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={async () => {
+                await signInAsAdminDemoAction();
+                window.location.reload();
+              }}
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:border-amber-400/40 hover:bg-amber-500/10 hover:text-amber-300 transition-colors"
+              title="Activer le mode Admin pour tester l'édition des compos et des textes IA"
+            >
+              <Shield size={12} className="text-amber-400" />
+              <span>Accès Admin</span>
+            </button>
+          )}
+
           <Badge variant="om" className="hidden sm:inline-flex">
             <Sparkles size={10} />
             Saison 2025/26

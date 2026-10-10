@@ -23,7 +23,14 @@ export interface RosterPlayer {
   isInjured: boolean;
 }
 
-export type Formation = "4-3-3" | "4-4-2" | "3-5-2" | "4-2-3-1" | "3-4-3";
+export type Formation =
+  | "4-3-3"
+  | "4-4-2"
+  | "4-2-3-1"
+  | "4-2-2-2"
+  | "3-5-2"
+  | "3-4-3"
+  | "5-3-2";
 
 export interface LineupSlot {
   player: RosterPlayer;
@@ -32,10 +39,19 @@ export interface LineupSlot {
   y: number;
 }
 
+export type AbsenceReason = "injured" | "suspended";
+
+export interface UnavailablePlayer {
+  player: RosterPlayer;
+  reason: AbsenceReason;
+}
+
 export interface ProbableLineup {
   formation: Formation;
   starters: LineupSlot[];
   substitutes: RosterPlayer[];
+  unavailable?: UnavailablePlayer[];
+  allSquadPlayers?: RosterPlayer[];
 }
 
 export interface MatchLineups {

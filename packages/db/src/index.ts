@@ -7,7 +7,10 @@ export {
   getUpcomingMatches,
   getNextOmMatch,
   simulateMatch,
+  getMatchCustomization,
+  upsertMatchCustomization,
   type MatchView,
+  type MatchCustomizationData,
 } from "./queries/matches";
 export {
   getSquad,

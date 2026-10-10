@@ -39,6 +39,8 @@ export interface MatchEditorialPreview {
     predictionText: string;
   };
   pressArticles: ScrapedPressArticle[];
+  isCustomized?: boolean;
+  customizedAt?: string;
 }
 
 function parseRssItems(xml: string): Array<{

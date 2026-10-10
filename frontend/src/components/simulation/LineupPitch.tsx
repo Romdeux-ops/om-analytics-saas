@@ -2,8 +2,9 @@
 
 import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shirt, ChevronDown, ChevronUp } from "lucide-react";
-import type { LineupSlot, ProbableLineup, RosterPlayer } from "@/src/lib/types/lineup";
+import { Shirt, ChevronDown, ChevronUp, Pencil, Activity, ShieldAlert } from "lucide-react";
+import type { AbsenceReason, LineupSlot, ProbableLineup, RosterPlayer } from "@/src/lib/types/lineup";
+export { UnavailablePlayersSection } from "./UnavailablePlayersSection";
 import { isOmTeam } from "@/src/lib/ui/teams";
 
 // ---------------------------------------------------------------------------
@@ -35,10 +36,14 @@ const PitchPlayer = memo(function PitchPlayer({
   slot,
   teamName,
   index,
+  isEditable = false,
+  onSlotClick,
 }: {
   slot: LineupSlot;
   teamName: string;
   index: number;
+  isEditable?: boolean;
+  onSlotClick?: (index: number, slot: LineupSlot) => void;
 }) {
   const colors = teamColor(teamName);
   const { player, role, x, y } = slot;
@@ -48,7 +53,10 @@ const PitchPlayer = memo(function PitchPlayer({
       initial={{ opacity: 0, scale: 0.5, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.3, type: "spring", stiffness: 200 }}
-      className="absolute flex flex-col items-center gap-0.5"
+      onClick={() => isEditable && onSlotClick?.(index, slot)}
+      className={`absolute flex flex-col items-center gap-0.5 ${
+        isEditable ? "cursor-pointer group/player z-20" : ""
+      }`}
       style={{
         left: `${x}%`,
         top: `${y}%`,
@@ -57,7 +65,11 @@ const PitchPlayer = memo(function PitchPlayer({
     >
       {/* Avatar */}
       <div
-        className={`relative flex h-8 w-8 items-center justify-center rounded-full ${colors.bg} ring-2 ${colors.ring} shadow-lg transition-transform hover:scale-110 sm:h-10 sm:w-10`}
+        className={`relative flex h-8 w-8 items-center justify-center rounded-full ${colors.bg} ring-2 ${
+          isEditable
+            ? "ring-amber-400 group-hover/player:scale-125 group-hover/player:ring-cyan-300"
+            : colors.ring
+        } shadow-lg transition-all duration-200 hover:scale-110 sm:h-10 sm:w-10`}
       >
         {player.headshotUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -69,6 +81,14 @@ const PitchPlayer = memo(function PitchPlayer({
         ) : (
           <Shirt size={16} className={colors.text} />
         )}
+
+        {/* Badge d'édition si mode admin actif */}
+        {isEditable && (
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-slate-950 shadow-md ring-1 ring-white/30 animate-pulse">
+            <Pencil size={8} />
+          </span>
+        )}
+
         {/* Numéro de maillot */}
         {player.jersey !== null && (
           <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[8px] font-bold text-white ring-1 ring-white/20 sm:h-5 sm:w-5 sm:text-[9px]">
@@ -78,7 +98,9 @@ const PitchPlayer = memo(function PitchPlayer({
       </div>
 
       {/* Nom + rôle */}
-      <span className="max-w-[70px] truncate text-center text-[9px] font-bold leading-none text-white drop-shadow-md sm:max-w-[80px] sm:text-[10px]">
+      <span className={`max-w-[70px] truncate text-center text-[9px] font-bold leading-none ${
+        isEditable ? "text-amber-200 group-hover/player:text-cyan-300" : "text-white"
+      } drop-shadow-md sm:max-w-[80px] sm:text-[10px]`}>
         {player.shortName}
       </span>
       <span className="text-[7px] font-semibold uppercase tracking-wider text-slate-400 sm:text-[8px]">
@@ -127,12 +149,16 @@ interface LineupPitchProps {
   lineup: ProbableLineup;
   teamName: string;
   className?: string;
+  isEditable?: boolean;
+  onSlotClick?: (index: number, slot: LineupSlot) => void;
 }
 
 export const LineupPitch = memo(function LineupPitch({
   lineup,
   teamName,
   className = "",
+  isEditable = false,
+  onSlotClick,
 }: LineupPitchProps) {
   const colors = teamColor(teamName);
 
@@ -148,6 +174,11 @@ export const LineupPitch = memo(function LineupPitch({
             {lineup.formation}
           </span>
         </div>
+        {isEditable && (
+          <span className="text-[10px] font-bold text-amber-300">
+            Cliquez sur un joueur pour le remplacer
+          </span>
+        )}
       </div>
 
       {/* Terrain */}
@@ -161,7 +192,14 @@ export const LineupPitch = memo(function LineupPitch({
         {/* Joueurs */}
         <AnimatePresence>
           {lineup.starters.map((slot, i) => (
-            <PitchPlayer key={slot.player.id} slot={slot} teamName={teamName} index={i} />
+            <PitchPlayer
+              key={slot.player.id || i}
+              slot={slot}
+              teamName={teamName}
+              index={i}
+              isEditable={isEditable}
+              onSlotClick={onSlotClick}
+            />
           ))}
         </AnimatePresence>
       </div>
@@ -177,12 +215,16 @@ interface SubstitutesBenchProps {
   substitutes: RosterPlayer[];
   teamName: string;
   className?: string;
+  isEditable?: boolean;
+  onMarkUnavailable?: (player: RosterPlayer, reason: AbsenceReason) => void;
 }
 
 export const SubstitutesBench = memo(function SubstitutesBench({
   substitutes,
   teamName,
   className = "",
+  isEditable = false,
+  onMarkUnavailable,
 }: SubstitutesBenchProps) {
   const [expanded, setExpanded] = useState(false);
   const colors = teamColor(teamName);
@@ -249,6 +291,36 @@ export const SubstitutesBench = memo(function SubstitutesBench({
                   {player.goals > 0 && `${player.goals}⚽`}
                   {player.assists > 0 && ` ${player.assists}🅰️`}
                 </span>
+              )}
+
+              {/* Actions Admin : Marquer comme blessé ou suspendu */}
+              {isEditable && onMarkUnavailable && (
+                <div className="flex items-center gap-1 shrink-0 ml-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMarkUnavailable(player, "injured");
+                    }}
+                    className="flex items-center gap-0.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-300 hover:bg-amber-500/25 transition-colors"
+                    title="Déclarer blessé et retirer du banc"
+                  >
+                    <Activity size={9} />
+                    <span>Blesser</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMarkUnavailable(player, "suspended");
+                    }}
+                    className="flex items-center gap-0.5 rounded-md border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-bold text-rose-300 hover:bg-rose-500/25 transition-colors"
+                    title="Déclarer suspendu et retirer du banc"
+                  >
+                    <ShieldAlert size={9} />
+                    <span>Suspendre</span>
+                  </button>
+                </div>
               )}
             </motion.div>
           ))}

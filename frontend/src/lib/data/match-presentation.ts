@@ -56,6 +56,8 @@ export interface MatchPresentationData {
   lineups: MatchLineups | null;
   editorialPreview: MatchEditorialPreview;
   upcomingMatches: MatchView[];
+  isNextMatch: boolean;
+  nextMatchId?: number;
 }
 
 export async function getMatchPresentationData(
@@ -63,6 +65,8 @@ export async function getMatchPresentationData(
 ): Promise<MatchPresentationData> {
   const homeCanonical = resolveTeamName(match.home_team_name);
   const awayCanonical = resolveTeamName(match.away_team_name);
+  const db = (await import("@/src/lib/db")).getDb();
+  const { getMatchCustomization, getNextOmMatch, getFirstUnplayedMatch } = await import("@om/db");
 
   // 1. Récupération concurrente de toutes les sources
   const [
@@ -71,6 +75,8 @@ export async function getMatchPresentationData(
     lineupsResult,
     upcomingMatches,
     apiCoaches,
+    customization,
+    nextUnplayedMatch,
   ] = await Promise.all([
     getLigue1Standings(),
     getMatchLigue1Form(homeCanonical, awayCanonical),
@@ -80,6 +86,14 @@ export async function getMatchPresentationData(
     }),
     getUpcomingMatches(10),
     fetchLigue1CoachesFromApi(),
+    getMatchCustomization(db, match.id).catch(() => null),
+    (async () => {
+      try {
+        return (await getNextOmMatch(db)) ?? (await getFirstUnplayedMatch(db));
+      } catch {
+        return null;
+      }
+    })(),
   ]);
 
   const homeStanding = standings.find(
@@ -103,7 +117,7 @@ export async function getMatchPresentationData(
   const stadium = getStadiumInfo(homeCanonical);
 
   // 2. Génération de la présentation éditoriale / presse
-  const editorialPreview = await getMatchPreview({
+  const baseEditorial = await getMatchPreview({
     homeTeam: homeCanonical,
     awayTeam: awayCanonical,
     homeStanding,
@@ -116,6 +130,30 @@ export async function getMatchPresentationData(
     matchday: 6,
   });
 
+  // 3. Fusion des personnalisations staff/admin sauvegardées
+  let finalLineups = lineupsResult;
+  if (customization?.customLineup && finalLineups) {
+    const custom = customization.customLineup as Partial<MatchLineups>;
+    finalLineups = {
+      ...finalLineups,
+      home: custom.home ?? finalLineups.home,
+      away: custom.away ?? finalLineups.away,
+    };
+  }
+
+  let finalEditorial = baseEditorial;
+  if (customization?.customEditorial) {
+    const custom = customization.customEditorial as Partial<MatchEditorialPreview>;
+    finalEditorial = {
+      ...baseEditorial,
+      ...custom,
+      isCustomized: true,
+      customizedAt: customization.updatedAt ? new Date(customization.updatedAt).toISOString() : undefined,
+    };
+  }
+
+  const isNextMatch = nextUnplayedMatch ? nextUnplayedMatch.id === match.id : true;
+
   return {
     match,
     stadium,
@@ -125,8 +163,10 @@ export async function getMatchPresentationData(
     awayForm,
     homeCoach,
     awayCoach,
-    lineups: lineupsResult,
-    editorialPreview,
+    lineups: finalLineups,
+    editorialPreview: finalEditorial,
     upcomingMatches,
+    isNextMatch,
+    nextMatchId: nextUnplayedMatch?.id,
   };
 }

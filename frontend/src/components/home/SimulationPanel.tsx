@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Play, Zap, Users, Sparkles, Swords, Calendar } from "lucide-react";
+import { Play, Zap, Users, Swords, Calendar, Lock } from "lucide-react";
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { Badge } from "@/src/components/ui/Badge";
 import { Card } from "@/src/components/ui/Card";
@@ -32,8 +32,8 @@ function formatShortDate(date: Date) {
 }
 
 /**
- * Bandeau Hero pour le prochain match à simuler :
- * Affiche l'affiche complète avec écussons, dates, badges et bouton d'action direct.
+ * Bandeau Hero pour le SEUL prochain match à simuler.
+ * Seul ce match dispose de l'accès à la simulation.
  */
 function FeaturedMatchBanner({ match }: { match: MatchView }) {
   const isOmHome = isOmTeam(match.home_team_name);
@@ -58,7 +58,7 @@ function FeaturedMatchBanner({ match }: { match: MatchView }) {
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-200 shadow-sm shadow-cyan-500/10">
             <span className="pulse-dot bg-cyan-400" />
-            Prochain match à simuler
+            Seul match disponible à la simulation
           </span>
           <Badge variant={isOmHome ? "om" : "muted"} className="hidden sm:inline-flex">
             {isOmHome ? "À domicile" : "À l'extérieur"}
@@ -124,7 +124,7 @@ function FeaturedMatchBanner({ match }: { match: MatchView }) {
           <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-300">
             <Users size={13} />
           </span>
-          <span>11 Probables &amp; remplaçants ESPN intégrés</span>
+          <span>11 Probables &amp; remplaçants officiels</span>
         </div>
 
         <span className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 via-cyan-300 to-blue-500 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-lg shadow-cyan-500/25 transition-transform duration-200 group-hover:scale-[1.02] sm:w-auto">
@@ -136,28 +136,29 @@ function FeaturedMatchBanner({ match }: { match: MatchView }) {
   );
 }
 
-function MatchRow({ match }: { match: MatchView }) {
+/**
+ * Rencontres suivantes : AFFICHAGE INFORMATIF UNIQUEMENT.
+ * Aucune action de simulation n'est disponible avant d'avoir joué le match précédent.
+ */
+function LockedMatchRow({ match }: { match: MatchView }) {
   return (
-    <Link
-      href={`/simulation/${match.id}`}
-      prefetch
-      className="pressable group/row relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02] p-4 hover:-translate-y-0.5 hover:border-cyan-400/25 hover:bg-white/[0.04]"
-    >
-      <span className="pointer-events-none absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-cyan-400/0 via-cyan-400/60 to-cyan-400/0 opacity-0 transition-opacity group-hover/row:opacity-100" />
-
+    <div className="relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.015] p-4 opacity-85 transition-opacity hover:opacity-100">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div className="flex items-center -space-x-2">
+        <div className="flex items-center -space-x-2 opacity-80">
           <TeamCrest name={match.home_team_name} size="sm" className="ring-2 ring-[var(--bg-raise)]" />
           <TeamCrest name={match.away_team_name} size="sm" className="ring-2 ring-[var(--bg-raise)]" />
         </div>
         <div className="min-w-0">
-          <p className="truncate font-tech text-base font-bold text-white">
+          <p className="truncate font-tech text-base font-bold text-slate-200">
             {shortTeamName(match.home_team_name)}{" "}
             <span className="font-normal text-slate-500">vs</span>{" "}
             {shortTeamName(match.away_team_name)}
           </p>
           <div className="mt-1 flex items-center gap-2">
-            <Badge variant="muted">À simuler</Badge>
+            <Badge variant="muted" className="border-slate-800 bg-slate-900/60 text-slate-400">
+              <Lock size={10} className="mr-1 inline text-slate-500" />
+              Verrouillé
+            </Badge>
             <span className="text-[10px] uppercase tracking-wider text-slate-500">
               {formatShortDate(new Date(match.date))}
             </span>
@@ -165,11 +166,11 @@ function MatchRow({ match }: { match: MatchView }) {
         </div>
       </div>
 
-      <span className="pointer-events-none inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-cyan-300 transition-colors group-hover/row:border-cyan-400/40 group-hover/row:bg-cyan-500/20 group-hover/row:text-white">
-        <Play size={12} className="fill-current" />
-        Simuler
+      <span className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-500">
+        <Lock size={12} className="text-slate-500" />
+        <span className="hidden sm:inline">Simulation bloquée</span>
       </span>
-    </Link>
+    </div>
   );
 }
 
@@ -182,7 +183,7 @@ export async function SimulationPanel() {
     <Card className="flex h-full flex-col gap-5">
       <SectionHeading
         title="Simulation IA"
-        subtitle="Moteur de match prédictif &amp; compositions probables"
+        subtitle="Moteur de match prédictif &amp; compositions tactiques"
         icon={<Zap size={16} />}
         action={
           <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
@@ -199,32 +200,31 @@ export async function SimulationPanel() {
           </div>
           <p className="mb-1 text-slate-300">Tous les matchs ont été simulés.</p>
           <p className="text-sm text-slate-500">
-            Lancez{" "}
-            <code className="rounded bg-white/10 px-2 py-0.5 text-xs text-cyan-200">
-              bunx supabase db reset
-            </code>{" "}
-            pour réinitialiser.
+            Le calendrier complet de la saison a été joué.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Bandeau dynamique pour le prochain match */}
+          {/* Bandeau dynamique pour le seul prochain match */}
           {featured && <FeaturedMatchBanner match={featured} />}
 
-          {/* Autres rencontres de la liste */}
+          {/* Calendrier des rencontres suivantes (non simulables) */}
           {others.length > 0 && (
             <div className="space-y-2.5 pt-2">
               <div className="flex items-center justify-between text-xs text-slate-400">
-                <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-400">
-                  Autres rencontres à simuler
-                </span>
+                <div className="flex items-center gap-2">
+                  <Lock size={13} className="text-slate-500" />
+                  <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-400">
+                    Prochaines rencontres au calendrier
+                  </span>
+                </div>
                 <span className="text-[11px] text-slate-500">
-                  {others.length} match{others.length > 1 ? "s" : ""} disponible{others.length > 1 ? "s" : ""}
+                  Simulation disponible uniquement après avoir joué le match en cours
                 </span>
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {others.map((match) => (
-                  <MatchRow key={match.id} match={match} />
+                  <LockedMatchRow key={match.id} match={match} />
                 ))}
               </div>
             </div>
