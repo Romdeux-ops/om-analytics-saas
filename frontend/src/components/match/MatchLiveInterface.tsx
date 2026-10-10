@@ -1,56 +1,94 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Activity, Zap, Shield, TrendingUp } from "lucide-react";
+import { Play, Pause, Activity, Zap, Shield, TrendingUp, Users } from "lucide-react";
 import { simulateMatchAction } from "@/src/app/actions/match";
 import { Button } from "@/src/components/ui/Button";
+import { LineupPitch, SubstitutesBench, UnavailablePlayersSection } from "@/src/components/simulation/LineupPitch";
 import type { MatchEvent, MatchView } from "@/src/lib/types/match";
+import type { MatchLineups, ProbableLineup, RosterPlayer } from "@/src/lib/types/lineup";
 
-const mockMatchData: MatchView = {
-  id: 1,
-  home_team_name: "Olympique Marseille",
-  away_team_name: "Paris SG",
-  date: new Date(),
-  match_log: [],
-  played: false,
-  home_score: 0,
-  away_score: 0,
-};
+// ---------------------------------------------------------------------------
+// Hook : récupérer les compositions côté client
+// ---------------------------------------------------------------------------
 
-const OM_PLAYERS = ["Aubameyang", "Harit", "Veretout", "Clauss", "Balerdi", "Lopez"];
-const PSG_PLAYERS = ["Mbappé", "Dembélé", "Vitinha", "Hakimi", "Marquinhos", "Donnarumma"];
-
-type Ratings = {
-  om: { score: string; width: number }[];
-  psg: { score: string; width: number }[];
-};
-
-export default function MatchLiveInterface({ matchData }: { matchData?: MatchView }) {
-  const [match, setMatch] = useState(matchData || mockMatchData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [ratings, setRatings] = useState<Ratings | null>(null);
-
-  const omPlayers = useMemo(() => OM_PLAYERS, []);
-  const psgPlayers = useMemo(() => PSG_PLAYERS, []);
+function useMatchLineups(homeTeam: string, awayTeam: string) {
+  const [lineups, setLineups] = useState<MatchLineups | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Notes aléatoires générées uniquement côté client (au montage) pour
-    // éviter un mismatch d'hydratation dû à Math.random().
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setRatings({
-      om: omPlayers.map(() => ({
-        score: (Math.random() * 2 + 5.5).toFixed(1),
-        width: Math.random() * 40 + 40,
-      })),
-      psg: psgPlayers.map(() => ({
-        score: (Math.random() * 2 + 5.0).toFixed(1),
-        width: Math.random() * 40 + 40,
-      })),
-    });
-  }, [omPlayers, psgPlayers]);
+    let cancelled = false;
 
-  async function onSimulate() {
+    async function fetchLineups() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [homeRes, awayRes] = await Promise.all([
+          fetch(`/api/lineup/${encodeURIComponent(homeTeam)}`),
+          fetch(`/api/lineup/${encodeURIComponent(awayTeam)}`),
+        ]);
+
+        if (!homeRes.ok || !awayRes.ok) {
+          throw new Error("Impossible de charger les compositions");
+        }
+
+        const home = (await homeRes.json()) as ProbableLineup;
+        const away = (await awayRes.json()) as ProbableLineup;
+
+        if (!cancelled) {
+          setLineups({ home, away, homeTeam, awayTeam });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Erreur inconnue");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchLineups();
+    return () => { cancelled = true; };
+  }, [homeTeam, awayTeam]);
+
+  return { lineups, loading, error };
+}
+
+// ---------------------------------------------------------------------------
+// Composant principal
+// ---------------------------------------------------------------------------
+
+export default function MatchLiveInterface({
+  matchData,
+  initialLineups,
+}: {
+  matchData: MatchView;
+  initialLineups?: MatchLineups | null;
+}) {
+  const [match, setMatch] = useState(matchData);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { lineups: fetchedLineups, loading: lineupsLoading } = useMatchLineups(
+    match.home_team_name,
+    match.away_team_name,
+  );
+
+  const lineups = initialLineups ?? fetchedLineups;
+
+  // Extraire les joueurs pour les performances live
+  const homePlayers = useMemo(
+    () => lineups?.home.starters.map((s) => s.player) ?? [],
+    [lineups],
+  );
+  const awayPlayers = useMemo(
+    () => lineups?.away.starters.map((s) => s.player) ?? [],
+    [lineups],
+  );
+
+  const onSimulate = useCallback(async () => {
     setIsLoading(true);
     const result = await simulateMatchAction(match.id);
     setIsLoading(false);
@@ -59,14 +97,53 @@ export default function MatchLiveInterface({ matchData }: { matchData?: MatchVie
       return true;
     }
     return false;
-  }
+  }, [match.id]);
 
   return (
     <LivePlayback match={match} isLoading={isLoading} onSimulate={onSimulate}>
-      <PlayerPerformances ratings={ratings} omPlayers={omPlayers} psgPlayers={psgPlayers} />
+      {/* Compositions pré-match */}
+      {!match.played && match.match_log.length === 0 && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Users size={16} className="text-cyan-400" />
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">
+              Compositions probables
+            </h3>
+            {lineupsLoading && (
+              <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                <span className="pulse-dot" /> Chargement…
+              </span>
+            )}
+          </div>
+
+          {lineups && (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="space-y-3">
+                <LineupPitch lineup={lineups.home} teamName={lineups.homeTeam} />
+                <SubstitutesBench substitutes={lineups.home.substitutes} teamName={lineups.homeTeam} />
+                <UnavailablePlayersSection unavailable={lineups.home.unavailable ?? []} teamName={lineups.homeTeam} />
+              </div>
+              <div className="space-y-3">
+                <LineupPitch lineup={lineups.away} teamName={lineups.awayTeam} />
+                <SubstitutesBench substitutes={lineups.away.substitutes} teamName={lineups.awayTeam} />
+                <UnavailablePlayersSection unavailable={lineups.away.unavailable ?? []} teamName={lineups.awayTeam} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Performances live (pendant/après simulation) */}
+      {(match.played || match.match_log.length > 0) && (
+        <PlayerPerformances homePlayers={homePlayers} awayPlayers={awayPlayers} />
+      )}
     </LivePlayback>
   );
 }
+
+// ---------------------------------------------------------------------------
+// LivePlayback (simulation en temps réel)
+// ---------------------------------------------------------------------------
 
 function LivePlayback({
   match,
@@ -209,15 +286,37 @@ function LivePlayback({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Performances joueurs (dynamiques)
+// ---------------------------------------------------------------------------
+
 const PlayerPerformances = memo(function PlayerPerformances({
-  ratings,
-  omPlayers,
-  psgPlayers,
+  homePlayers,
+  awayPlayers,
 }: {
-  ratings: Ratings | null;
-  omPlayers: string[];
-  psgPlayers: string[];
+  homePlayers: RosterPlayer[];
+  awayPlayers: RosterPlayer[];
 }) {
+  // Notes aléatoires uniquement côté client
+  const [ratings, setRatings] = useState<{
+    home: { score: string; width: number }[];
+    away: { score: string; width: number }[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (homePlayers.length === 0 && awayPlayers.length === 0) return;
+    setRatings({
+      home: homePlayers.slice(0, 8).map(() => ({
+        score: (Math.random() * 2 + 5.5).toFixed(1),
+        width: Math.random() * 40 + 40,
+      })),
+      away: awayPlayers.slice(0, 8).map(() => ({
+        score: (Math.random() * 2 + 5.0).toFixed(1),
+        width: Math.random() * 40 + 40,
+      })),
+    });
+  }, [homePlayers, awayPlayers]);
+
   return (
     <div className="flex-1 bento-card p-6 min-h-[300px] flex flex-col">
       <div className="flex justify-between items-center mb-6">
@@ -228,8 +327,16 @@ const PlayerPerformances = memo(function PlayerPerformances({
       <div className="flex-1 grid grid-cols-2 gap-12 overflow-y-auto no-scrollbar">
         {ratings ? (
           <>
-            <PlayerList players={omPlayers} ratings={ratings.om} color="bg-cyan-500" />
-            <PlayerList players={psgPlayers} ratings={ratings.psg} color="bg-white" />
+            <PlayerList
+              players={homePlayers.slice(0, 8).map((p) => p.shortName)}
+              ratings={ratings.home}
+              color="bg-cyan-500"
+            />
+            <PlayerList
+              players={awayPlayers.slice(0, 8).map((p) => p.shortName)}
+              ratings={ratings.away}
+              color="bg-white"
+            />
           </>
         ) : (
           <div className="col-span-2 flex items-center justify-center text-slate-600 text-sm">
@@ -240,6 +347,10 @@ const PlayerPerformances = memo(function PlayerPerformances({
     </div>
   );
 });
+
+// ---------------------------------------------------------------------------
+// Sous-composants inchangés
+// ---------------------------------------------------------------------------
 
 function ScoreBoard({
   home,

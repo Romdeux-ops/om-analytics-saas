@@ -1,12 +1,16 @@
 export { createDb, type Db } from "./client";
 export * from "./schema";
+export { eq, and, asc, desc, inArray, or } from "drizzle-orm";
 export {
   getMatchById,
   getFirstUnplayedMatch,
   getUpcomingMatches,
   getNextOmMatch,
   simulateMatch,
+  getMatchCustomization,
+  upsertMatchCustomization,
   type MatchView,
+  type MatchCustomizationData,
 } from "./queries/matches";
 export {
   getSquad,

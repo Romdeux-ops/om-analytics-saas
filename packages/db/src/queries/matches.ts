@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { createDb } from "../client";
-import { clubs, matches, players, type MatchEvent } from "../schema";
+import { clubs, matches, matchCustomizations, players, type MatchEvent } from "../schema";
 import {
   calculateTeamStrength,
   MatchSimulator,
@@ -19,6 +19,8 @@ export interface MatchView {
   played: boolean;
   home_score: number;
   away_score: number;
+  home_coach?: string | null;
+  away_coach?: string | null;
 }
 
 const OM_CLUB_NAME = "Olympique de Marseille";
@@ -33,6 +35,8 @@ function matchSelectFields() {
     played: matches.played,
     home_score: matches.homeScore,
     away_score: matches.awayScore,
+    home_coach: homeTeam.coach,
+    away_coach: awayTeam.coach,
   };
 }
 
@@ -108,6 +112,16 @@ export async function simulateMatch(
     return { error: "Match déjà joué !" };
   }
 
+  // L'utilisateur ne peut simuler que le prochain match
+  const nextOmMatch = await getNextOmMatch(db);
+  const firstUnplayed = await getFirstUnplayedMatch(db);
+  const expectedNext = nextOmMatch ?? firstUnplayed;
+  if (expectedNext && expectedNext.id !== matchId) {
+    return {
+      error: `Vous ne pouvez simuler que le prochain match (${expectedNext.home_team_name} vs ${expectedNext.away_team_name}).`,
+    };
+  }
+
   const [matchRow] = await db
     .select({
       homeTeamId: matches.homeTeamId,
@@ -135,14 +149,36 @@ export async function simulateMatch(
   const homePlayers = squad.filter((p) => p.clubId === matchRow.homeTeamId);
   const awayPlayers = squad.filter((p) => p.clubId === matchRow.awayTeamId);
 
+  const [homeClub] = await db
+    .select({ reputation: clubs.reputation })
+    .from(clubs)
+    .where(eq(clubs.id, matchRow.homeTeamId))
+    .limit(1);
+
+  const [awayClub] = await db
+    .select({ reputation: clubs.reputation })
+    .from(clubs)
+    .where(eq(clubs.id, matchRow.awayTeamId))
+    .limit(1);
+
+  const homeStrength =
+    homePlayers.length > 0
+      ? calculateTeamStrength(homePlayers)
+      : (homeClub?.reputation ?? 72);
+
+  const awayStrength =
+    awayPlayers.length > 0
+      ? calculateTeamStrength(awayPlayers)
+      : (awayClub?.reputation ?? 72);
+
   const simulator = new MatchSimulator(
     {
       name: match.home_team_name,
-      strength: calculateTeamStrength(homePlayers),
+      strength: homeStrength,
     },
     {
       name: match.away_team_name,
-      strength: calculateTeamStrength(awayPlayers),
+      strength: awayStrength,
     },
   );
 
@@ -165,4 +201,76 @@ export async function simulateMatch(
   }
 
   return { details: updated };
+}
+
+export interface MatchCustomizationData {
+  id: number;
+  matchId: number;
+  customLineup: Record<string, unknown> | null;
+  customEditorial: Record<string, unknown> | null;
+  updatedAt: Date;
+}
+
+export async function getMatchCustomization(
+  db: ReturnType<typeof createDb>,
+  matchId: number,
+): Promise<MatchCustomizationData | null> {
+  const [row] = await db
+    .select({
+      id: matchCustomizations.id,
+      matchId: matchCustomizations.matchId,
+      customLineup: matchCustomizations.customLineup,
+      customEditorial: matchCustomizations.customEditorial,
+      updatedAt: matchCustomizations.updatedAt,
+    })
+    .from(matchCustomizations)
+    .where(eq(matchCustomizations.matchId, matchId))
+    .limit(1);
+
+  return (row as MatchCustomizationData | undefined) ?? null;
+}
+
+export async function upsertMatchCustomization(
+  db: ReturnType<typeof createDb>,
+  matchId: number,
+  data: {
+    customLineup?: Record<string, unknown> | null;
+    customEditorial?: Record<string, unknown> | null;
+  },
+): Promise<MatchCustomizationData> {
+  const existing = await getMatchCustomization(db, matchId);
+
+  if (existing) {
+    const updatePayload: {
+      updatedAt: Date;
+      customLineup?: Record<string, unknown> | null;
+      customEditorial?: Record<string, unknown> | null;
+    } = { updatedAt: new Date() };
+
+    if (data.customLineup !== undefined) {
+      updatePayload.customLineup = data.customLineup;
+    }
+    if (data.customEditorial !== undefined) {
+      updatePayload.customEditorial = data.customEditorial;
+    }
+
+    const [updated] = await db
+      .update(matchCustomizations)
+      .set(updatePayload)
+      .where(eq(matchCustomizations.matchId, matchId))
+      .returning();
+
+    return updated as MatchCustomizationData;
+  }
+
+  const [inserted] = await db
+    .insert(matchCustomizations)
+    .values({
+      matchId,
+      customLineup: data.customLineup ?? null,
+      customEditorial: data.customEditorial ?? null,
+    })
+    .returning();
+
+  return inserted as MatchCustomizationData;
 }

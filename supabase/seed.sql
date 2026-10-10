@@ -3,7 +3,31 @@
 INSERT INTO clubs (name, budget_transfert, masse_salariale_actuelle, plafond_salarial_dncg, reputation, coach)
 VALUES
   ('Olympique de Marseille', 15000000, 80000000, 100000000, 85, 'Bruno Genesio'),
-  ('Paris Saint-Germain', 200000000, 300000000, 500000000, 90, NULL);
+  ('Paris Saint-Germain', 200000000, 300000000, 500000000, 90, 'Luis Enrique'),
+  ('AS Monaco', 50000000, 80000000, 120000000, 82, 'Adi Hütter'),
+  ('Olympique Lyonnais', 30000000, 70000000, 100000000, 81, 'Pierre Sage'),
+  ('LOSC Lille', 25000000, 60000000, 90000000, 80, 'Bruno Génésio'),
+  ('RC Lens', 20000000, 50000000, 80000000, 78, 'Will Still'),
+  ('OGC Nice', 20000000, 50000000, 80000000, 78, 'Franck Haise'),
+  ('Stade Rennais', 25000000, 55000000, 85000000, 77, 'Julien Stéphan'),
+  ('Stade Brestois', 15000000, 35000000, 60000000, 76, 'Éric Roy'),
+  ('RC Strasbourg', 20000000, 45000000, 70000000, 74, 'Liam Rosenior'),
+  ('Toulouse FC', 12000000, 35000000, 55000000, 73, 'Carles Martinez Novell'),
+  ('AJ Auxerre', 10000000, 25000000, 45000000, 72, 'Christophe Pélissier'),
+  ('ESTAC Troyes', 10000000, 25000000, 45000000, 71, 'Stéphane Dumont'),
+  ('Angers SCO', 10000000, 25000000, 45000000, 71, 'Alexandre Dujeux'),
+  ('Le Havre AC', 10000000, 25000000, 45000000, 71, 'Didier Digard'),
+  ('FC Lorient', 10000000, 25000000, 45000000, 71, 'Olivier Pantaloni'),
+  ('Paris FC', 15000000, 30000000, 50000000, 72, 'Stéphane Gilli'),
+  ('Le Mans FC', 8000000, 20000000, 35000000, 68, 'Patrick Videira'),
+  ('Bayer Leverkusen', 60000000, 100000000, 150000000, 86, 'Xabi Alonso'),
+  ('Olympiacos FC', 20000000, 40000000, 60000000, 77, 'José Luis Mendilibar'),
+  ('Beşiktaş JK', 20000000, 45000000, 65000000, 76, 'Giovanni van Bronckhorst'),
+  ('Celtic FC', 25000000, 45000000, 65000000, 76, 'Brendan Rodgers'),
+  ('Celta de Vigo', 18000000, 40000000, 60000000, 76, 'Claudio Giráldez'),
+  ('RSC Anderlecht', 15000000, 35000000, 55000000, 75, 'David Hubert'),
+  ('SK Sturm Graz', 12000000, 25000000, 40000000, 73, 'Christian Ilzer'),
+  ('PFC Levski Sofia', 8000000, 18000000, 30000000, 70, 'Stanislav Genchev');
 
 -- Effectif OM 2026-2027 (25 joueurs — mercato d'été : départs Greenwood, Timber,
 -- Balerdi, Medina, Traoré, Rulli, Aubameyang, Lago ; arrivées De Lange, Vermot,
@@ -62,11 +86,61 @@ CROSS JOIN (VALUES
 ) AS p(name, position, position_label, age, rating, market_value, wage)
 WHERE c.name = 'Paris Saint-Germain';
 
-INSERT INTO matches (home_team_id, away_team_id, date, played)
-SELECT om.id, psg.id, now() + interval '1 day', false
-FROM clubs om, clubs psg
-WHERE om.name = 'Olympique de Marseille'
-  AND psg.name = 'Paris Saint-Germain';
+INSERT INTO matches (home_team_id, away_team_id, date, played, home_score, away_score)
+SELECT
+  h.id AS home_team_id,
+  a.id AS away_team_id,
+  v.match_date::timestamptz,
+  v.played,
+  v.home_score,
+  v.away_score
+FROM (VALUES
+  ('Olympique de Marseille', 'RC Strasbourg', '2026-08-21T20:45:00+02:00', true, 4, 0),
+  ('AS Monaco', 'Olympique de Marseille', '2026-08-30T20:45:00+02:00', true, 2, 0),
+  ('Olympique de Marseille', 'Paris FC', '2026-09-06T20:45:00+02:00', true, 2, 3),
+  ('Stade Rennais', 'Olympique de Marseille', '2026-09-11T20:45:00+02:00', true, 1, 0),
+  ('Olympique de Marseille', 'Paris Saint-Germain', '2026-09-20T20:45:00+02:00', true, 1, 2),
+  ('ESTAC Troyes', 'Olympique de Marseille', '2026-10-11T20:45:00+02:00', false, 0, 0),
+  ('Angers SCO', 'Olympique de Marseille', '2026-10-18T15:00:00+02:00', false, 0, 0),
+  ('Olympique de Marseille', 'Le Havre AC', '2026-10-25T17:15:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'Toulouse FC', '2026-11-01T20:45:00+01:00', false, 0, 0),
+  ('RC Lens', 'Olympique de Marseille', '2026-11-08T20:45:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'Le Mans FC', '2026-11-22T20:45:00+01:00', false, 0, 0),
+  ('AJ Auxerre', 'Olympique de Marseille', '2026-11-29T15:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'OGC Nice', '2026-12-05T12:00:00+01:00', false, 0, 0),
+  ('Olympique Lyonnais', 'Olympique de Marseille', '2026-12-13T20:45:00+01:00', false, 0, 0),
+  ('Stade Brestois', 'Olympique de Marseille', '2027-01-02T12:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'LOSC Lille', '2027-01-16T12:00:00+01:00', false, 0, 0),
+  ('FC Lorient', 'Olympique de Marseille', '2027-01-23T12:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'ESTAC Troyes', '2027-01-30T12:00:00+01:00', false, 0, 0),
+  ('Paris Saint-Germain', 'Olympique de Marseille', '2027-02-07T20:45:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'Angers SCO', '2027-02-13T12:00:00+01:00', false, 0, 0),
+  ('RC Strasbourg', 'Olympique de Marseille', '2027-02-20T12:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'Stade Rennais', '2027-02-27T12:00:00+01:00', false, 0, 0),
+  ('LOSC Lille', 'Olympique de Marseille', '2027-03-06T12:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'AS Monaco', '2027-03-13T12:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'Olympique Lyonnais', '2027-03-21T20:45:00+01:00', false, 0, 0),
+  ('Le Mans FC', 'Olympique de Marseille', '2027-04-03T12:00:00+02:00', false, 0, 0),
+  ('Olympique de Marseille', 'Stade Brestois', '2027-04-10T12:00:00+02:00', false, 0, 0),
+  ('Le Havre AC', 'Olympique de Marseille', '2027-04-17T12:00:00+02:00', false, 0, 0),
+  ('Olympique de Marseille', 'AJ Auxerre', '2027-04-24T12:00:00+02:00', false, 0, 0),
+  ('Toulouse FC', 'Olympique de Marseille', '2027-05-01T12:00:00+02:00', false, 0, 0),
+  ('OGC Nice', 'Olympique de Marseille', '2027-05-08T12:00:00+02:00', false, 0, 0),
+  ('Olympique de Marseille', 'RC Lens', '2027-05-16T12:00:00+02:00', false, 0, 0),
+  ('Paris FC', 'Olympique de Marseille', '2027-05-22T12:00:00+02:00', false, 0, 0),
+  ('Olympique de Marseille', 'FC Lorient', '2027-05-29T12:00:00+02:00', false, 0, 0),
+  -- Europa League
+  ('Beşiktaş JK', 'Olympique de Marseille', '2026-09-17T21:00:00+02:00', true, 4, 1),
+  ('Olympique de Marseille', 'Olympiacos FC', '2026-10-15T21:00:00+02:00', false, 0, 0),
+  ('SK Sturm Graz', 'Olympique de Marseille', '2026-10-22T18:45:00+02:00', false, 0, 0),
+  ('Bayer Leverkusen', 'Olympique de Marseille', '2026-11-05T21:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'PFC Levski Sofia', '2026-11-26T18:45:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'Celta de Vigo', '2026-12-10T18:45:00+01:00', false, 0, 0),
+  ('Celtic FC', 'Olympique de Marseille', '2027-01-21T21:00:00+01:00', false, 0, 0),
+  ('Olympique de Marseille', 'RSC Anderlecht', '2027-01-28T21:00:00+01:00', false, 0, 0)
+) AS v(home_club, away_club, match_date, played, home_score, away_score)
+JOIN clubs h ON h.name = v.home_club
+JOIN clubs a ON a.name = v.away_club;
 
 -- Salons Fan Zone de démonstration
 INSERT INTO rooms (name, slug, description)
