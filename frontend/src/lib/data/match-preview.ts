@@ -186,6 +186,7 @@ export async function getMatchPreview(params: {
   awayCoach: CoachProfile;
   matchDate: Date;
   matchday?: number;
+  competition?: "ligue1" | "europa" | "coupe";
 }): Promise<MatchEditorialPreview> {
   const {
     homeTeam,
@@ -198,11 +199,14 @@ export async function getMatchPreview(params: {
     awayCoach,
     matchDate,
     matchday = 6,
+    competition = "ligue1",
   } = params;
 
   const homeShort = shortTeamName(homeTeam);
   const awayShort = shortTeamName(awayTeam);
-  const cacheKey = `preview-v2-${homeShort}-${awayShort}-${matchDate.toISOString().slice(0, 10)}`;
+  const isEuropa = competition === "europa";
+  const compLabel = isEuropa ? "Europa League" : "Ligue 1";
+  const cacheKey = `preview-v3-${homeShort}-${awayShort}-${competition}-${matchDate.toISOString().slice(0, 10)}`;
 
   return unstable_cache(
     async () => {
@@ -227,7 +231,9 @@ export async function getMatchPreview(params: {
         pressSource = bestArticle.source;
         pressUrl = bestArticle.url;
         headline = bestArticle.title;
-        subheadline = `Dépêche et analyse d'avant-match publiées par ${bestArticle.source} pour la ${matchday}e journée de Ligue 1.`;
+        subheadline = isEuropa
+          ? `Dépêche et analyse d'avant-match publiées par ${bestArticle.source} pour la ${matchday}e journée de la phase de ligue d'Europa League.`
+          : `Dépêche et analyse d'avant-match publiées par ${bestArticle.source} pour la ${matchday}e journée de Ligue 1.`;
         sourceBadge = `${bestArticle.source} · Dépêche d'Avant-Match`;
 
         const pressExcerpt =
@@ -240,21 +246,32 @@ export async function getMatchPreview(params: {
         paragraphs = [
           pressExcerpt,
           `Sur le banc de touche, ce duel oppose ${homeCoach.name} (${homeCoach.system}) à ${awayCoach.name} (${awayCoach.system}). Pour ${homeShort}, l'organisation prônée par ${homeCoach.name} repose sur ${homeCoach.style.toLowerCase()}, tandis que ${awayShort} cherchera à imposer son propre rythme tactique.`,
-          `Au classement, ${homeShort} (${homeRankStr}) et ${awayShort} (${awayRankStr}) abordent ce match sous pression : seulement ${homeForm.points} point(s) pris lors des 5 dernières journées de Ligue 1 pour les locaux, contre ${awayForm.points} pour les visiteurs. L'issue de la rencontre aura un impact direct sur le classement de Ligue 1.`,
+          isEuropa
+            ? `Au classement de la phase de ligue UEFA, ${homeShort} (${homeRankStr}) et ${awayShort} (${awayRankStr}) abordent ce rendez-vous européen : ${homeForm.points} point(s) pris en Europa League pour les locaux, contre ${awayForm.points} pour les visiteurs. L'issue du match sera déterminante dans la course à la qualification.`
+            : `Au classement, ${homeShort} (${homeRankStr}) et ${awayShort} (${awayRankStr}) abordent ce match sous pression : seulement ${homeForm.points} point(s) pris lors des 5 dernières journées de Ligue 1 pour les locaux, contre ${awayForm.points} pour les visiteurs. L'issue de la rencontre aura un impact direct sur le classement de Ligue 1.`,
         ];
       } else {
         // CAS B : Aucun article de presse disponible -> Synthèse générée par IA (clairement indiquée)
         isFromPress = false;
         sourceBadge = "OM Analytics IA · Synthèse";
-        disclaimer =
-          "Cette présentation d'avant-match a été générée par l'intelligence artificielle à partir des statistiques de la saison (forme des 5 derniers matchs, classement officiel et compositions probables).";
-        headline = `${homeShort} - ${awayShort} : Le choc de la ${matchday}e journée sous haute tension`;
-        subheadline = `Respectivement ${homeRankStr} et ${awayRankStr} de Ligue 1, les deux formations s'affrontent dans une rencontre cruciale où la moindre erreur se paiera au prix fort.`;
+        disclaimer = isEuropa
+          ? "Cette présentation d'avant-match a été générée par l'intelligence artificielle à partir des statistiques de la saison (forme en Europa League, classement de la phase de ligue UEFA et compositions probables)."
+          : "Cette présentation d'avant-match a été générée par l'intelligence artificielle à partir des statistiques de la saison (forme des 5 derniers matchs, classement officiel et compositions probables).";
+        headline = isEuropa
+          ? `${homeShort} - ${awayShort} : Grand rendez-vous européen pour la ${matchday}e journée d'Europa League`
+          : `${homeShort} - ${awayShort} : Le choc de la ${matchday}e journée sous haute tension`;
+        subheadline = isEuropa
+          ? `Respectivement ${homeRankStr} et ${awayRankStr} de la phase de ligue d'Europa League, les deux formations s'affrontent dans une rencontre charnière sur la scène continentale.`
+          : `Respectivement ${homeRankStr} et ${awayRankStr} de Ligue 1, les deux formations s'affrontent dans une rencontre cruciale où la moindre erreur se paiera au prix fort.`;
 
         paragraphs = [
-          `C'est une affiche charnière qui s'annonce sur la pelouse ${
-            homeTeam === "Marseille" ? "de l'Orange Vélodrome" : `du stade adverse face à ${homeShort}`
-          }. Avec un début d'exercice délicat et seulement ${homeForm.points} point(s) pris sur les 5 dernières journées de Ligue 1 pour ${homeShort} contre ${awayForm.points} point(s) pour ${awayShort}, les deux états-majors abordent ce duel avec l'impératif absolu d'engranger des points.`,
+          isEuropa
+            ? `C'est une grande affiche continentale qui s'annonce sur la pelouse ${
+                homeTeam === "Marseille" ? "de l'Orange Vélodrome" : `du stade adverse face à ${homeShort}`
+              }. Dans le nouveau format de la phase de ligue UEFA à 36 clubs, chaque point pèse lourd : ${homeShort} (${homeForm.points} pt(s) en Europa League) et ${awayShort} (${awayForm.points} pt(s)) entendent bien imposer leur loi pour faire un pas décisif vers le top 8 ou les barrages.`
+            : `C'est une affiche charnière qui s'annonce sur la pelouse ${
+                homeTeam === "Marseille" ? "de l'Orange Vélodrome" : `du stade adverse face à ${homeShort}`
+              }. Avec un début d'exercice délicat et seulement ${homeForm.points} point(s) pris sur les 5 dernières journées de Ligue 1 pour ${homeShort} contre ${awayForm.points} point(s) pour ${awayShort}, les deux états-majors abordent ce duel avec l'impératif absolu d'engranger des points.`,
           `D'un point de vue tactique, l'affrontement entre ${homeCoach.name} et ${awayCoach.name} promet une vraie opposition de styles. D'un côté, le ${homeCoach.system} de ${homeShort} privilégie ${homeCoach.style.toLowerCase()}, misant sur une organisation rigoureuse. De l'autre, ${awayCoach.name} s'appuie sur ${awayCoach.style.toLowerCase()} avec son ${awayCoach.system}, exigeant une intensité continue dans les phases de transition.`,
           `Dans les vestiaires, le mot d'ordre est clair : retrouver de la solidité défensive et du réalisme dans le dernier geste. L'impact athlétique au milieu de terrain et la maîtrise des seconds ballons feront pencher la balance dans une rencontre qui s'annonce disputée jusqu'au coup de sifflet final.`,
         ];

@@ -34,14 +34,14 @@ const ESPN_TEAM_IDS: Record<string, { id: string; league: string }> = {
   Toulouse:     { id: "179",  league: "fra.1" },
   Troyes:       { id: "170",  league: "fra.1" },
   // Europa League 2026-2027
-  "Beşiktaş":       { id: "194",  league: "uefa.europa" },
-  Olympiacos:       { id: "400",  league: "uefa.europa" },
-  "Sturm Graz":     { id: "3566", league: "uefa.europa" },
-  Leverkusen:       { id: "132",  league: "ger.1" },
-  "Levski Sofia":   { id: "2673", league: "uefa.europa" },
-  Celta:            { id: "3842", league: "esp.1" },
-  Celtic:           { id: "345",  league: "sco.1" },
-  Anderlecht:       { id: "2559", league: "bel.1" },
+  "Beşiktaş":       { id: "1895", league: "uefa.europa" },
+  Olympiacos:       { id: "435",  league: "uefa.europa" },
+  "Sturm Graz":     { id: "3746", league: "uefa.europa" },
+  Leverkusen:       { id: "131",  league: "uefa.europa" },
+  "Levski Sofia":   { id: "490",  league: "uefa.europa" },
+  Celta:            { id: "85",   league: "uefa.europa" },
+  Celtic:           { id: "256",  league: "uefa.europa" },
+  Anderlecht:       { id: "441",  league: "uefa.europa" },
 };
 
 const ALIASES: Record<string, string> = {
