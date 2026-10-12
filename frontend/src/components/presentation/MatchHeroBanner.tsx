@@ -37,7 +37,17 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
   data,
   onLaunchSimulation,
 }: MatchHeroBannerProps) {
-  const { match, stadium, homeStanding, awayStanding, homeForm, awayForm } = data;
+  const {
+    match,
+    stadium,
+    homeStanding,
+    awayStanding,
+    homeForm,
+    awayForm,
+    competition,
+    competitionLabel,
+    matchday,
+  } = data;
   const matchDate = new Date(match.date);
   const homeShort = shortTeamName(match.home_team_name);
   const awayShort = shortTeamName(match.away_team_name);
@@ -53,9 +63,18 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
       {/* Barre supérieure : Compétition, Stade & Sélecteur de match */}
       <div className="relative z-10 mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-5">
         <div className="flex flex-wrap items-center gap-2.5">
-          <Badge variant="gold">
-            <Trophy size={11} />
-            Ligue 1 · 2026-2027
+          <Badge
+            variant="gold"
+            className={
+              competition === "europa"
+                ? "border-orange-500/40 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-transparent text-orange-200"
+                : undefined
+            }
+          >
+            <Trophy size={11} className={competition === "europa" ? "text-orange-400" : undefined} />
+            {competition === "europa"
+              ? `Europa League · J${matchday} · 2026-2027`
+              : `Ligue 1 · J${matchday} · 2026-2027`}
           </Badge>
           <Badge variant="muted">
             <MapPin size={11} className="text-cyan-400" />
@@ -92,8 +111,8 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
                     {homeStanding.rank}e · {homeStanding.points} pts
                   </span>
                 )}
-                {/* 5 derniers matchs - pastilles */}
-                <div className="flex items-center gap-1" title="Forme (5 derniers matchs Ligue 1)">
+                {/* Derniers matchs - pastilles */}
+                <div className="flex items-center gap-1" title={`Forme (${competitionLabel})`}>
                   {homeForm.formSequence.map((res, i) => (
                     <span
                       key={i}
@@ -166,8 +185,8 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
                     {awayStanding.rank}e · {awayStanding.points} pts
                   </span>
                 )}
-                {/* 5 derniers matchs - pastilles */}
-                <div className="flex items-center gap-1" title="Forme (5 derniers matchs Ligue 1)">
+                {/* Derniers matchs - pastilles */}
+                <div className="flex items-center gap-1" title={`Forme (${competitionLabel})`}>
                   {awayForm.formSequence.map((res, i) => (
                     <span
                       key={i}

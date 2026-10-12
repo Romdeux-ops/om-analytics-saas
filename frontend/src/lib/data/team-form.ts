@@ -14,17 +14,19 @@ export interface FormMatchItem {
   scoreAgainst: number;
   scoreFormatted: string;
   result: FormResultType;
-  competition: "Ligue 1";
+  competition: "Ligue 1" | "Europa League" | "Coupe de France";
 }
 
 export interface TeamFormData {
   teamName: string;
   canonicalName: string;
-  matches: FormMatchItem[]; // 5 derniers matchs Ligue 1 (du plus récent au plus ancien)
+  competition?: "ligue1" | "europa" | "coupe";
+  competitionLabel?: string;
+  matches: FormMatchItem[]; // Matchs récents (du plus récent au plus ancien)
   wins: number;
   draws: number;
   losses: number;
-  points: number; // sur 15 max
+  points: number;
   goalsFor: number;
   goalsAgainst: number;
   goalDiff: number;
@@ -50,6 +52,18 @@ const ESPN_TEAM_IDS: Record<string, string> = {
   Strasbourg: "180",
   Toulouse: "179",
   Troyes: "170",
+};
+
+const ESPN_EUROPA_TEAM_IDS: Record<string, string> = {
+  Marseille: "176",
+  Olympiacos: "435",
+  "Beşiktaş": "1895",
+  "Sturm Graz": "3746",
+  Leverkusen: "131",
+  "Levski Sofia": "490",
+  Celta: "85",
+  Celtic: "256",
+  Anderlecht: "441",
 };
 
 /**
@@ -314,6 +328,221 @@ export async function getTeamLigue1Form(teamName: string): Promise<TeamFormData>
   )();
 }
 
+const FALLBACK_EUROPA_FORM: Record<string, FormMatchItem[]> = {
+  Marseille: [
+    {
+      id: "om-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Beşiktaş",
+      opponentShort: "Beşiktaş",
+      isHome: false,
+      scoreFor: 1,
+      scoreAgainst: 4,
+      scoreFormatted: "1 - 4",
+      result: "D",
+      competition: "Europa League",
+    },
+  ],
+  Olympiacos: [
+    {
+      id: "oly-el-j1",
+      date: "2026-09-16T21:00:00+02:00",
+      opponent: "Jagiellonia Białystok",
+      opponentShort: "Jagiellonia",
+      isHome: true,
+      scoreFor: 2,
+      scoreAgainst: 1,
+      scoreFormatted: "2 - 1",
+      result: "V",
+      competition: "Europa League",
+    },
+  ],
+  "Beşiktaş": [
+    {
+      id: "bes-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Marseille",
+      opponentShort: "Marseille",
+      isHome: true,
+      scoreFor: 4,
+      scoreAgainst: 1,
+      scoreFormatted: "4 - 1",
+      result: "V",
+      competition: "Europa League",
+    },
+  ],
+  "Sturm Graz": [
+    {
+      id: "stu-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Dinamo Zagreb",
+      opponentShort: "Dinamo Zagreb",
+      isHome: true,
+      scoreFor: 0,
+      scoreAgainst: 0,
+      scoreFormatted: "0 - 0",
+      result: "N",
+      competition: "Europa League",
+    },
+  ],
+  Leverkusen: [
+    {
+      id: "lev-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Celta",
+      opponentShort: "Celta",
+      isHome: true,
+      scoreFor: 2,
+      scoreAgainst: 0,
+      scoreFormatted: "2 - 0",
+      result: "V",
+      competition: "Europa League",
+    },
+  ],
+  "Levski Sofia": [
+    {
+      id: "levs-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Anderlecht",
+      opponentShort: "Anderlecht",
+      isHome: false,
+      scoreFor: 0,
+      scoreAgainst: 1,
+      scoreFormatted: "0 - 1",
+      result: "D",
+      competition: "Europa League",
+    },
+  ],
+  Celta: [
+    {
+      id: "cel-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Leverkusen",
+      opponentShort: "Leverkusen",
+      isHome: false,
+      scoreFor: 0,
+      scoreAgainst: 2,
+      scoreFormatted: "0 - 2",
+      result: "D",
+      competition: "Europa League",
+    },
+  ],
+  Celtic: [
+    {
+      id: "celt-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Milan",
+      opponentShort: "Milan",
+      isHome: true,
+      scoreFor: 1,
+      scoreAgainst: 3,
+      scoreFormatted: "1 - 3",
+      result: "D",
+      competition: "Europa League",
+    },
+  ],
+  Anderlecht: [
+    {
+      id: "and-el-j1",
+      date: "2026-09-17T21:00:00+02:00",
+      opponent: "Levski Sofia",
+      opponentShort: "Levski Sofia",
+      isHome: true,
+      scoreFor: 1,
+      scoreAgainst: 0,
+      scoreFormatted: "1 - 0",
+      result: "V",
+      competition: "Europa League",
+    },
+  ],
+};
+
+/**
+ * Récupère les matchs d'Europa League (phase de ligue) pour un club donné.
+ */
+export async function getTeamEuropaForm(teamName: string): Promise<TeamFormData> {
+  const canonicalName = resolveTeamName(teamName);
+  const espnId = ESPN_EUROPA_TEAM_IDS[canonicalName];
+
+  return unstable_cache(
+    async () => {
+      if (espnId) {
+        try {
+          const url = `https://site.web.api.espn.com/apis/site/v2/sports/soccer/uefa.europa/teams/${espnId}/schedule`;
+          const res = await fetch(url, {
+            headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const events = data.events ?? [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const completed = events.filter((e: any) => e.competitions?.[0]?.status?.type?.completed === true);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            completed.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const parsedMatches: FormMatchItem[] = completed.map((event: any) => {
+              const comp = event.competitions?.[0];
+              const competitors = comp?.competitors ?? [];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const thisTeam = competitors.find((c: any) => String(c.team?.id) === espnId);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const oppTeam = competitors.find((c: any) => String(c.team?.id) !== espnId);
+
+              const isHome = thisTeam?.homeAway === "home";
+              const scoreFor = Number(thisTeam?.score?.value ?? thisTeam?.score ?? 0);
+              const scoreAgainst = Number(oppTeam?.score?.value ?? oppTeam?.score ?? 0);
+
+              let result: FormResultType = "N";
+              if (scoreFor > scoreAgainst) result = "V";
+              else if (scoreFor < scoreAgainst) result = "D";
+
+              const oppName = oppTeam?.team?.displayName ?? "Adversaire";
+
+              return {
+                id: String(event.id || `${espnId}-${event.date}`),
+                date: event.date,
+                opponent: oppName,
+                opponentShort: shortTeamName(oppName),
+                isHome,
+                scoreFor,
+                scoreAgainst,
+                scoreFormatted: isHome ? `${scoreFor} - ${scoreAgainst}` : `${scoreAgainst} - ${scoreFor}`,
+                result,
+                competition: "Europa League" as const,
+              };
+            });
+
+            if (parsedMatches.length > 0) {
+              const agg = calculateAggregates(teamName, canonicalName, parsedMatches);
+              const result: TeamFormData = {
+                ...agg,
+                competition: "europa",
+                competitionLabel: "Europa League",
+              };
+              return result;
+            }
+          }
+        } catch (err) {
+          console.warn(`[team-form] Impossible de charger la forme ESPN Europa pour ${teamName}, repli local:`, err);
+        }
+      }
+
+      const fallback = FALLBACK_EUROPA_FORM[canonicalName] ?? [];
+      const agg = calculateAggregates(teamName, canonicalName, fallback);
+      const result: TeamFormData = {
+        ...agg,
+        competition: "europa",
+        competitionLabel: "Europa League",
+      };
+      return result;
+    },
+    [`team-form-el-${canonicalName}`],
+    { revalidate: 3600, tags: ["team-form"] },
+  )();
+}
+
 /**
  * Récupère en parallèle la forme des deux équipes d'un match (Ligue 1 uniquement).
  */
@@ -326,4 +555,32 @@ export async function getMatchLigue1Form(
     getTeamLigue1Form(awayTeam),
   ]);
   return { home, away };
+}
+
+/**
+ * Récupère en parallèle la forme des deux équipes d'un match (Europa League).
+ */
+export async function getMatchEuropaForm(
+  homeTeam: string,
+  awayTeam: string,
+): Promise<{ home: TeamFormData; away: TeamFormData }> {
+  const [home, away] = await Promise.all([
+    getTeamEuropaForm(homeTeam),
+    getTeamEuropaForm(awayTeam),
+  ]);
+  return { home, away };
+}
+
+/**
+ * Récupère la forme selon la compétition du match.
+ */
+export async function getMatchForm(
+  homeTeam: string,
+  awayTeam: string,
+  competition: "ligue1" | "europa" | "coupe" = "ligue1",
+): Promise<{ home: TeamFormData; away: TeamFormData }> {
+  if (competition === "europa") {
+    return getMatchEuropaForm(homeTeam, awayTeam);
+  }
+  return getMatchLigue1Form(homeTeam, awayTeam);
 }

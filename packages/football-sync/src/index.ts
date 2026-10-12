@@ -18,6 +18,7 @@ import { currentSeasonYear } from "./dates";
 import { europaZone, fetchEspnFixtures, fetchEspnStandings } from "./espn";
 import { fetchLigue1 } from "./football-data";
 import { fetchPressArticles } from "./news";
+import { syncPlayedMatchesFromSnapshots } from "./sync-matches";
 
 const DAY = 24 * 60 * 60 * 1000;
 /** Fenêtre de comparaison pour écarter une info déjà publiée par une autre source. */
@@ -191,6 +192,12 @@ async function main() {
 
     await upsertFootballSnapshot(db!, { competition: job.competition, fixtures, standings, source: job.source });
     written++;
+
+    try {
+      await syncPlayedMatchesFromSnapshots(db!, fixtures);
+    } catch (err) {
+      console.warn(`[sync] Impossible de mettre à jour la table matches pour ${job.competition}:`, err);
+    }
   }
 
   try {

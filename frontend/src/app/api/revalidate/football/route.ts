@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
 
   revalidateTag(FOOTBALL_CACHE_TAG, { expire: 0 });
   revalidateTag(NEWS_CACHE_TAG, { expire: 0 });
-  for (const path of ["/", "/calendrier", "/classement"]) {
+  revalidateTag("team-form", { expire: 0 });
+  for (const path of ["/", "/calendrier", "/classement", "/simulation"]) {
     revalidatePath(path);
   }
 

@@ -11,6 +11,7 @@ interface StandingsComparisonSectionProps {
   awayStanding?: StandingRow;
   homeTeamName: string;
   awayTeamName: string;
+  competition?: "ligue1" | "europa" | "coupe";
 }
 
 export const StandingsComparisonSection = memo(function StandingsComparisonSection({
@@ -18,9 +19,11 @@ export const StandingsComparisonSection = memo(function StandingsComparisonSecti
   awayStanding,
   homeTeamName,
   awayTeamName,
+  competition = "ligue1",
 }: StandingsComparisonSectionProps) {
   const homeShort = shortTeamName(homeTeamName);
   const awayShort = shortTeamName(awayTeamName);
+  const isEuropa = competition === "europa";
 
   return (
     <section className="space-y-4">
@@ -32,10 +35,12 @@ export const StandingsComparisonSection = memo(function StandingsComparisonSecti
           </span>
           <div>
             <h3 className="font-tech text-base font-bold uppercase tracking-wider text-white">
-              Classement Ligue 1
+              Classement {isEuropa ? "Europa League" : "Ligue 1"}
             </h3>
             <p className="text-xs text-slate-400">
-              Position officielle, points et bilan des deux clubs
+              {isEuropa
+                ? "Phase de ligue UEFA (36 clubs) · Position officielle et qualification"
+                : "Position officielle, points et bilan des deux clubs"}
             </p>
           </div>
         </div>
@@ -49,8 +54,8 @@ export const StandingsComparisonSection = memo(function StandingsComparisonSecti
 
       {/* Cartes comparatives */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <ClubStandingCard standing={homeStanding} teamName={homeShort} isHome />
-        <ClubStandingCard standing={awayStanding} teamName={awayShort} isHome={false} />
+        <ClubStandingCard standing={homeStanding} teamName={homeShort} isHome isEuropa={isEuropa} />
+        <ClubStandingCard standing={awayStanding} teamName={awayShort} isHome={false} isEuropa={isEuropa} />
       </div>
 
       {/* Tableau détaillé comparatif */}
@@ -147,10 +152,12 @@ function ClubStandingCard({
   standing,
   teamName,
   isHome,
+  isEuropa = false,
 }: {
   standing?: StandingRow;
   teamName: string;
   isHome: boolean;
+  isEuropa?: boolean;
 }) {
   if (!standing) {
     return (
@@ -162,6 +169,9 @@ function ClubStandingCard({
 
   const isRelegation = standing.rank >= 16;
   const isEurope = standing.rank <= 5;
+  const isUefaDirect = isEuropa && standing.rank <= 8;
+  const isUefaPlayoffs = isEuropa && standing.rank >= 9 && standing.rank <= 24;
+  const isUefaEliminated = isEuropa && standing.rank >= 25;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-5 backdrop-blur-xl shadow-lg">
@@ -178,7 +188,7 @@ function ClubStandingCard({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              {standing.played} matchs joués · Diff. {standing.goalsFor - standing.goalsAgainst > 0 ? `+${standing.goalsFor - standing.goalsAgainst}` : standing.goalsFor - standing.goalsAgainst}
+              {standing.played} match{standing.played > 1 ? "s" : ""} joué{standing.played > 1 ? "s" : ""} · Diff. {standing.goalsFor - standing.goalsAgainst > 0 ? `+${standing.goalsFor - standing.goalsAgainst}` : standing.goalsFor - standing.goalsAgainst}
             </p>
           </div>
         </div>
@@ -197,8 +207,24 @@ function ClubStandingCard({
 
       {/* Zone indicator */}
       <div className="mt-4 flex items-center justify-between rounded-xl border border-white/5 bg-black/20 px-3 py-2 text-xs">
-        <span className="text-slate-400 text-[11px]">Statut en championnat :</span>
-        {isRelegation ? (
+        <span className="text-slate-400 text-[11px]">
+          {isEuropa ? "Statut UEFA (Phase de ligue) :" : "Statut en championnat :"}
+        </span>
+        {isEuropa ? (
+          isUefaDirect ? (
+            <span className="flex items-center gap-1 font-bold text-emerald-400 text-[11px]">
+              <Trophy size={12} /> Top 8 · 8es de finale directs
+            </span>
+          ) : isUefaPlayoffs ? (
+            <span className="flex items-center gap-1 font-bold text-cyan-400 text-[11px]">
+              <ShieldAlert size={12} className="text-cyan-400" /> Barragiste (16es de finale)
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 font-bold text-red-400 text-[11px]">
+              <ShieldAlert size={12} /> Zone d&apos;élimination (25e-36e)
+            </span>
+          )
+        ) : isRelegation ? (
           <span className="flex items-center gap-1 font-bold text-red-400 text-[11px]">
             <ShieldAlert size={12} /> Zone rouge / Barrage
           </span>

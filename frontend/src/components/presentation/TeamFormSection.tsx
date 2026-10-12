@@ -11,6 +11,7 @@ interface TeamFormSectionProps {
   awayForm: TeamFormData;
   homeTeamName: string;
   awayTeamName: string;
+  competition?: "ligue1" | "europa" | "coupe";
 }
 
 export const TeamFormSection = memo(function TeamFormSection({
@@ -18,16 +19,26 @@ export const TeamFormSection = memo(function TeamFormSection({
   awayForm,
   homeTeamName,
   awayTeamName,
+  competition = "ligue1",
 }: TeamFormSectionProps) {
   const homeShort = shortTeamName(homeTeamName);
   const awayShort = shortTeamName(awayTeamName);
+  const isEuropa = competition === "europa";
+  const compLabel = isEuropa ? "Europa League" : "Ligue 1";
+  const matchCount = Math.max(homeForm.matches.length, awayForm.matches.length);
 
   return (
     <section className="space-y-4">
       {/* En-tête de section */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-500/10 text-cyan-400">
+          <span
+            className={`flex h-8 w-8 items-center justify-center rounded-xl border ${
+              isEuropa
+                ? "border-orange-400/20 bg-orange-500/10 text-orange-400"
+                : "border-cyan-400/20 bg-cyan-500/10 text-cyan-400"
+            }`}
+          >
             <Activity size={16} />
           </span>
           <div>
@@ -35,31 +46,40 @@ export const TeamFormSection = memo(function TeamFormSection({
               Forme Récente des Deux Équipes
             </h3>
             <p className="text-xs text-slate-400">
-              5 derniers matchs · <strong className="text-cyan-300">Ligue 1 uniquement</strong>
+              {matchCount > 0 ? `${matchCount} match${matchCount > 1 ? "s" : ""} disputé${matchCount > 1 ? "s" : ""}` : "Rencontres"} ·{" "}
+              <strong className={isEuropa ? "text-orange-300" : "text-cyan-300"}>
+                {compLabel} uniquement
+              </strong>
             </p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-[11px] font-bold text-cyan-300">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold ${
+            isEuropa
+              ? "border-orange-400/30 bg-orange-500/10 text-orange-300"
+              : "border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
+          }`}
+        >
           <ShieldCheck size={12} />
-          Filtré Ligue 1 2026/27
+          Filtré {compLabel} 2026/27
         </span>
       </div>
 
       {/* Cartes comparatives côte à côte */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <TeamFormCard teamName={homeShort} form={homeForm} isHome />
-        <TeamFormCard teamName={awayShort} form={awayForm} isHome={false} />
+        <TeamFormCard teamName={homeShort} form={homeForm} isHome isEuropa={isEuropa} />
+        <TeamFormCard teamName={awayShort} form={awayForm} isHome={false} isEuropa={isEuropa} />
       </div>
 
       {/* Barre comparative statistique */}
       <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-xl">
         <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-          Face-à-face statistique sur les 5 dernières journées de L1
+          Face-à-face statistique en {compLabel}
         </p>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatComparisonItem
-            label="Points pris (sur 15)"
+            label={isEuropa ? "Points pris" : "Points pris (sur 15)"}
             homeVal={`${homeForm.points} pts`}
             awayVal={`${awayForm.points} pts`}
             homeLead={homeForm.points > awayForm.points}
@@ -96,11 +116,18 @@ function TeamFormCard({
   teamName,
   form,
   isHome,
+  isEuropa = false,
 }: {
   teamName: string;
   form: TeamFormData;
   isHome: boolean;
+  isEuropa?: boolean;
 }) {
+  const maxPoints = form.matches.length * 3;
+  const pointsText = isEuropa
+    ? `${form.points} pt${form.points > 1 ? "s" : ""}${maxPoints > 0 ? ` (sur ${maxPoints})` : ""}`
+    : `${form.points}/15 points`;
+
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-5 backdrop-blur-xl shadow-lg">
       <div className="flex items-center justify-between border-b border-white/5 pb-4">
@@ -116,7 +143,7 @@ function TeamFormCard({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              {form.wins}V {form.draws}N {form.losses}D · {form.points}/15 points
+              {form.wins}V {form.draws}N {form.losses}D · {pointsText}
             </p>
           </div>
         </div>
@@ -129,11 +156,13 @@ function TeamFormCard({
         </div>
       </div>
 
-      {/* Liste des 5 matchs */}
+      {/* Liste des matchs */}
       <div className="mt-4 space-y-2">
         {form.matches.length === 0 ? (
           <p className="py-4 text-center text-xs text-slate-500">
-            Aucun match de Ligue 1 enregistré pour le moment.
+            {isEuropa
+              ? "Aucun match d'Europa League enregistré pour le moment."
+              : "Aucun match de Ligue 1 enregistré pour le moment."}
           </p>
         ) : (
           form.matches.map((m) => <MatchHistoryRow key={m.id} match={m} />)
@@ -163,7 +192,9 @@ function MatchHistoryRow({ match }: { match: FormMatchItem }) {
               {match.opponentShort}
             </span>
           </div>
-          <span className="text-[10px] text-slate-500">{formattedDate} · Ligue 1</span>
+          <span className="text-[10px] text-slate-500">
+            {formattedDate} · {match.competition || "Ligue 1"}
+          </span>
         </div>
       </div>
 

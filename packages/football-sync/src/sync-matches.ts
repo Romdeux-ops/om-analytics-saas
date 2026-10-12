@@ -1,4 +1,5 @@
-import { createDb, clubs, matches, eq, and } from "@om/db";
+import { createDb, clubs, matches, eq, and, type Db } from "@om/db";
+import { canonicalTeamName } from "./teams";
 
 export const CLUB_PROFILES: Record<
   string,
@@ -40,7 +41,7 @@ export const FIXTURES = [
   { competition: "ligue1", matchday: 3, home: "Marseille", away: "Paris FC", date: "2026-09-06T20:45:00+02:00", played: true, homeScore: 2, awayScore: 3 },
   { competition: "ligue1", matchday: 4, home: "Rennes", away: "Marseille", date: "2026-09-11T20:45:00+02:00", played: true, homeScore: 1, awayScore: 0 },
   { competition: "ligue1", matchday: 5, home: "Marseille", away: "Paris-SG", date: "2026-09-20T20:45:00+02:00", played: true, homeScore: 1, awayScore: 2 },
-  { competition: "ligue1", matchday: 6, home: "Troyes", away: "Marseille", date: "2026-10-11T20:45:00+02:00", played: false },
+  { competition: "ligue1", matchday: 6, home: "Troyes", away: "Marseille", date: "2026-10-11T20:45:00+02:00", played: true, homeScore: 0, awayScore: 2 },
   { competition: "ligue1", matchday: 7, home: "Angers", away: "Marseille", date: "2026-10-18T15:00:00+02:00", played: false },
   { competition: "ligue1", matchday: 8, home: "Marseille", away: "Le Havre", date: "2026-10-25T17:15:00+01:00", played: false },
   { competition: "ligue1", matchday: 9, home: "Marseille", away: "Toulouse", date: "2026-11-01T20:45:00+01:00", played: false },
@@ -172,6 +173,57 @@ export async function syncMatchesToDatabase(): Promise<{ clubsCount: number; mat
     clubsCount: clubIdMap.size,
     matchesCount: allMatches.length,
   };
+}
+
+/**
+ * Met à jour les scores et le statut `played: true` dans la table `matches`
+ * pour chaque rencontre jouée présente dans les snapshots (Ligue 1 / Coupe / Europa).
+ * Permet au moteur de simulation d'avancer automatiquement vers le prochain match réel.
+ */
+export async function syncPlayedMatchesFromSnapshots(
+  db: Db,
+  fixtures: { homeTeam: string; awayTeam: string; played: boolean; homeScore?: number; awayScore?: number }[],
+): Promise<number> {
+  const existingClubs = await db.select({ id: clubs.id, name: clubs.name }).from(clubs);
+  const clubIdByCanonical = new Map<string, number>();
+  for (const c of existingClubs) {
+    clubIdByCanonical.set(canonicalTeamName(c.name), c.id);
+  }
+
+  let updatedCount = 0;
+  for (const f of fixtures) {
+    if (!f.played) continue;
+    const homeCanonical = canonicalTeamName(f.homeTeam);
+    const awayCanonical = canonicalTeamName(f.awayTeam);
+    const homeId = clubIdByCanonical.get(homeCanonical);
+    const awayId = clubIdByCanonical.get(awayCanonical);
+    if (!homeId || !awayId) continue;
+
+    const [existing] = await db
+      .select({ id: matches.id, played: matches.played, homeScore: matches.homeScore, awayScore: matches.awayScore })
+      .from(matches)
+      .where(and(eq(matches.homeTeamId, homeId), eq(matches.awayTeamId, awayId)))
+      .limit(1);
+
+    if (existing && (!existing.played || existing.homeScore !== f.homeScore || existing.awayScore !== f.awayScore)) {
+      await db
+        .update(matches)
+        .set({
+          played: true,
+          homeScore: f.homeScore ?? 0,
+          awayScore: f.awayScore ?? 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(matches.id, existing.id));
+      updatedCount++;
+    }
+  }
+
+  if (updatedCount > 0) {
+    console.log(`✓ ${updatedCount} match(s) joué(s) synchronisé(s) dans la table simulation.`);
+  }
+
+  return updatedCount;
 }
 
 if (import.meta.main) {

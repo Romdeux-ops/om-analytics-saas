@@ -15,7 +15,7 @@ export const OM_LIGUE1_FIXTURES: readonly CalendarFixture[] = [
   { competition: "ligue1", matchday: 3, homeTeam: "Marseille", awayTeam: "Paris FC", date: "2026-09-06T20:45:00+02:00", timeTbd: false, played: true, homeScore: 2, awayScore: 3 },
   { competition: "ligue1", matchday: 4, homeTeam: "Rennes", awayTeam: "Marseille", date: "2026-09-11T20:45:00+02:00", timeTbd: false, played: true, homeScore: 1, awayScore: 0 },
   { competition: "ligue1", matchday: 5, homeTeam: "Marseille", awayTeam: "Paris-SG", date: "2026-09-20T20:45:00+02:00", timeTbd: false, played: true, homeScore: 1, awayScore: 2 },
-  { competition: "ligue1", matchday: 6, homeTeam: "Troyes", awayTeam: "Marseille", date: "2026-10-11T20:45:00+02:00", timeTbd: false, played: false },
+  { competition: "ligue1", matchday: 6, homeTeam: "Troyes", awayTeam: "Marseille", date: "2026-10-11T20:45:00+02:00", timeTbd: false, played: true, homeScore: 0, awayScore: 2 },
   { competition: "ligue1", matchday: 7, homeTeam: "Angers", awayTeam: "Marseille", date: "2026-10-18T15:00:00+02:00", timeTbd: false, played: false },
   { competition: "ligue1", matchday: 8, homeTeam: "Marseille", awayTeam: "Le Havre", date: "2026-10-25T17:15:00+01:00", timeTbd: false, played: false },
   { competition: "ligue1", matchday: 9, homeTeam: "Marseille", awayTeam: "Toulouse", date: "2026-11-01T20:45:00+01:00", timeTbd: false, played: false },

@@ -128,12 +128,13 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
             }}
           />
 
-          {/* 2. Forme des deux équipes (5 derniers matchs Ligue 1 uniquement) */}
+          {/* 2. Forme des deux équipes (filtrée par compétition) */}
           <TeamFormSection
             homeForm={data.homeForm}
             awayForm={data.awayForm}
             homeTeamName={data.match.home_team_name}
             awayTeamName={data.match.away_team_name}
+            competition={data.competition}
           />
 
           {/* 3. Classement officiel des deux équipes */}
@@ -142,6 +143,7 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
             awayStanding={data.awayStanding}
             homeTeamName={data.match.home_team_name}
             awayTeamName={data.match.away_team_name}
+            competition={data.competition}
           />
 
           {/* 4. Article de présentation / Scraping presse & Analyse (avec réécriture IA si admin) */}
