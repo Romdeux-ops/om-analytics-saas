@@ -56,14 +56,15 @@ export function CreateRoomModal({ open, onClose, onCreated }: CreateRoomModalPro
 
   return (
     <Modal open={open} onClose={onClose} titleId="create-room-title">
-        <h2 id="create-room-title" className="font-tech text-xl font-bold text-white">
+        <p className="label text-ink/50">Mur du virage</p>
+        <h2 id="create-room-title" className="display mt-1 text-4xl">
           Nouveau salon
         </h2>
-        <p className="mt-1 text-sm text-slate-400">Créer un topic de discussion dans la Fan Zone.</p>
+        <p className="editorial mt-1 text-base text-ink/60">Un topic de discussion dans la Fan Zone.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="room-name" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="room-name" className="label mb-1.5 block">
               Nom du salon
             </label>
             <input
@@ -73,17 +74,17 @@ export function CreateRoomModal({ open, onClose, onCreated }: CreateRoomModalPro
               onChange={(e) => setName(e.target.value.slice(0, MAX_ROOM_NAME_LENGTH))}
               required
               minLength={MIN_ROOM_NAME_LENGTH}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-400/50"
+              className="field"
             />
             {preview && (
-              <p className="mt-1 text-xs text-slate-500">
-                Slug : <span className="text-violet-300">{preview}</span>
+              <p className="label mt-1 text-ink/50">
+                Slug : <span className="text-accent-text">{preview}</span>
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="room-description" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="room-description" className="label mb-1.5 block">
               Description (optionnel)
             </label>
             <textarea
@@ -91,12 +92,12 @@ export function CreateRoomModal({ open, onClose, onCreated }: CreateRoomModalPro
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, MAX_ROOM_DESCRIPTION_LENGTH))}
               rows={2}
-              className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-400/50"
+              className="field resize-none"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="label text-live-text" role="alert">
               {error}
             </p>
           )}

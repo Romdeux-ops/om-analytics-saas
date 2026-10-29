@@ -2,14 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  FileText,
-  Play,
-  ArrowLeft,
-  Sparkles,
-  ChevronRight,
-  Lock,
-} from "lucide-react";
 import type { MatchPresentationData } from "@/src/lib/data/match-presentation";
 import type { MatchLineups } from "@/src/lib/types/lineup";
 import type { MatchEditorialPreview } from "@/src/lib/data/match-preview";
@@ -43,81 +35,76 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
   const awayShort = shortTeamName(data.match.away_team_name);
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] space-y-8">
+    <div className="w-full space-y-10">
       {/* Bannière d'avertissement si match ultérieur non simulable */}
       {!data.isNextMatch && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-xs">
-          <div className="flex items-center gap-2.5 text-amber-200">
-            <Lock size={16} className="text-amber-400 shrink-0" />
-            <span>
-              <strong>Match futur verrouillé</strong> : Selon le règlement, l&apos;utilisateur ne peut simuler que le prochain match officiel au calendrier.
-            </span>
-          </div>
+        <div className="flex flex-col justify-between gap-3 border border-dashed border-ink p-4 sm:flex-row sm:items-center">
+          <p className="text-xs">
+            <span className="label mr-2 bg-ink px-1.5 py-0.5 text-paper">Match futur verrouillé</span>
+            Selon le règlement, seul le prochain match officiel au calendrier peut être simulé.
+          </p>
           {data.nextMatchId && (
             <Link
               href={`/simulation/${data.nextMatchId}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-400 px-3.5 py-1.5 text-xs font-bold uppercase text-slate-950 shadow-md hover:bg-amber-300 transition-colors shrink-0"
+              className="label inline-flex shrink-0 items-center gap-2 border border-ink px-3 py-2 invert-hover"
             >
-              <span>Aller au prochain match</span>
-              <ChevronRight size={13} />
+              Aller au prochain match <span className="arrow">→</span>
             </Link>
           )}
         </div>
       )}
 
       {/* Barre de navigation entre Présentation et Simulateur */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-4">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 shadow-inner">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-ink">
+        <div className="flex items-end gap-1" role="tablist" aria-label="Vue du match">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "presentation"}
+            onClick={() => setActiveTab("presentation")}
+            className={`-mb-px border border-b-0 border-ink px-4 transition-all duration-100 ${
+              activeTab === "presentation"
+                ? "bg-ink py-3 text-paper"
+                : "py-2 text-ink hover:bg-accent hover:py-3 hover:text-on-accent"
+            }`}
+          >
+            <span className="label">01 · Présentation</span>
+          </button>
+
+          {data.isNextMatch ? (
             <button
               type="button"
-              onClick={() => setActiveTab("presentation")}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                activeTab === "presentation"
-                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-md ring-1 ring-cyan-400/40"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              role="tab"
+              aria-selected={activeTab === "simulation"}
+              onClick={() => setActiveTab("simulation")}
+              className={`-mb-px border border-b-0 border-ink px-4 transition-all duration-100 ${
+                activeTab === "simulation"
+                  ? "bg-accent py-3 text-on-accent"
+                  : "py-2 text-ink hover:bg-accent hover:py-3 hover:text-on-accent"
               }`}
             >
-              <FileText size={14} />
-              <span>Présentation du Match</span>
+              <span className="label">02 · Simulateur live</span>
             </button>
-
-            {data.isNextMatch ? (
-              <button
-                type="button"
-                onClick={() => setActiveTab("simulation")}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                  activeTab === "simulation"
-                    ? "bg-gradient-to-r from-cyan-400 via-cyan-300 to-blue-500 text-slate-950 shadow-md shadow-cyan-500/20 font-extrabold"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                <Play size={13} className="fill-current" />
-                <span>Simulateur Live</span>
-              </button>
-            ) : (
-              <span
-                title="Vous devez d'abord simuler le prochain match"
-                className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 opacity-60 cursor-not-allowed"
-              >
-                <Lock size={12} />
-                <span>Simulateur (Verrouillé)</span>
-              </span>
-            )}
-          </div>
+          ) : (
+            <span
+              title="Vous devez d'abord simuler le prochain match"
+              className="label -mb-px cursor-not-allowed border border-b-0 border-dashed border-ink px-4 py-2 text-ink/40"
+            >
+              02 · Simulateur verrouillé
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="font-tech text-sm font-bold text-white uppercase">
-            {homeShort} vs {awayShort}
-          </span>
-          <span className="text-slate-600">·</span>
-          <span>Saison 2026/27</span>
-        </div>
+        <p className="label pb-2 text-ink/60">
+          <span className="text-ink">
+            {homeShort} – {awayShort}
+          </span>{" "}
+          · Saison 2026/27
+        </p>
       </div>
 
       {activeTab === "presentation" ? (
-        <div className="space-y-10 animate-fade-in">
+        <div className="space-y-16 animate-fade-in">
           {/* 1. Hero Banner principal de présentation */}
           <MatchHeroBanner
             data={data}
@@ -174,60 +161,47 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
 
           {/* CTA Bas de page pour basculer sur la simulation */}
           {data.isNextMatch ? (
-            <div className="relative overflow-hidden rounded-3xl border border-cyan-400/30 bg-gradient-to-r from-cyan-950/40 via-blue-950/30 to-purple-950/30 p-8 text-center shadow-2xl backdrop-blur-2xl">
-              <div className="pointer-events-none absolute inset-0 bg-radial-gradient from-cyan-500/10 to-transparent" />
-              <div className="relative z-10 max-w-xl mx-auto space-y-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-300">
-                  <Sparkles size={13} />
-                  Prêt pour le coup d&apos;envoi
-                </span>
-                <h3 className="font-tech text-2xl font-black uppercase text-white md:text-3xl">
-                  Lancer la Simulation de la Rencontre
-                </h3>
-                <p className="text-xs text-slate-300 leading-relaxed md:text-sm">
-                  Activez le moteur de calcul prédictif avec génération d&apos;actions minute par minute, xG en direct et suivi des performances joueurs.
-                </p>
-                <div className="pt-2">
+            <section className="ink-block relative left-1/2 w-screen -translate-x-1/2 py-14 md:py-20">
+              <div className="mx-auto grid max-w-[1400px] gap-8 px-4 md:grid-cols-12 md:px-8 lg:px-12">
+                <div className="md:col-span-8">
+                  <p className="label text-paper/60">Prêt pour le coup d&apos;envoi</p>
+                  <h3 className="display mt-3 text-[clamp(3.5rem,8vw,7.5rem)]">
+                    Que le match <span className="text-accent-inverse">commence.</span>
+                  </h3>
+                </div>
+                <div className="flex flex-col justify-end gap-6 md:col-span-4">
+                  <p className="editorial text-xl leading-snug text-paper/75">
+                    Moteur prédictif minute par minute, xG en direct et suivi des performances joueurs.
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
                       setActiveTab("simulation");
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-400 via-cyan-300 to-blue-500 px-7 py-3 text-sm font-black uppercase tracking-wider text-slate-950 shadow-xl shadow-cyan-500/30 transition-transform hover:scale-105"
+                    className="label inline-flex w-fit items-center gap-3 border border-paper bg-accent px-6 py-4 text-sm text-on-accent transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--paper)] active:translate-x-0 active:translate-y-0 active:shadow-none"
                   >
-                    <Play size={15} className="fill-current" />
-                    <span>Accéder au Simulateur Live</span>
-                    <ChevronRight size={15} />
+                    Accéder au simulateur <span className="arrow">→</span>
                   </button>
                 </div>
               </div>
-            </div>
+            </section>
           ) : (
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-8 text-center backdrop-blur-2xl">
-              <div className="relative z-10 max-w-md mx-auto space-y-3">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-400">
-                  <Lock size={20} />
-                </div>
-                <h3 className="font-tech text-xl font-bold uppercase text-white">
-                  Simulation Verrouillée
-                </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Cette rencontre n&apos;est pas encore disponible. Vous ne pouvez simuler que le prochain match officiel à venir dans le calendrier.
-                </p>
-                {data.nextMatchId && (
-                  <div className="pt-2">
-                    <Link
-                      href={`/simulation/${data.nextMatchId}`}
-                      className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300 transition-colors"
-                    >
-                      <Play size={13} className="fill-current" />
-                      <span>Simuler le match en cours</span>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
+            <section className="border-y-[6px] border-ink py-10">
+              <p className="label text-ink/60">Simulation verrouillée</p>
+              <p className="display mt-3 text-5xl text-ink/40 md:text-7xl">Pas encore.</p>
+              <p className="editorial mt-3 max-w-xl text-xl text-ink/70">
+                Cette rencontre n&apos;est pas encore disponible : seul le prochain match officiel du calendrier peut être simulé.
+              </p>
+              {data.nextMatchId && (
+                <Link
+                  href={`/simulation/${data.nextMatchId}`}
+                  className="stamp label mt-6 inline-flex items-center gap-3 border border-ink bg-accent px-5 py-3 text-on-accent"
+                >
+                  Simuler le match en cours <span className="arrow">→</span>
+                </Link>
+              )}
+            </section>
           )}
         </div>
       ) : (
@@ -237,10 +211,9 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
             <button
               type="button"
               onClick={() => setActiveTab("presentation")}
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300 hover:text-cyan-200 transition-colors"
+              className="label inline-flex items-center gap-2 border-b-2 border-ink pb-0.5 hover:border-accent"
             >
-              <ArrowLeft size={14} />
-              <span>Retour à la présentation du match</span>
+              ← Retour à la présentation du match
             </button>
           </div>
 

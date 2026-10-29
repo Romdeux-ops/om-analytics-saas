@@ -1,34 +1,27 @@
-import { CalendarClock, ChevronRight, MapPin, Swords } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { SectionHeading } from "@/src/components/ui/SectionHeading";
-import { Badge } from "@/src/components/ui/Badge";
-import { TeamCrest } from "@/src/components/ui/TeamCrest";
+import Link from "next/link";
 import { MatchCountdown } from "@/src/components/home/MatchCountdown";
 import { getNextOmFixture } from "@/src/lib/data/calendar";
 import { getCompetition } from "@/src/lib/data/competitions";
-import { shortTeamName } from "@/src/lib/ui/teams";
+import { isOmTeam, shortTeamName } from "@/src/lib/ui/teams";
+import { cn } from "@/src/lib/ui/cn";
 
 const PARIS_TZ = "Europe/Paris";
 
-function formatMatchDate(dateStr: string, timeTbd: boolean) {
-  const date = new Date(dateStr);
-  if (timeTbd) {
-    return new Intl.DateTimeFormat("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: PARIS_TZ,
-    }).format(date);
-  }
+function formatDay(dateStr: string) {
   return new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
     day: "numeric",
     month: "long",
+    timeZone: PARIS_TZ,
+  }).format(new Date(dateStr));
+}
+
+function formatHour(dateStr: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: PARIS_TZ,
-  }).format(date);
+  }).format(new Date(dateStr));
 }
 
 export async function NextMatchCard() {
@@ -36,16 +29,11 @@ export async function NextMatchCard() {
 
   if (!fixture) {
     return (
-      <Card className="flex h-full flex-col">
-        <SectionHeading
-          title="Prochain match"
-          subtitle="Calendrier OM"
-          icon={<CalendarClock size={16} />}
-        />
-        <div className="flex flex-1 items-center justify-center py-10 text-center">
-          <p className="text-sm text-slate-500">Aucun match à venir pour l&apos;OM.</p>
-        </div>
-      </Card>
+      <section className="border-t-[6px] border-ink pt-3">
+        <p className="label text-ink/60">01 — Prochain match</p>
+        <p className="display mt-4 text-6xl text-ink/30 md:text-8xl">Relâche.</p>
+        <p className="editorial mt-3 text-xl text-ink/70">Aucun match à venir pour l&apos;OM.</p>
+      </section>
     );
   }
 
@@ -53,86 +41,65 @@ export async function NextMatchCard() {
   const competition = getCompetition(fixture.competition);
 
   return (
-    <Card href="/calendrier" variant="hero" className="flex h-full flex-col">
-      <SectionHeading
-        title="Prochain match"
-        subtitle="Le rendez-vous à ne pas manquer"
-        icon={<CalendarClock size={16} />}
-        action={
-          <span className="flex items-center gap-1 text-xs font-medium text-cyan-300 transition-all group-hover:gap-2">
-            Calendrier <ChevronRight size={14} />
-          </span>
-        }
-      />
-
-      <div className="flex flex-1 flex-col justify-between gap-7">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Badge variant={isHome ? "om" : "muted"}>
-            <MapPin size={10} />
-            {isHome ? "À domicile" : "À l'extérieur"}
-          </Badge>
-          <Badge variant="gold">
-            J{fixture.matchday} · {competition.shortLabel}
-          </Badge>
-        </div>
-
-        {/* Affiche du match */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-x-0 top-1/2 -z-0 h-40 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-4">
-            <TeamSide name={fixture.homeTeam} align="right" />
-
-            <div className="flex flex-col items-center gap-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-slate-400 shadow-inner">
-                <Swords size={16} className="text-cyan-300" />
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
-                VS
-              </span>
-            </div>
-
-            <TeamSide name={fixture.awayTeam} align="left" />
-          </div>
-        </div>
-
-        <div className="space-y-1.5 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
-          <p className="flex items-center gap-2 text-sm font-medium text-slate-200">
-            <MapPin size={13} className="text-cyan-400" />
-            {isHome
-              ? "Orange Vélodrome, Marseille"
-              : `Déplacement — ${shortTeamName(fixture.awayTeam)}`}
-          </p>
-          <p className="pl-[21px] text-xs capitalize text-slate-500">
-            {formatMatchDate(fixture.date, fixture.timeTbd)}
-          </p>
-        </div>
-
-        <div className="border-t border-white/5 pt-5">
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-            Coup d&apos;envoi dans
-          </p>
-          <MatchCountdown targetDate={fixture.date} />
-        </div>
+    <section className="border-t-[6px] border-ink pt-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="label text-ink/60">
+          <span className="text-accent-text">01</span> — Prochain match
+        </p>
+        <p className="label text-ink/60">
+          {competition.label} · J{fixture.matchday} · {isHome ? "Domicile" : "Extérieur"}
+        </p>
       </div>
-    </Card>
+
+      <Link href="/calendrier" prefetch className="group mt-4 block" aria-label="Voir le calendrier">
+        <h2 className="display text-[clamp(4.5rem,13vw,12.5rem)] text-ink">
+          <TeamLine name={fixture.homeTeam} />
+          <span className="editorial my-1 block text-[0.22em] normal-case leading-none text-ink/70 md:my-2">
+            reçoit
+          </span>
+          <TeamLine name={fixture.awayTeam} />
+        </h2>
+        <span className="label mt-4 inline-flex items-center gap-2 border-b-2 border-ink pb-0.5 text-ink group-hover:border-accent">
+          Tout le calendrier <span className="arrow">→</span>
+        </span>
+      </Link>
+
+      <dl className="mt-8 grid grid-cols-2 border-y border-ink md:grid-cols-3">
+        <div className="border-r border-ink py-3 pr-3">
+          <dt className="label text-ink/60">Lieu</dt>
+          <dd className="mt-1 text-sm font-bold uppercase">
+            {isHome ? "Orange Vélodrome" : `Chez ${shortTeamName(fixture.homeTeam)}`}
+          </dd>
+        </div>
+        <div className="py-3 pl-3 md:border-r md:border-ink md:pr-3">
+          <dt className="label text-ink/60">Date</dt>
+          <dd className="mt-1 text-sm font-bold uppercase">{formatDay(fixture.date)}</dd>
+        </div>
+        <div className="col-span-2 border-t border-ink py-3 md:col-span-1 md:border-t-0 md:pl-3">
+          <dt className="label text-ink/60">Coup d&apos;envoi</dt>
+          <dd className="mt-1 text-sm font-bold uppercase tabular">
+            {fixture.timeTbd ? "Horaire à confirmer" : formatHour(fixture.date)}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-6">
+        <MatchCountdown targetDate={fixture.date} />
+      </div>
+    </section>
   );
 }
 
-function TeamSide({ name, align }: { name: string; align: "left" | "right" }) {
+function TeamLine({ name }: { name: string }) {
+  const om = isOmTeam(name);
   return (
-    <div
-      className={
-        align === "right"
-          ? "flex flex-col items-center gap-3 md:flex-row-reverse md:justify-start md:text-right"
-          : "flex flex-col items-center gap-3 md:flex-row md:justify-start md:text-left"
-      }
+    <span
+      className={cn(
+        "block transition-transform duration-150 group-hover:translate-x-2",
+        om ? "text-accent-text" : "text-ink",
+      )}
     >
-      <TeamCrest name={name} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
-      <div className="min-w-0">
-        <p className="truncate text-lg font-black uppercase leading-tight text-white font-tech md:text-xl">
-          {shortTeamName(name)}
-        </p>
-      </div>
-    </div>
+      {shortTeamName(name)}
+    </span>
   );
 }

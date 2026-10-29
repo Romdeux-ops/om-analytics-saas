@@ -1,83 +1,250 @@
 @import "tailwindcss";
 
-/* Tailwind v4 — mappe les fonts Google (next/font) sur les utilitaires */
-@theme inline {
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-display: var(--font-rajdhani), system-ui, sans-serif;
-}
-
 /* =========================================================================
-   OM ANALYTICS — DESIGN TOKENS
-   Thème sombre profond + identité OM (bleu ciel / cyan + touches or)
+   OM ANALYTICS — « LE PROGRAMME DE MATCH × LE FANZINE DU VIRAGE »
+   Papier calcaire, encre, un seul accent (Bleu Vélodrome), rouge fumigène
+   réservé au direct. Pas de dégradé, pas de flou, pas d'ombre douce.
    ========================================================================= */
+
 :root {
-  /* Fonds */
-  --bg-deep: #04070f;
-  --bg-raise: #0a1120;
-  --bg-elevated: #0f1729;
+  --paper: #efebe3;
+  --paper-2: #e4dfd3;
+  --ink: #0b0e14;
+  --accent: #00a3e0;
+  /* Accent lisible en texte sur papier (AA) */
+  --accent-text: #006d97;
+  --on-accent: #0b0e14;
+  /* Accent lisible dans un aplat encre (.ink-block) */
+  --accent-inverse: #00a3e0;
+  --live: #ff3b1f;
+  --live-text: #c42a12;
+  --rule: color-mix(in oklab, var(--ink) 16%, transparent);
 
-  /* Surfaces verre */
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-strong: rgba(255, 255, 255, 0.14);
-  --glass-surface: rgba(255, 255, 255, 0.035);
-  --glass-surface-strong: rgba(255, 255, 255, 0.06);
-
-  /* Couleurs de marque */
-  --primary: #22d3ee;          /* cyan lumineux */
-  --primary-strong: #06b6d4;
-  --accent: #f59e0b;
-  --om-gold: #fbbf24;
-  --om-sky: #38bdf8;
-  --om-azure: #29a7e6;
-
-  /* Texte */
-  --text-primary: #eef2ff;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-
-  /* Rayons */
-  --radius-card: 24px;
-  --radius-lg: 20px;
-  --radius-sm: 14px;
-
-  /* Lumières / ombres */
-  --shadow-glow: 0 0 40px -12px rgba(34, 211, 238, 0.35);
-  --shadow-glow-gold: 0 0 40px -12px rgba(251, 191, 36, 0.32);
-  --shadow-card: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
-
-  /* Dégradés réutilisables */
-  --grad-primary: linear-gradient(135deg, #22d3ee 0%, #2563eb 100%);
-  --grad-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  --grad-sky: linear-gradient(135deg, #7dd3fc 0%, #22d3ee 45%, #2563eb 100%);
+  color-scheme: light;
 }
 
-* {
-  border-color: var(--glass-border);
+/* Match en nocturne : on inverse papier et encre, même accent */
+html.dark {
+  --paper: #0b0e14;
+  --paper-2: #151922;
+  --ink: #efebe3;
+  --accent-text: #3cbcec;
+  --accent-inverse: #006d97;
+  --live-text: #ff6a52;
+  --rule: color-mix(in oklab, var(--ink) 18%, transparent);
+
+  color-scheme: dark;
+}
+
+/* Tailwind v4 : toutes les familles de couleurs historiques sont
+   ramenées sur la palette stricte, pour que chaque composant hérite
+   de l'identité sans dépendre d'un override par classe. */
+@theme inline {
+  --font-sans: var(--font-mono-face), ui-monospace, monospace;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+  --font-display: var(--font-display-face), "Arial Narrow", sans-serif;
+  --font-serif: var(--font-serif-face), Georgia, serif;
+
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-accent-inverse: var(--accent-inverse);
+  --color-on-accent: var(--on-accent);
+  --color-live: var(--live);
+  --color-live-text: var(--live-text);
+  --color-rule: var(--rule);
+
+  --color-white: var(--ink);
+  --color-black: #0b0e14;
+
+  --ink-300: color-mix(in oklab, var(--ink) 86%, var(--paper));
+  --ink-400: color-mix(in oklab, var(--ink) 74%, var(--paper));
+  --ink-500: color-mix(in oklab, var(--ink) 64%, var(--paper));
+  --ink-600: color-mix(in oklab, var(--ink) 54%, var(--paper));
+  --ink-700: color-mix(in oklab, var(--ink) 22%, var(--paper));
+
+  --color-slate-50: var(--ink);
+  --color-slate-100: var(--ink);
+  --color-slate-200: var(--ink);
+  --color-slate-300: var(--ink-300);
+  --color-slate-400: var(--ink-400);
+  --color-slate-500: var(--ink-500);
+  --color-slate-600: var(--ink-600);
+  --color-slate-700: var(--ink-700);
+  --color-slate-800: var(--paper-2);
+  --color-slate-900: var(--paper-2);
+  --color-slate-950: #0b0e14;
+
+  --color-gray-100: var(--ink);
+  --color-gray-200: var(--ink);
+  --color-gray-300: var(--ink-300);
+  --color-gray-400: var(--ink-400);
+  --color-gray-500: var(--ink-500);
+  --color-gray-600: var(--ink-600);
+  --color-gray-700: var(--ink-700);
+  --color-gray-800: var(--paper-2);
+  --color-gray-900: var(--paper-2);
+
+  --color-emerald-50: var(--ink);
+  --color-emerald-100: var(--ink);
+  --color-emerald-200: var(--ink);
+  --color-emerald-300: var(--ink);
+  --color-emerald-400: var(--ink);
+  --color-emerald-500: var(--ink);
+  --color-emerald-600: var(--ink);
+  --color-emerald-700: var(--ink);
+  --color-emerald-800: var(--ink-700);
+  --color-emerald-900: var(--paper-2);
+  --color-emerald-950: var(--paper-2);
+  --color-green-300: var(--ink);
+  --color-green-400: var(--ink);
+  --color-green-500: var(--ink);
+  --color-teal-300: var(--ink);
+  --color-teal-400: var(--ink);
+  --color-teal-500: var(--ink);
+
+  --color-cyan-50: var(--accent-text);
+  --color-cyan-100: var(--accent-text);
+  --color-cyan-200: var(--accent-text);
+  --color-cyan-300: var(--accent-text);
+  --color-cyan-400: var(--accent);
+  --color-cyan-500: var(--accent);
+  --color-cyan-600: var(--accent);
+  --color-cyan-700: var(--accent-text);
+  --color-cyan-800: var(--accent-text);
+  --color-cyan-900: var(--accent-text);
+  --color-cyan-950: var(--accent-text);
+  --color-sky-100: var(--accent-text);
+  --color-sky-200: var(--accent-text);
+  --color-sky-300: var(--accent-text);
+  --color-sky-400: var(--accent);
+  --color-sky-500: var(--accent);
+  --color-sky-600: var(--accent);
+  --color-blue-100: var(--accent-text);
+  --color-blue-200: var(--accent-text);
+  --color-blue-300: var(--accent-text);
+  --color-blue-400: var(--accent);
+  --color-blue-500: var(--accent);
+  --color-blue-600: var(--accent);
+  --color-blue-700: var(--accent-text);
+  --color-blue-900: var(--accent-text);
+  --color-blue-950: var(--accent-text);
+  --color-indigo-300: var(--accent-text);
+  --color-indigo-400: var(--accent);
+  --color-indigo-500: var(--accent);
+  --color-violet-200: var(--accent-text);
+  --color-violet-300: var(--accent-text);
+  --color-violet-400: var(--accent);
+  --color-violet-500: var(--accent);
+  --color-violet-600: var(--accent);
+  --color-purple-300: var(--accent-text);
+  --color-purple-400: var(--accent);
+  --color-purple-500: var(--accent);
+
+  --color-amber-50: var(--accent-text);
+  --color-amber-100: var(--accent-text);
+  --color-amber-200: var(--accent-text);
+  --color-amber-300: var(--accent-text);
+  --color-amber-400: var(--accent);
+  --color-amber-500: var(--accent);
+  --color-amber-600: var(--accent);
+  --color-amber-700: var(--accent-text);
+  --color-amber-800: var(--accent-text);
+  --color-amber-900: var(--accent-text);
+  --color-amber-950: var(--accent-text);
+  --color-yellow-300: var(--accent-text);
+  --color-yellow-400: var(--accent);
+  --color-yellow-500: var(--accent);
+
+  --color-red-100: var(--live-text);
+  --color-red-200: var(--live-text);
+  --color-red-300: var(--live-text);
+  --color-red-400: var(--live);
+  --color-red-500: var(--live);
+  --color-red-600: var(--live);
+  --color-red-900: var(--live-text);
+  --color-red-950: var(--live-text);
+  --color-rose-200: var(--live-text);
+  --color-rose-300: var(--live-text);
+  --color-rose-400: var(--live);
+  --color-rose-500: var(--live);
+  --color-rose-600: var(--live);
+  --color-orange-300: var(--live-text);
+  --color-orange-400: var(--live);
+  --color-orange-500: var(--live);
+
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+  --inset-shadow-xs: 0 0 #0000;
+  --inset-shadow-sm: 0 0 #0000;
+  --shadow-stamp: 4px 4px 0 0 var(--ink);
+
+  --blur-xs: 0px;
+  --blur-sm: 0px;
+  --blur-md: 0px;
+  --blur-lg: 0px;
+  --blur-xl: 0px;
+  --blur-2xl: 0px;
+  --blur-3xl: 0px;
+}
+
+/* Rétro-compat des anciennes variables encore référencées en arbitraire */
+:root,
+html.dark {
+  --bg-deep: var(--paper);
+  --bg-raise: var(--paper);
+  --bg-elevated: var(--paper-2);
+  --radius-card: 0px;
+  --shadow-glow: var(--shadow-stamp);
+  --shadow-stamp: 4px 4px 0 0 var(--ink);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    border-color: var(--rule);
+  }
 }
 
 body {
-  background-color: var(--bg-deep);
-  color: var(--text-primary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 14px;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Sélection */
 ::selection {
-  background: rgba(34, 211, 238, 0.28);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
-/* Focus visible cohérent (accessibilité AA) */
-:where(a, button, [tabindex]):focus-visible {
-  outline: 2px solid var(--primary);
+:where(a, button, [tabindex], input, textarea, select):focus-visible {
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
-  border-radius: 10px;
+  border-radius: 0;
 }
 
-/* Dans @layer base pour que cursor-default / cursor-pointer des utilitaires gagnent. */
 @layer base {
   :where(a[href], button:not(:disabled), [role="tab"], [role="menuitem"]) {
     cursor: pointer;
@@ -85,32 +252,217 @@ body {
   :where(button:disabled) {
     cursor: not-allowed;
   }
-
-  /* Champs : bordure de focus animée, même teinte que le focus global */
   :where(input, textarea, select) {
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+  :where(input, textarea, select)::placeholder {
+    color: color-mix(in oklab, var(--ink) 45%, var(--paper));
   }
 }
 
-/* Retour au clic, partagé par boutons, cartes, onglets et liens */
+/* =========================================================================
+   TYPOGRAPHIE
+   ========================================================================= */
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-display-face), "Arial Narrow", sans-serif;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+}
+
+@layer components {
+.font-tech {
+  font-family: var(--font-display-face), "Arial Narrow", sans-serif;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/* Titre d'affiche : très condensé, interligne serré */
+.display {
+  font-family: var(--font-display-face), "Arial Narrow", sans-serif;
+  font-weight: 900;
+  line-height: 0.82;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+/* Label de section façon sommaire de journal */
+.label {
+  font-family: var(--font-mono-face), ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.editorial {
+  font-family: var(--font-serif-face), Georgia, serif;
+  font-style: italic;
+  letter-spacing: -0.005em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+.field:focus {
+  box-shadow: 3px 3px 0 0 var(--accent);
+}
+
+/* Les anciens textes en dégradé deviennent des aplats d'accent */
+.text-gradient,
+.text-gradient-gold {
+  color: var(--accent-text);
+}
+
+/* =========================================================================
+   STRUCTURE — filets architecturaux, aplats, ombre tampon
+   ========================================================================= */
+.rule-thick {
+  border-top: 6px solid var(--ink);
+}
+.rule-thin {
+  border-top: 1px solid var(--ink);
+}
+
+.ink-block {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Carte « fiche » : bord net 1px encre, aucun arrondi, aucune ombre */
+.bento-card {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  overflow: hidden;
+  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 140ms ease;
+}
+
+/* Le hero est un aplat d'accent sur le bord gauche, pas un halo */
+.glow-border {
+  box-shadow: inset 6px 0 0 0 var(--accent);
+}
+
+/* Interaction tampon : l'élément se soulève puis s'enfonce au clic */
+.stamp,
+.bento-card.bento-interactive {
+  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 120ms ease, color 120ms ease;
+}
+.stamp:hover,
+.bento-card.bento-interactive:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-stamp);
+}
+.glow-border.bento-interactive:hover {
+  box-shadow: inset 6px 0 0 0 var(--accent), var(--shadow-stamp);
+}
+.stamp:active,
+.bento-card.bento-interactive:active {
+  transform: translate(0, 0);
+  box-shadow: 0 0 0 0 var(--ink);
+}
+
+/* Inversion franche au survol (liens de liste, lignes) */
+.invert-hover {
+  transition: background-color 110ms ease, color 110ms ease;
+}
+.invert-hover:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Flèche « Droit au But » qui avance au survol */
+.arrow {
+  display: inline-block;
+  transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.group:hover .arrow,
+a:hover > .arrow,
+button:hover > .arrow {
+  transform: translateX(4px);
+}
+
 .pressable {
-  transition-property: transform, background-color, border-color, box-shadow, filter, color, opacity;
-  transition-duration: 150ms;
+  transition-property: transform, background-color, border-color, box-shadow, color, opacity;
+  transition-duration: 120ms;
   transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .pressable:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translate(1px, 1px);
 }
 
+/* Ligne OM dans les tableaux : aplat d'accent pleine largeur */
+.om-highlight {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Talon de billet (calendrier) */
+.ticket-stub {
+  border-left: 1px dashed var(--ink);
+}
+
+/* Trame photocopie (Fan Zone uniquement) */
+.halftone {
+  background-image: radial-gradient(color-mix(in oklab, var(--ink) 10%, transparent) 1px, transparent 1.2px);
+  background-size: 6px 6px;
+}
+
+/* Tuiles du compte à rebours : palettes de tableau d'affichage */
+.count-tile {
+  position: relative;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 0;
+}
+.count-tile::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--paper);
+  opacity: 0.35;
+}
+
+.bg-grid-pattern {
+  background: none;
+}
+}
+
+/* Hors layer : le texte d'une ligne OM doit primer sur les couleurs utilitaires */
+.om-highlight :where(*) {
+  color: var(--on-accent);
+}
+
+/* =========================================================================
+   NAVIGATION — barre de progression et ticker
+   ========================================================================= */
 .nav-progress {
   pointer-events: none;
   position: fixed;
   inset-inline: 0;
   top: 0;
   z-index: 100;
-  height: 2px;
+  height: 4px;
   transform-origin: left center;
-  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  background: var(--accent);
   opacity: 0;
   transform: scaleX(0);
 }
@@ -125,170 +477,33 @@ body {
   100% { transform: scaleX(0.9); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .nav-progress[data-pending="true"] {
-    animation: none;
-    transform: scaleX(1);
-  }
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 38s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* =========================================================================
-   PAGE SHELL — fond ambiant multi-couches (glows + grille + grain)
+   PAGE SHELL
    ========================================================================= */
 .page-shell {
   min-height: 100vh;
   position: relative;
   isolation: isolate;
-  background:
-    radial-gradient(70rem 40rem at 12% -8%, rgba(34, 211, 238, 0.12), transparent 60%),
-    radial-gradient(60rem 40rem at 92% 4%, rgba(37, 99, 235, 0.14), transparent 60%),
-    radial-gradient(50rem 40rem at 78% 96%, rgba(251, 191, 36, 0.07), transparent 60%),
-    var(--bg-deep);
-}
-
-/* Grille technique subtile */
-.page-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  contain: paint;
-  background-size: 44px 44px;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  mask-image: radial-gradient(circle at 50% 0%, black 25%, transparent 75%);
-  pointer-events: none;
-}
-
-/* Grain léger : tuile statique, sans filtre SVG ni mix-blend (coûteux au scroll) */
-.page-shell::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  contain: paint;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='8' cy='14' r='0.7' fill='%23fff'/%3E%3Ccircle cx='42' cy='6' r='0.5' fill='%23fff'/%3E%3Ccircle cx='71' cy='22' r='0.6' fill='%23fff'/%3E%3Ccircle cx='19' cy='48' r='0.5' fill='%23fff'/%3E%3Ccircle cx='55' cy='61' r='0.7' fill='%23fff'/%3E%3Ccircle cx='33' cy='73' r='0.4' fill='%23fff'/%3E%3Ccircle cx='76' cy='51' r='0.5' fill='%23fff'/%3E%3C/svg%3E");
-}
-
-@media (max-width: 768px) {
-  .page-shell::after {
-    display: none;
-  }
-}
-
-/* Variante générique du fond grille (rétro-compat) */
-.bg-grid-pattern {
-  background-size: 44px 44px;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 100%);
+  background: var(--paper);
 }
 
 /* =========================================================================
-   SURFACES VERRE
+   DIVERS
    ========================================================================= */
-.bento-card {
-  position: relative;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
-    var(--bg-raise);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-  overflow: hidden;
-  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* Reflet lumineux en haut de carte */
-.bento-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(120% 60% at 50% -20%, rgba(56, 189, 248, 0.12), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.bento-card.bento-interactive:hover::after {
-  opacity: 1;
-}
-
-@keyframes modal-in {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .modal-panel {
-    animation: modal-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-}
-
-/* Bordure lumineuse animée (héros) */
-.glow-border {
-  position: relative;
-}
-.glow-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.55), rgba(37, 99, 235, 0.1) 45%, rgba(251, 191, 36, 0.35));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-/* =========================================================================
-   TYPOGRAPHIE
-   ========================================================================= */
-h1, h2, h3, .font-tech {
-  font-family: var(--font-rajdhani), system-ui, sans-serif;
-  letter-spacing: -0.02em;
-}
-
-.text-gradient {
-  background: var(--grad-sky);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.text-gradient-gold {
-  background: var(--grad-gold);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.tabular {
-  font-variant-numeric: tabular-nums;
-}
-
-/* =========================================================================
-   HIGHLIGHT / DIVERS
-   ========================================================================= */
-.om-highlight {
-  background: linear-gradient(90deg, rgba(34, 211, 238, 0.14) 0%, rgba(34, 211, 238, 0.02) 60%, transparent 100%);
-  border-left: 2px solid var(--primary);
-  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.08);
-}
-
-/* Pastille pulsante (prend la couleur du texte via currentColor) */
 .pulse-dot {
   position: relative;
   display: inline-block;
@@ -315,26 +530,18 @@ h1, h2, h3, .font-tech {
   scrollbar-width: none;
 }
 
-/* Bascule d'icône du thème (piloté par la classe sur <html>, sans JS) */
+/* Bascule d'icône du thème (pilotée par la classe sur <html>, sans JS) */
 .theme-icon-sun {
-  display: inline-flex;
+  display: none;
 }
 .theme-icon-moon {
-  display: none;
-}
-html.light .theme-icon-sun {
-  display: none;
-}
-html.light .theme-icon-moon {
   display: inline-flex;
 }
-
-/* Tuiles du compte à rebours */
-.count-tile {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
-  border: 1px solid var(--glass-border);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-sm);
+html.dark .theme-icon-sun {
+  display: inline-flex;
+}
+html.dark .theme-icon-moon {
+  display: none;
 }
 
 /* =========================================================================
@@ -343,43 +550,41 @@ html.light .theme-icon-moon {
 @keyframes ping {
   75%, 100% { transform: scale(2.2); opacity: 0; }
 }
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+
+.animate-float-slow,
+.animate-glow-pulse {
+  animation: none;
 }
 
-.animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
-.animate-glow-pulse { animation: glow-pulse 4s ease-in-out infinite; }
-
 .shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--ink) 8%, transparent) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2.2s linear infinite;
 }
 
-@keyframes reveal-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Bascule split-flap d'un chiffre */
+@keyframes flap {
+  0% { transform: rotateX(-90deg); opacity: 0.2; }
+  100% { transform: rotateX(0); opacity: 1; }
+}
+.flap {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  animation: flap 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    animation: reveal-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
+@keyframes modal-in {
+  from { opacity: 0; transform: translate(6px, 6px); }
+  to { opacity: 1; transform: translate(0, 0); }
+}
+
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes page-enter {
@@ -388,140 +593,19 @@ html.light .theme-icon-moon {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .modal-panel {
+    animation: modal-in 140ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal {
+    animation: reveal-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
   .page-enter {
     animation: page-enter 150ms ease-out both;
   }
-}
-
-/* =========================================================================
-   TRANSITION DE THÈME — uniquement pendant le toggle (~400 ms)
-   ========================================================================= */
-@media (prefers-reduced-motion: no-preference) {
   html.theme-switching :where(body, header, footer, main, section, article, div, span, p, h1, h2, h3, li, a, nav, button, code) {
-    transition: background-color 0.4s ease, border-color 0.4s ease,
-      color 0.35s ease, box-shadow 0.4s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.25s ease;
   }
 }
-
-/* =========================================================================
-   THÈME CLAIR — « soleil » : blanc / bleu ciel
-   Activé via la classe .light sur <html> (next-themes)
-   ========================================================================= */
-html.light {
-  --bg-deep: #e8eff9;
-  --bg-raise: #ffffff;
-  --bg-elevated: #ffffff;
-
-  --glass-border: rgba(15, 42, 84, 0.1);
-  --glass-border-strong: rgba(15, 42, 84, 0.16);
-  --glass-surface: rgba(15, 42, 84, 0.03);
-  --glass-surface-strong: rgba(15, 42, 84, 0.05);
-
-  --primary: #0891b2;
-  --primary-strong: #0e7490;
-  --om-sky: #0ea5e9;
-
-  --text-primary: #0b1a30;
-  --text-muted: #475569;
-  --text-dim: #64748b;
-
-  --shadow-glow: 0 0 40px -12px rgba(14, 165, 233, 0.4);
-  --shadow-glow-gold: 0 0 40px -12px rgba(217, 119, 6, 0.32);
-  --shadow-card: 0 22px 50px -30px rgba(15, 42, 84, 0.3);
-
-  color-scheme: light;
-}
-
-/* Fond ambiant clair : glows bleu ciel / or sur blanc cassé */
-html.light .page-shell {
-  background:
-    radial-gradient(70rem 40rem at 12% -8%, rgba(56, 189, 248, 0.22), transparent 60%),
-    radial-gradient(60rem 40rem at 92% 4%, rgba(59, 130, 246, 0.16), transparent 60%),
-    radial-gradient(50rem 40rem at 78% 96%, rgba(251, 191, 36, 0.12), transparent 60%),
-    var(--bg-deep);
-}
-
-/* Grille : lignes sombres discrètes au lieu de lignes blanches */
-html.light .page-shell::before {
-  background-image:
-    linear-gradient(to right, rgba(15, 42, 84, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 42, 84, 0.05) 1px, transparent 1px);
-}
-html.light .page-shell::after {
-  opacity: 0.04;
-}
-
-/* Cartes verre claires */
-html.light .bento-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
-  border-color: var(--glass-border);
-  box-shadow: var(--shadow-card), inset 0 1px 0 0 #ffffff;
-}
-html.light .bento-card::after {
-  background: radial-gradient(120% 60% at 50% -20%, rgba(56, 189, 248, 0.16), transparent 60%);
-}
-
-html.light .count-tile {
-  background: linear-gradient(180deg, rgba(15, 42, 84, 0.06), rgba(15, 42, 84, 0.02));
-  border-color: var(--glass-border);
-  box-shadow: inset 0 1px 0 0 #ffffff;
-}
-
-html.light .om-highlight {
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0.04) 60%, transparent 100%);
-  border-left-color: var(--primary);
-  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.18);
-}
-
-/* --- Texte : slate/blanc inversés --- */
-html.light .text-white { color: #0b1a30; }
-html.light .text-slate-200 { color: #1e293b; }
-html.light .text-slate-300 { color: #334155; }
-html.light .text-slate-400 { color: #475569; }
-html.light .text-slate-500 { color: #566579; }
-html.light .text-slate-600 { color: #7182a0; }
-
-html.light .hover\:text-white:hover { color: #0b1a30; }
-html.light .group:hover .group-hover\:text-white { color: #0b1a30; }
-html.light .group\/news:hover .group-hover\/news\:text-cyan-300 { color: #0891b2; }
-
-/* --- Accents : assombris pour le contraste sur fond clair --- */
-html.light .text-cyan-100 { color: #0369a1; }
-html.light .text-cyan-200 { color: #0e7490; }
-html.light .text-cyan-300 { color: #0891b2; }
-html.light .text-cyan-400 { color: #0891b2; }
-html.light .text-amber-200 { color: #b45309; }
-html.light .text-amber-300 { color: #b45309; }
-html.light .text-emerald-300 { color: #047857; }
-html.light .text-emerald-400 { color: #059669; }
-html.light .text-red-200 { color: #dc2626; }
-html.light .text-blue-200 { color: #2563eb; }
-
-/* --- Surfaces « verre blanc » -> encre navy translucide --- */
-html.light .bg-white\/\[0\.02\] { background-color: rgba(15, 42, 84, 0.03); }
-html.light .bg-white\/\[0\.03\] { background-color: rgba(15, 42, 84, 0.04); }
-html.light .bg-white\/\[0\.04\] { background-color: rgba(15, 42, 84, 0.05); }
-html.light .bg-white\/5 { background-color: rgba(15, 42, 84, 0.05); }
-html.light .bg-white\/8 { background-color: rgba(15, 42, 84, 0.06); }
-html.light .bg-white\/10 { background-color: rgba(15, 42, 84, 0.07); }
-
-html.light .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(15, 42, 84, 0.06); }
-html.light .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(15, 42, 84, 0.07); }
-html.light .hover\:bg-white\/5:hover { background-color: rgba(15, 42, 84, 0.06); }
-html.light .hover\:bg-white\/8:hover { background-color: rgba(15, 42, 84, 0.08); }
-html.light .hover\:bg-white\/10:hover { background-color: rgba(15, 42, 84, 0.09); }
-
-/* --- Bordures blanches -> navy translucide --- */
-html.light .border-white\/5 { border-color: rgba(15, 42, 84, 0.1); }
-html.light .border-white\/10 { border-color: rgba(15, 42, 84, 0.12); }
-html.light .border-white\/12 { border-color: rgba(15, 42, 84, 0.14); }
-html.light .border-white\/15 { border-color: rgba(15, 42, 84, 0.16); }
-html.light .hover\:border-white\/10:hover { border-color: rgba(15, 42, 84, 0.16); }
-html.light .hover\:border-white\/12:hover { border-color: rgba(15, 42, 84, 0.18); }
-
-/* --- Écusson club neutre : dégradé navy translucide lisible --- */
-html.light .from-white\/10 { --tw-gradient-from: rgba(15, 42, 84, 0.12); }
-html.light .to-white\/\[0\.02\] { --tw-gradient-to: rgba(15, 42, 84, 0.03); }
 
 /* =========================================================================
    ACCESSIBILITÉ — mouvement réduit
@@ -533,5 +617,11 @@ html.light .to-white\/\[0\.02\] { --tw-gradient-to: rgba(15, 42, 84, 0.03); }
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+  .ticker-track {
+    animation: none;
+  }
+  .nav-progress[data-pending="true"] {
+    transform: scaleX(1);
   }
 }

@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { getLatestNewsItems, getNewsItemsByKind, pickDistinctPress, type NewsItemRecord } from "@om/db";
 import { getDb } from "@/src/lib/db";
+import { getArticleImage } from "@/src/lib/data/article-image";
 import type { NewsItem } from "@/src/lib/types/news";
 
 /** Invalidé à la demande par POST /api/revalidate/football après chaque synchro. */
@@ -48,5 +49,11 @@ export async function getLatestNews(limit = 5): Promise<NewsItem[]> {
   const { articles, auto } = await loadNews();
   const press = pickDistinctPress(articles, auto ? limit - 1 : limit);
   const rows = auto ? [auto, ...press] : press;
-  return rows.map(toNewsItem);
+  return Promise.all(
+    rows.map(async (row) => {
+      const item = toNewsItem(row);
+      if (item.isAuto || item.imageUrl) return item;
+      return { ...item, imageUrl: (await getArticleImage(item.url)) ?? undefined };
+    }),
+  );
 }

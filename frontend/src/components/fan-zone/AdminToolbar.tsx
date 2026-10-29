@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus, Shield, Trash2 } from "lucide-react";
-import { Badge } from "@/src/components/ui/Badge";
-import { Button } from "@/src/components/ui/Button";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { CreateDebateModal } from "@/src/components/fan-zone/CreateDebateModal";
 import { CreatePollModal } from "@/src/components/fan-zone/CreatePollModal";
@@ -62,51 +59,40 @@ export function AdminToolbar({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Shield size={16} className="text-amber-300" aria-hidden="true" />
-          <Badge variant="muted" className="border-amber-400/30 text-amber-200">
-            Mode admin
-          </Badge>
-          <span className="hidden text-xs text-amber-200/70 sm:inline">· {currentRoom.name}</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setRoomModalOpen(true)}>
-            <Plus size={14} />
-            Nouveau salon
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setEditRoomModalOpen(true)}>
-            <Pencil size={14} />
-            Modifier salon
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+      <div className="ink-block flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <p className="label">
+          <span className="bg-accent px-1.5 py-0.5 text-on-accent">Régie</span>
+          <span className="ml-2 hidden text-paper/60 sm:inline">{currentRoom.name}</span>
+        </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {[
+            { label: "+ Salon", onClick: () => setRoomModalOpen(true) },
+            { label: "Modifier salon", onClick: () => setEditRoomModalOpen(true) },
+            { label: "+ Sondage", onClick: () => setPollModalOpen(true) },
+            { label: "+ Débat", onClick: () => setDebateModalOpen(true) },
+          ].map((action) => (
+            <button
+              key={action.label}
+              type="button"
+              onClick={action.onClick}
+              className="label border-b border-paper/50 pb-0.5 hover:border-accent-inverse hover:text-accent-inverse"
+            >
+              {action.label}
+            </button>
+          ))}
+          <button
+            type="button"
             onClick={handleDeleteRoom}
-            loading={deleting}
-            className="text-red-300 hover:text-red-200"
+            disabled={deleting}
+            className="label border-b border-live pb-0.5 hover:bg-live disabled:opacity-40"
           >
-            <Trash2 size={14} />
-            Supprimer salon
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => setPollModalOpen(true)}>
-            <Plus size={14} />
-            Nouveau sondage
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setDebateModalOpen(true)}
-            className="bg-cyan-600 hover:bg-cyan-500"
-          >
-            <Plus size={14} />
-            Nouveau débat
-          </Button>
+            {deleting ? "Suppression…" : "Supprimer salon"}
+          </button>
         </div>
       </div>
 
       {error && (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="label text-live-text" role="alert">
           {error}
         </p>
       )}

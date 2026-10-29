@@ -7,21 +7,18 @@ interface CardSkeletonProps {
 
 export function CardSkeleton({ className, rows = 4 }: CardSkeletonProps) {
   return (
-    <div className={cn("bento-card animate-pulse p-5 md:p-6", className)}>
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="space-y-2">
-          <div className="h-4 w-28 rounded-md bg-white/10" />
-          <div className="h-3 w-40 rounded-md bg-white/5" />
-        </div>
-        <div className="h-8 w-8 rounded-lg bg-white/5" />
+    <div className={cn("border-t-[6px] border-ink pt-3 animate-pulse", className)}>
+      <div className="mb-5 space-y-2 border-b border-ink pb-3">
+        <div className="h-2.5 w-24 bg-ink/15" />
+        <div className="h-8 w-48 bg-ink/20" />
       </div>
-      <div className="space-y-3">
+      <div className="divide-y divide-ink/15">
         {Array.from({ length: rows }, (_, i) => (
-          <div
-            key={i}
-            className="h-14 rounded-2xl bg-white/[0.04]"
-            style={{ opacity: 1 - i * 0.12 }}
-          />
+          <div key={i} className="flex items-center gap-3 py-3" style={{ opacity: 1 - i * 0.12 }}>
+            <div className="h-4 w-6 bg-ink/15" />
+            <div className="h-4 flex-1 bg-ink/10" />
+            <div className="h-4 w-10 bg-ink/15" />
+          </div>
         ))}
       </div>
     </div>

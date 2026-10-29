@@ -48,14 +48,14 @@ function EditRoomModalForm({ room, onClose, onUpdated }: Omit<EditRoomModalProps
 
   return (
     <Modal open onClose={onClose} titleId="edit-room-title">
-        <h2 id="edit-room-title" className="font-tech text-xl font-bold text-white">
+        <p className="label text-ink/50">{room.slug}</p>
+        <h2 id="edit-room-title" className="display mt-1 text-4xl">
           Modifier le salon
         </h2>
-        <p className="mt-1 text-sm text-slate-400">{room.slug}</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="edit-room-name" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="edit-room-name" className="label mb-1.5 block">
               Nom
             </label>
             <input
@@ -65,12 +65,12 @@ function EditRoomModalForm({ room, onClose, onUpdated }: Omit<EditRoomModalProps
               onChange={(e) => setName(e.target.value.slice(0, MAX_ROOM_NAME_LENGTH))}
               required
               minLength={MIN_ROOM_NAME_LENGTH}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-400/50"
+              className="field"
             />
           </div>
 
           <div>
-            <label htmlFor="edit-room-description" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="edit-room-description" className="label mb-1.5 block">
               Description
             </label>
             <textarea
@@ -78,12 +78,12 @@ function EditRoomModalForm({ room, onClose, onUpdated }: Omit<EditRoomModalProps
               value={description}
               onChange={(e) => setDescription(e.target.value.slice(0, MAX_ROOM_DESCRIPTION_LENGTH))}
               rows={2}
-              className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-400/50"
+              className="field resize-none"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="label text-live-text" role="alert">
               {error}
             </p>
           )}

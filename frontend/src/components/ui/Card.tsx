@@ -16,7 +16,7 @@ interface CardProps {
 const variants: Record<CardVariant, string> = {
   default: "bento-card",
   hero: "bento-card glow-border",
-  flat: "rounded-[var(--radius-card)] border border-white/5 bg-white/[0.02]",
+  flat: "border-t border-ink",
 };
 
 export function Card({
@@ -30,9 +30,8 @@ export function Card({
   const interactive = Boolean(href || onClick);
   const classes = cn(
     variants[variant],
-    padded && "p-5 md:p-6",
-    interactive &&
-      "bento-interactive pressable cursor-pointer group hover:-translate-y-0.5 hover:border-cyan-400/40 hover:shadow-[var(--shadow-glow)]",
+    padded && (variant === "flat" ? "pt-4" : "p-5 md:p-6"),
+    interactive && "bento-interactive cursor-pointer group",
     className,
   );
 

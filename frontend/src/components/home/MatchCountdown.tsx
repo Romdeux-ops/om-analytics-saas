@@ -18,18 +18,27 @@ function getTimeLeft(target: Date) {
   return { days, hours, minutes, seconds, expired: false };
 }
 
-function Tile({ value, label }: { value: number; label: string }) {
+/** Une palette par chiffre : seule celle qui change bascule. */
+function Flap({ digit }: { digit: string }) {
   return (
-    <div className="count-tile flex min-w-[3.25rem] flex-1 flex-col items-center px-2 py-2.5 md:min-w-[3.75rem]">
-      <span
-        suppressHydrationWarning
-        className="font-tech text-2xl font-black tabular-nums text-white md:text-3xl"
-      >
-        {String(value).padStart(2, "0")}
+    <span className="count-tile flex h-14 w-10 items-center justify-center overflow-hidden md:h-20 md:w-14">
+      <span key={digit} suppressHydrationWarning className="flap display text-4xl md:text-6xl">
+        {digit}
       </span>
-      <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-        {label}
-      </span>
+    </span>
+  );
+}
+
+function Tile({ value, label }: { value: number; label: string }) {
+  const digits = String(value).padStart(2, "0").split("");
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex gap-[3px]">
+        {digits.map((d, i) => (
+          <Flap key={i} digit={d} />
+        ))}
+      </div>
+      <span className="label text-ink/60">{label}</span>
     </div>
   );
 }
@@ -47,19 +56,22 @@ export function MatchCountdown({ targetDate }: MatchCountdownProps) {
 
   if (timeLeft.expired) {
     return (
-      <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-cyan-300">
-        <span className="pulse-dot" />
+      <p className="label flex items-center gap-2 text-live-text">
+        <span className="pulse-dot text-live" />
         Coup d&apos;envoi imminent
       </p>
     );
   }
 
   return (
-    <div className="flex items-stretch gap-2 md:gap-3" role="timer" aria-live="off">
-      <Tile value={timeLeft.days} label="jours" />
-      <Tile value={timeLeft.hours} label="heures" />
-      <Tile value={timeLeft.minutes} label="min" />
-      <Tile value={timeLeft.seconds} label="sec" />
+    <div className="flex flex-wrap items-start gap-3 md:gap-4" role="timer" aria-live="off">
+      <Tile value={timeLeft.days} label="Jours" />
+      <span className="display pt-2 text-4xl text-ink/30 md:pt-4 md:text-5xl" aria-hidden="true">:</span>
+      <Tile value={timeLeft.hours} label="Heures" />
+      <span className="display pt-2 text-4xl text-ink/30 md:pt-4 md:text-5xl" aria-hidden="true">:</span>
+      <Tile value={timeLeft.minutes} label="Min" />
+      <span className="display pt-2 text-4xl text-ink/30 md:pt-4 md:text-5xl" aria-hidden="true">:</span>
+      <Tile value={timeLeft.seconds} label="Sec" />
     </div>
   );
 }

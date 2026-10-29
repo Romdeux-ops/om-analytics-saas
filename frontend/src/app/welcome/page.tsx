@@ -15,35 +15,31 @@ export default async function WelcomePage({
 
   return (
     <div className="page-shell">
-      <main className="relative z-10 mx-auto flex min-h-[80vh] max-w-2xl flex-col justify-center px-4 py-10 md:px-6">
+      <main className="relative z-10 mx-auto flex min-h-[80vh] max-w-3xl flex-col justify-center px-4 py-10 md:px-6">
         <Reveal>
-          <div className="mb-10 text-center">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 font-black font-tech text-2xl text-slate-950 shadow-lg shadow-cyan-500/30">
-              OM
-            </div>
-            <h1 className="font-tech text-3xl font-black tracking-tight text-white md:text-4xl">
-              <span className="text-gradient">OM</span>{" "}
-              <span className="text-white">ANALYTICS</span>
+          <div className="mb-10 rule-thick pt-4">
+            <p className="label text-ink/50">Olympique de Marseille</p>
+            <h1 className="display mt-2 text-[clamp(4rem,16vw,10rem)]">
+              OM <span className="text-accent-text">Analytics</span>
             </h1>
-            <p className="mt-3 text-slate-400">
-              Rejoins la communauté des supporters — simulation, data et Fan Zone.
+            <p className="editorial mt-4 text-2xl text-ink/70">
+              Simulation · Données · Virage.
             </p>
           </div>
         </Reveal>
 
         {errorMessage && (
-          <p className="mb-4 text-center text-sm text-red-400" role="alert">
+          <p className="label mb-4 text-live-text" role="alert">
             {errorMessage}
           </p>
         )}
 
         <WelcomeActions />
 
-        <p className="mt-8 text-center text-xs text-slate-600">
+        <p className="label mt-8 text-ink/40">
           En continuant, vous acceptez les conditions d&apos;utilisation de la plateforme.
         </p>
       </main>
     </div>
   );
 }
-

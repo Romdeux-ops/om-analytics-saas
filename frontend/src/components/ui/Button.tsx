@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import { cn } from "@/src/lib/ui/cn";
 
 type ButtonVariant = "primary" | "gold" | "ghost" | "outline";
@@ -21,20 +20,16 @@ interface ButtonProps {
 }
 
 const variants: Record<ButtonVariant, string> = {
-  primary:
-    "text-slate-950 font-bold bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-400/40 hover:brightness-110",
-  gold:
-    "text-slate-950 font-bold bg-gradient-to-r from-amber-300 to-amber-500 shadow-lg shadow-amber-500/25 hover:brightness-110",
-  ghost:
-    "bg-white/5 text-slate-200 border border-white/10 hover:bg-white/10 hover:text-white",
-  outline:
-    "bg-cyan-500/5 text-cyan-300 border border-cyan-400/40 hover:bg-cyan-500/15 hover:border-cyan-300/60",
+  primary: "stamp border border-ink bg-accent text-on-accent",
+  gold: "stamp border border-ink bg-ink text-paper",
+  ghost: "border border-ink text-ink hover:bg-ink hover:text-paper",
+  outline: "border border-ink text-ink hover:bg-accent hover:text-on-accent",
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "px-3.5 py-2 text-xs rounded-lg",
-  md: "px-5 py-2.5 text-sm rounded-xl",
-  lg: "px-6 py-3 text-sm rounded-xl",
+  sm: "px-3 py-1.5 text-[11px]",
+  md: "px-4 py-2.5 text-xs",
+  lg: "px-6 py-3.5 text-sm",
 };
 
 export function Button({
@@ -51,7 +46,7 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const classes = cn(
-    "pressable inline-flex cursor-pointer items-center justify-center gap-2 font-semibold uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-50",
+    "pressable inline-flex cursor-pointer items-center justify-center gap-2 font-mono font-bold uppercase tracking-[0.12em] disabled:cursor-not-allowed disabled:opacity-40",
     sizes[size],
     variants[variant],
     className,
@@ -74,7 +69,9 @@ export function Button({
       className={classes}
       {...rest}
     >
-      {loading && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+      {loading && (
+        <span className="inline-block h-3 w-3 animate-spin border-2 border-current border-r-transparent" aria-hidden="true" />
+      )}
       {children}
     </button>
   );

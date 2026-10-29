@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/src/components/ui/Button";
 import { Modal } from "@/src/components/ui/Modal";
 import { createPollAction } from "@/src/lib/fan-zone/admin-actions";
@@ -74,14 +73,15 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
       titleId="create-poll-title"
       className="max-h-[90vh] overflow-y-auto"
     >
-        <h2 id="create-poll-title" className="font-tech text-xl font-bold text-white">
+        <p className="label text-ink/50">Le vote du virage</p>
+        <h2 id="create-poll-title" className="display mt-1 text-4xl">
           Nouveau sondage
         </h2>
-        <p className="mt-1 text-sm text-slate-400">Créer un sondage pour le salon actif.</p>
+        <p className="editorial mt-1 text-base text-ink/60">Pour le salon actif.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="poll-question" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="poll-question" className="label mb-1.5 block">
               Question
             </label>
             <input
@@ -91,12 +91,12 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
               onChange={(e) => setQuestion(e.target.value.slice(0, MAX_POLL_QUESTION_LENGTH))}
               required
               minLength={MIN_POLL_QUESTION_LENGTH}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-400/50"
+              className="field"
             />
           </div>
 
           <fieldset>
-            <legend className="mb-2 text-xs font-medium text-slate-400">
+            <legend className="label mb-2">
               Options ({MIN_POLL_OPTIONS}–{MAX_POLL_OPTIONS})
             </legend>
             <div className="space-y-2">
@@ -108,16 +108,16 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
                     onChange={(e) => updateOption(index, e.target.value)}
                     required
                     placeholder={`Option ${index + 1}`}
-                    className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:border-violet-400/50"
+                    className="field min-w-0 flex-1"
                   />
                   {options.length > MIN_POLL_OPTIONS && (
                     <button
                       type="button"
                       onClick={() => removeOption(index)}
-                      className="pressable cursor-pointer rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-red-400"
+                      className="label border border-ink px-3 hover:bg-live hover:text-on-accent"
                       aria-label={`Supprimer l'option ${index + 1}`}
                     >
-                      <Trash2 size={14} />
+                      Retirer
                     </button>
                   )}
                 </div>
@@ -125,14 +125,13 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
             </div>
             {options.length < MAX_POLL_OPTIONS && (
               <Button type="button" variant="ghost" size="sm" className="mt-2" onClick={addOption}>
-                <Plus size={14} />
-                Ajouter une option
+                + Option
               </Button>
             )}
           </fieldset>
 
           <div>
-            <label htmlFor="poll-closes" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="poll-closes" className="label mb-1.5 block">
               Date de clôture (optionnel)
             </label>
             <input
@@ -140,12 +139,12 @@ export function CreatePollModal({ open, roomId, onClose, onCreated }: CreatePoll
               type="datetime-local"
               value={closesAt}
               onChange={(e) => setClosesAt(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-400/50"
+              className="field"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="label text-live-text" role="alert">
               {error}
             </p>
           )}

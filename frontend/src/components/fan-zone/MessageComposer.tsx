@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Send } from "lucide-react";
 import { Button } from "@/src/components/ui/Button";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { createMessageAction } from "@/src/lib/fan-zone/actions";
@@ -62,29 +61,28 @@ export function MessageComposer({ roomId, onOptimisticPost, onPostError }: Messa
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-      <label htmlFor="message-composer" className="sr-only">
-        Votre message
+    <form onSubmit={handleSubmit} className="border-t-[6px] border-b border-ink pt-3 pb-4">
+      <label htmlFor="message-composer" className="label mb-2 block">
+        Ta banderole
       </label>
       <textarea
         id="message-composer"
         value={content}
         onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))}
-        placeholder="Partagez votre avis avec la communauté..."
+        placeholder="Ce que le virage doit entendre…"
         rows={3}
         maxLength={MAX_CONTENT_LENGTH}
-        className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-violet-400/40"
+        className="editorial w-full resize-none border border-ink bg-paper px-4 py-3 text-xl text-ink outline-none placeholder:text-ink/35 focus:shadow-[4px_4px_0_0_var(--accent)]"
         onFocus={() => {
           if (isGuest) requireAuth(() => {});
         }}
       />
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-slate-500">
+        <span className="label tabular text-ink/50">
           {content.length}/{MAX_CONTENT_LENGTH}
         </span>
         <Button type="submit" variant="primary" size="sm" loading={submitting} disabled={!content.trim()}>
-          <Send size={14} />
-          Publier
+          Accrocher <span aria-hidden="true">→</span>
         </Button>
       </div>
     </form>

@@ -1,6 +1,3 @@
-import { Newspaper } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { NewsCard } from "@/src/components/home/NewsCard";
 import { getLatestNews } from "@/src/lib/data/news";
 
@@ -9,34 +6,41 @@ export async function NewsFeed() {
   const [featured, ...rest] = news;
 
   return (
-    <Card className="flex h-full flex-col">
-      <SectionHeading
-        title="Actu du club"
-        subtitle="Les dernières infos sur l'OM"
-        icon={<Newspaper size={16} />}
-        action={
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Presse &amp; résultats
-          </span>
-        }
-      />
+    <section className="border-t-[6px] border-ink pt-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="label text-ink/60">
+          <span className="text-accent-text">04</span> — Actu du club
+        </p>
+        <p className="label text-ink/60">Presse &amp; résultats</p>
+      </div>
+      <h2 className="display mt-3 border-b border-ink pb-4 text-5xl text-ink md:text-7xl">
+        Ce qu&apos;on dit de l&apos;OM
+      </h2>
 
       {news.length === 0 ? (
-        <p className="py-10 text-center text-sm text-slate-500">Aucune actualité pour le moment.</p>
+        <p className="editorial py-10 text-xl text-ink/60">Aucune actualité pour le moment.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <div className="grid grid-cols-1 lg:grid-cols-12">
           {featured && (
-            <div className="lg:col-span-1">
+            <div className="border-b border-ink py-6 lg:col-span-5 lg:border-b-0 lg:border-r lg:pr-8">
               <NewsCard item={featured} featured />
             </div>
           )}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-2">
-            {rest.map((item) => (
-              <NewsCard key={item.id} item={item} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:col-span-7">
+            {rest.map((item, i) => (
+              <div
+                key={item.id}
+                className={
+                  "border-b border-ink/25 py-6 sm:px-6 " +
+                  (i % 2 === 0 ? "sm:border-r sm:border-r-ink/25 sm:pl-0 lg:pl-8" : "sm:pr-0")
+                }
+              >
+                <NewsCard item={item} />
+              </div>
             ))}
           </div>
         </div>
       )}
-    </Card>
+    </section>
   );
 }

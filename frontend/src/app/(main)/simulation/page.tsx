@@ -19,19 +19,16 @@ export default async function SimulationIndexPage() {
 
   if (!match) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="relative z-10 max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-2xl">
-          <h2 className="mb-2 font-tech text-2xl font-bold text-white">
-            Aucun match à simuler
-          </h2>
-          <p className="mb-6 text-slate-400">
-            Tous les matchs de la saison ont été simulés ou le calendrier est terminé.
-          </p>
-          <Button href="/" variant="outline">
-            Retour au menu
-          </Button>
-        </div>
-      </div>
+      <section className="min-h-[50vh] border-t-[6px] border-ink pt-3">
+        <p className="label text-ink/60">Simulation</p>
+        <h2 className="display mt-3 text-6xl text-ink md:text-8xl">Aucun match à simuler</h2>
+        <p className="editorial mb-8 mt-4 max-w-xl text-xl text-ink/70">
+          Tous les matchs de la saison ont été simulés ou le calendrier est terminé.
+        </p>
+        <Button href="/" variant="ghost">
+          ← Retour à la Une
+        </Button>
+      </section>
     );
   }
 
