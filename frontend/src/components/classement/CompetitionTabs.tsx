@@ -55,7 +55,7 @@ export function CompetitionTabs<Id extends string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 backdrop-blur-md"
+      className="flex items-end gap-1 border-b border-ink"
     >
       {competitions.map((comp, idx) => {
         const isActive = comp.id === selected;
@@ -76,15 +76,17 @@ export function CompetitionTabs<Id extends string>({
             onKeyDown={(e) => handleKeyDown(e, idx)}
             onPointerEnter={() => onPrefetch?.(comp.id)}
             className={cn(
-              "pressable flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold sm:flex-none sm:px-5",
+              "-mb-px flex min-w-0 cursor-pointer items-baseline gap-2 border border-b-0 border-ink px-3 transition-all duration-100 sm:px-5",
               isActive
-                ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white shadow-[0_0_20px_-8px_rgba(34,211,238,0.5)] ring-1 ring-cyan-400/30"
-                : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200",
+                ? "bg-ink pb-3 pt-3 text-paper"
+                : "pb-2 pt-2 text-ink hover:bg-accent hover:pb-3 hover:pt-3 hover:text-on-accent",
             )}
           >
-            <span className="font-tech uppercase tracking-wider">{comp.shortLabel}</span>
-            <span className="hidden truncate sm:inline">{comp.label}</span>
-            <span className="text-[10px] font-normal text-slate-400">{comp.season}</span>
+            <span className="display text-2xl leading-none">{comp.shortLabel}</span>
+            <span className="label hidden truncate sm:inline">{comp.label}</span>
+            <span className={cn("hidden text-[10px] tabular md:inline", isActive ? "text-paper/60" : "opacity-60")}>
+              {comp.season}
+            </span>
           </button>
         );
       })}

@@ -3,6 +3,7 @@ import { shortTeamName } from "@/src/lib/ui/teams";
 import type { StandingRow } from "@/src/lib/types/standing";
 import type { TeamFormData } from "@/src/lib/data/team-form";
 import type { CoachProfile } from "@/src/lib/data/coaches";
+import { getArticleImage } from "@/src/lib/data/article-image";
 
 export interface ScrapedPressArticle {
   title: string;
@@ -10,6 +11,7 @@ export interface ScrapedPressArticle {
   url: string;
   publishedAt?: string;
   snippet?: string;
+  imageUrl?: string;
 }
 
 export interface MatchEditorialPreview {
@@ -69,7 +71,10 @@ function parseRssItems(xml: string): Array<{
     const pubDateMatch = block.match(/<pubDate[\s\S]*?>([\s\S]*?)<\/pubDate>/i);
 
     const cleanCdata = (str?: string) =>
-      (str || "").replace(/<!\[CDATA\[|\]\]>/g, "").trim();
+      (str || "")
+        .replace(/<!\[CDATA\[|\]\]>/g, "")
+        .replace(/&(amp|quot|#39|apos);/g, (_, e: string) => ({ amp: "&", quot: '"', "#39": "'", apos: "'" })[e] ?? "")
+        .trim();
 
     const rawTitle = cleanCdata(titleMatch?.[1]);
     const link = cleanCdata(linkMatch?.[1]);
@@ -167,7 +172,14 @@ async function searchPressArticlesForFixture(
     }
   }
 
-  return { bestArticle, otherArticles };
+  const withImages = await Promise.all(
+    otherArticles.map(async (article) => ({
+      ...article,
+      imageUrl: (await getArticleImage(article.url)) ?? undefined,
+    })),
+  );
+
+  return { bestArticle, otherArticles: withImages };
 }
 
 /**
@@ -206,7 +218,7 @@ export async function getMatchPreview(params: {
   const awayShort = shortTeamName(awayTeam);
   const isEuropa = competition === "europa";
   const compLabel = isEuropa ? "Europa League" : "Ligue 1";
-  const cacheKey = `preview-v3-${homeShort}-${awayShort}-${competition}-${matchDate.toISOString().slice(0, 10)}`;
+  const cacheKey = `preview-v5-${homeShort}-${awayShort}-${competition}-${matchDate.toISOString().slice(0, 10)}`;
 
   return unstable_cache(
     async () => {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, MessageCircle, SmilePlus } from "lucide-react";
 import { cn } from "@/src/lib/ui/cn";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { EMOJI_REACTIONS } from "@/src/lib/fan-zone/constants";
@@ -17,6 +16,9 @@ interface MessageActionsProps {
   onStartReply: () => void;
   compact?: boolean;
 }
+
+const chip =
+  "pressable inline-flex cursor-pointer items-center gap-1.5 border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-100";
 
 export function MessageActions({
   likeCount,
@@ -39,33 +41,33 @@ export function MessageActions({
   }
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", compact ? "mt-1" : "mt-3")}>
+    <div className={cn("flex flex-wrap items-center gap-1.5", compact ? "mt-1" : "mt-3")}>
       <button
         type="button"
         onClick={() => requireAuth(onToggleLike)}
         className={cn(
-          "pressable inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+          chip,
           userLiked
-            ? "border-rose-400/40 bg-rose-500/15 text-rose-300"
-            : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-rose-400/30 hover:text-rose-300",
+            ? "border-ink bg-ink text-paper"
+            : "border-ink/30 text-ink/70 hover:border-ink hover:text-ink",
         )}
         aria-pressed={userLiked}
         aria-label={userLiked ? "Retirer le like" : "Aimer"}
       >
-        <Heart size={13} className={userLiked ? "fill-current" : ""} />
-        {likeCount > 0 && <span>{likeCount}</span>}
+        <span aria-hidden="true">{userLiked ? "■" : "□"}</span>
+        Allez
+        {likeCount > 0 && <span className="tabular">{likeCount}</span>}
       </button>
 
       <div className="relative">
         <button
           type="button"
           onClick={() => requireAuth(() => setPickerOpen((v) => !v))}
-          className="pressable inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 hover:border-violet-400/30 hover:text-violet-300"
+          className={cn(chip, "border-ink/30 text-ink/70 hover:border-ink hover:text-ink")}
           aria-expanded={pickerOpen}
           aria-label="Ajouter une réaction"
         >
-          <SmilePlus size={13} />
-          {!compact && <span>Réagir</span>}
+          +{!compact && <span>Réagir</span>}
         </button>
 
         {pickerOpen && (
@@ -78,7 +80,7 @@ export function MessageActions({
             />
             <div
               role="menu"
-              className="absolute left-0 top-full z-20 mt-1 flex gap-0.5 rounded-xl border border-white/10 bg-[var(--bg-raise)] p-1.5 shadow-xl"
+              className="absolute left-0 top-full z-20 mt-1 flex border border-ink bg-paper shadow-[4px_4px_0_0_var(--ink)]"
             >
               {EMOJI_REACTIONS.map((emoji) => (
                 <button
@@ -87,8 +89,8 @@ export function MessageActions({
                   role="menuitem"
                   onClick={() => handleReaction(emoji)}
                   className={cn(
-                    "pressable cursor-pointer rounded-lg px-2 py-1 text-base hover:bg-white/10",
-                    userReaction === emoji && "bg-violet-500/20 ring-1 ring-violet-400/30",
+                    "cursor-pointer border-r border-ink px-2.5 py-1.5 text-base last:border-r-0 hover:bg-accent",
+                    userReaction === emoji && "bg-ink",
                   )}
                   aria-label={`Réagir ${emoji}`}
                 >
@@ -104,11 +106,10 @@ export function MessageActions({
         <button
           type="button"
           onClick={() => requireAuth(onStartReply)}
-          className="pressable inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 hover:border-cyan-400/30 hover:text-cyan-300"
+          className={cn(chip, "border-ink/30 text-ink/70 hover:border-ink hover:text-ink")}
           aria-label="Répondre"
         >
-          <MessageCircle size={13} />
-          <span>Répondre</span>
+          Répondre <span aria-hidden="true">↩</span>
         </button>
       )}
 
@@ -118,16 +119,16 @@ export function MessageActions({
           type="button"
           onClick={() => handleReaction(r.emoji)}
           className={cn(
-            "pressable inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs",
+            "pressable inline-flex cursor-pointer items-center gap-1 border px-1.5 py-0.5 text-xs",
             userReaction === r.emoji
-              ? "border-violet-400/40 bg-violet-500/15 text-violet-200"
-              : "border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]",
+              ? "border-ink bg-accent text-on-accent"
+              : "border-ink/30 text-ink/70 hover:border-ink",
           )}
           aria-pressed={userReaction === r.emoji}
           aria-label={`${r.emoji}, ${r.count} réaction${r.count > 1 ? "s" : ""}`}
         >
           <span>{r.emoji}</span>
-          <span>{r.count}</span>
+          <span className="tabular">{r.count}</span>
         </button>
       ))}
     </div>

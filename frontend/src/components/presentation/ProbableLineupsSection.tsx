@@ -1,21 +1,11 @@
 "use client";
 
 import { memo, useMemo, useState } from "react";
-import {
-  Users,
-  Shirt,
-  Shield,
-  Layers,
-  Pencil,
-  Save,
-  RotateCcw,
-  Check,
-  AlertCircle,
-} from "lucide-react";
+import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { LineupPitch, SubstitutesBench } from "@/src/components/simulation/LineupPitch";
 import { UnavailablePlayersSection } from "@/src/components/simulation/UnavailablePlayersSection";
 import { shortTeamName } from "@/src/lib/ui/teams";
-import type { AbsenceReason, Formation, LineupSlot, MatchLineups, ProbableLineup, RosterPlayer, UnavailablePlayer } from "@/src/lib/types/lineup";
+import type { AbsenceReason, Formation, LineupSlot, MatchLineups, ProbableLineup, RosterPlayer } from "@/src/lib/types/lineup";
 import { buildProbableLineup } from "@/src/lib/data/lineup";
 import { PlayerPickerModal } from "@/src/components/presentation/PlayerPickerModal";
 import { DeclareAbsenceModal } from "@/src/components/presentation/DeclareAbsenceModal";
@@ -176,7 +166,7 @@ export const ProbableLineupsSection = memo(function ProbableLineupsSection({
   ) {
     if (!lineups) return;
     const currentTeamLineup = lineups[teamKey];
-    let starters = [...currentTeamLineup.starters];
+    const starters = [...currentTeamLineup.starters];
     let subs = [...currentTeamLineup.substitutes];
     const prevUnavailable = currentTeamLineup.unavailable ?? [];
 
@@ -301,147 +291,148 @@ export const ProbableLineupsSection = memo(function ProbableLineupsSection({
     }
   }
 
+  function renderTeam(teamKey: "home" | "away") {
+    if (!lineups) return null;
+    const lineup = lineups[teamKey];
+    const teamName = teamKey === "home" ? lineups.homeTeam : lineups.awayTeam;
+    const editing = isEditMode && editingTeam === teamKey;
+
+    return (
+      <div className={`space-y-6 ${editing ? "outline-2 outline-offset-8 outline-dashed outline-ink" : ""}`}>
+        <p className="label flex items-center justify-between text-ink/60">
+          <span>{teamKey === "home" ? "Domicile" : "Extérieur"}</span>
+          {editing && <span className="bg-ink px-1.5 py-0.5 text-paper">Édition</span>}
+        </p>
+
+        <LineupPitch
+          lineup={lineup}
+          teamName={teamName}
+          isEditable={editing}
+          onSlotClick={(idx) => {
+            setEditingTeam(teamKey);
+            setSelectedSlotIndex(idx);
+          }}
+        />
+
+        <SubstitutesBench
+          substitutes={lineup.substitutes}
+          teamName={teamName}
+          isEditable={editing}
+          onMarkUnavailable={(player, reason) => handleMarkUnavailable(teamKey, player, reason)}
+        />
+
+        <UnavailablePlayersSection
+          unavailable={lineup.unavailable ?? []}
+          teamName={teamName}
+          isEditable={editing}
+          onToggleReason={(id) => handleToggleUnavailableReason(teamKey, id)}
+          onRestorePlayer={(id) => handleRestorePlayer(teamKey, id)}
+          onAddClick={() => {
+            setEditingTeam(teamKey);
+            setIsAbsenceModalOpen(true);
+          }}
+        />
+      </div>
+    );
+  }
+
+  const segment = (active: boolean) =>
+    `label border-r border-ink px-3 py-2 last:border-r-0 transition-colors duration-100 ${
+      active ? "bg-ink text-paper" : "hover:bg-accent hover:text-on-accent"
+    }`;
+
   return (
-    <section className="space-y-5">
-      {/* En-tête */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 text-emerald-400">
-            <Users size={16} />
-          </span>
-          <div>
-            <h3 className="font-tech text-base font-bold uppercase tracking-wider text-white">
-              Compositions Probables &amp; Remplaçants
-            </h3>
-            <p className="text-xs text-slate-400">
-              11 de départ probables, schémas tactiques et bancs complets
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Bouton Staff / Admin */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditMode(!isEditMode);
-                if (!isEditMode && activeTab === "both") {
-                  setActiveTab("home");
-                }
-              }}
-              className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all ${
-                isEditMode
-                  ? "border-amber-400/60 bg-amber-500/20 text-amber-300 shadow-md ring-1 ring-amber-400/40"
-                  : "border-amber-400/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
-              }`}
-            >
-              <Pencil size={12} />
-              <span>{isEditMode ? "Mode Édition Actif" : "Modifier la composition"}</span>
-            </button>
-          )}
-
-          {/* Sélecteur de vue (Tous / Domicile / Extérieur) */}
-          <div className="flex items-center rounded-xl border border-white/10 bg-white/5 p-1 text-xs">
-            {!isEditMode && (
+    <section>
+      <SectionHeading
+        index="05"
+        title="Les onze probables"
+        subtitle="11 de départ, schémas tactiques et bancs complets"
+        action={
+          <span className="flex flex-wrap items-center justify-end gap-2">
+            {isAdmin && (
               <button
                 type="button"
-                onClick={() => setActiveTab("both")}
-                className={`rounded-lg px-3 py-1 font-bold transition-colors ${
-                  activeTab === "both"
-                    ? "bg-cyan-500/20 text-cyan-300"
-                    : "text-slate-400 hover:text-white"
+                onClick={() => {
+                  setIsEditMode(!isEditMode);
+                  if (!isEditMode && activeTab === "both") {
+                    setActiveTab("home");
+                  }
+                }}
+                className={`border border-ink px-3 py-2 transition-colors ${
+                  isEditMode ? "bg-accent text-on-accent" : "hover:bg-ink hover:text-paper"
                 }`}
               >
-                Côte à côte
+                {isEditMode ? "Mode édition actif" : "Modifier la composition"}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("home");
-                setEditingTeam("home");
-              }}
-              className={`rounded-lg px-3 py-1 font-bold transition-colors ${
-                activeTab === "home"
-                  ? "bg-cyan-500/20 text-cyan-300"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              {homeShort}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("away");
-                setEditingTeam("away");
-              }}
-              className={`rounded-lg px-3 py-1 font-bold transition-colors ${
-                activeTab === "away"
-                  ? "bg-cyan-500/20 text-cyan-300"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              {awayShort}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Barre d'outils tactile Staff / Admin (quand le mode édition est activé) */}
+            <span className="flex border border-ink">
+              {!isEditMode && (
+                <button type="button" onClick={() => setActiveTab("both")} className={segment(activeTab === "both")}>
+                  Côte à côte
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("home");
+                  setEditingTeam("home");
+                }}
+                className={segment(activeTab === "home")}
+              >
+                {homeShort}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("away");
+                  setEditingTeam("away");
+                }}
+                className={segment(activeTab === "away")}
+              >
+                {awayShort}
+              </button>
+            </span>
+          </span>
+        }
+      />
+
+      {/* Panneau tactique Staff / Admin */}
       {isAdmin && isEditMode && lineups && (
-        <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-r from-amber-950/40 via-slate-900/90 to-slate-950 p-4 shadow-xl backdrop-blur-xl space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-            <div className="flex items-center gap-2">
-              <Shield size={16} className="text-amber-400" />
-              <div>
-                <p className="font-tech text-sm font-bold uppercase tracking-wider text-white">
-                  Panneau Tactique Staff · {editingTeam === "home" ? homeTeamName : awayTeamName}
-                </p>
-                <p className="text-[11px] text-slate-400">
-                  Changez le schéma tactique ou cliquez directement sur n&apos;importe quel joueur sur le terrain pour le remplacer.
-                </p>
-              </div>
+        <div className="ink-block mb-8 space-y-5 p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-paper/25 pb-3">
+            <div>
+              <p className="label text-paper/60">Panneau tactique staff</p>
+              <p className="display mt-1 text-4xl">{editingTeam === "home" ? homeTeamName : awayTeamName}</p>
+              <p className="mt-1 text-[11px] text-paper/60">
+                Changez le schéma tactique ou cliquez sur un joueur du terrain pour le remplacer.
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              {/* Choix de l'équipe à éditer */}
-              <div className="flex rounded-lg border border-white/10 bg-white/5 p-0.5 text-xs">
+            <span className="flex border border-paper">
+              {(["home", "away"] as const).map((key) => (
                 <button
+                  key={key}
                   type="button"
                   onClick={() => {
-                    setEditingTeam("home");
-                    setActiveTab("home");
+                    setEditingTeam(key);
+                    setActiveTab(key);
                   }}
-                  className={`rounded-md px-2.5 py-1 font-bold uppercase transition-colors ${
-                    editingTeam === "home" ? "bg-amber-500/20 text-amber-300" : "text-slate-400 hover:text-white"
+                  className={`label border-r border-paper px-3 py-2 last:border-r-0 ${
+                    editingTeam === key ? "bg-paper text-ink" : "hover:bg-accent hover:text-on-accent"
                   }`}
                 >
-                  {homeShort} (Dom)
+                  {key === "home" ? `${homeShort} (Dom)` : `${awayShort} (Ext)`}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingTeam("away");
-                    setActiveTab("away");
-                  }}
-                  className={`rounded-md px-2.5 py-1 font-bold uppercase transition-colors ${
-                    editingTeam === "away" ? "bg-amber-500/20 text-amber-300" : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {awayShort} (Ext)
-                </button>
-              </div>
-            </div>
+              ))}
+            </span>
           </div>
 
-          {/* Choix de la formation (4-3-3, 4-2-3-1, 4-4-2, etc.) */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-300">
-              <Layers size={13} className="text-cyan-400" />
-              <span>Schéma tactique &amp; Disposition ({editingTeam === "home" ? homeShort : awayShort}) :</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <div>
+            <p className="label text-paper/60">
+              Schéma tactique ({editingTeam === "home" ? homeShort : awayShort})
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
               {AVAILABLE_FORMATIONS.map((f) => {
                 const isSelected = activeEditingLineup?.formation === f;
                 return (
@@ -449,10 +440,10 @@ export const ProbableLineupsSection = memo(function ProbableLineupsSection({
                     key={f}
                     type="button"
                     onClick={() => handleFormationChange(f)}
-                    className={`rounded-xl px-3.5 py-1.5 font-mono text-xs font-bold transition-all ${
+                    className={`display border px-3 py-1 text-2xl tabular transition-colors ${
                       isSelected
-                        ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md font-black ring-2 ring-amber-300"
-                        : "border border-white/10 bg-white/5 text-slate-300 hover:border-amber-400/40 hover:bg-white/10 hover:text-white"
+                        ? "border-accent-inverse bg-accent text-on-accent"
+                        : "border-paper/40 hover:border-paper hover:bg-paper hover:text-ink"
                     }`}
                   >
                     {f}
@@ -462,54 +453,39 @@ export const ProbableLineupsSection = memo(function ProbableLineupsSection({
             </div>
           </div>
 
-          {/* Message de succès ou erreur */}
-          {error && (
-            <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300">
-              <AlertCircle size={14} className="shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          {error && <p className="label border border-live bg-live px-3 py-2 text-on-accent">{error}</p>}
 
           {saveSuccess && (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-xs text-emerald-300">
-              <Check size={14} className="shrink-0" />
-              <span>Composition d&apos;équipe enregistrée avec succès dans le système.</span>
-            </div>
+            <p className="label border border-paper px-3 py-2">
+              Composition enregistrée avec succès dans le système.
+            </p>
           )}
 
-          {/* Actions : Sauvegarder & Réinitialiser */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-paper/25 pt-4">
             <button
               type="button"
               disabled={isSaving}
               onClick={handleResetLineup}
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-400 hover:text-red-400 hover:border-red-400/30 transition-colors"
+              className="label border-b border-paper/50 pb-0.5 text-paper/70 hover:border-live hover:text-paper disabled:opacity-40"
             >
-              <RotateCcw size={12} />
-              <span>Rétablir composition d&apos;origine</span>
+              Rétablir la composition d&apos;origine
             </button>
 
-            <div className="flex items-center gap-2">
-              {isDirty && (
-                <span className="text-[11px] font-semibold text-amber-300">
-                  Modifications non enregistrées
-                </span>
-              )}
+            <div className="flex items-center gap-3">
+              {isDirty && <span className="label text-accent-inverse">Modifications non enregistrées</span>}
               <button
                 type="button"
                 disabled={isSaving}
                 onClick={handleSaveLineup}
-                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg shadow-amber-500/25 transition-transform hover:scale-105 disabled:opacity-50"
+                className="label border border-paper bg-accent px-4 py-2.5 text-on-accent transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_var(--paper)] disabled:opacity-40"
               >
-                <Save size={13} />
-                <span>{isSaving ? "Enregistrement..." : "Enregistrer la composition"}</span>
+                {isSaving ? "Enregistrement…" : "Enregistrer la composition"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal de sélection d'un joueur */}
       <PlayerPickerModal
         open={selectedSlotIndex !== null}
         onClose={() => setSelectedSlotIndex(null)}
@@ -521,7 +497,6 @@ export const ProbableLineupsSection = memo(function ProbableLineupsSection({
         onSelectPlayer={handleSelectPlayer}
       />
 
-      {/* Modal de déclaration de blessure ou suspension */}
       <DeclareAbsenceModal
         open={isAbsenceModalOpen}
         onClose={() => setIsAbsenceModalOpen(false)}
@@ -538,154 +513,22 @@ export const ProbableLineupsSection = memo(function ProbableLineupsSection({
       />
 
       {!lineups ? (
-        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-10 text-center text-xs text-slate-500">
-          <Shirt size={32} className="mx-auto mb-3 text-slate-600" />
-          <p className="text-sm font-semibold text-slate-300">
-            Compositions en cours d&apos;ajustement tactique
-          </p>
-          <p className="text-xs text-slate-500 mt-1">
+        <div className="border-y border-ink py-10">
+          <p className="display text-4xl text-ink/40">Compositions en cours d&apos;ajustement</p>
+          <p className="editorial mt-2 text-lg text-ink/60">
             Les données d&apos;effectif sont synchronisées automatiquement avec les feuilles de match officielles.
           </p>
         </div>
       ) : (
         <div
-          className={`grid gap-6 ${
+          className={
             activeTab === "both"
-              ? "grid-cols-1 lg:grid-cols-2"
-              : "grid-cols-1 max-w-2xl mx-auto"
-          }`}
+              ? "grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-0 lg:[&>*:first-child]:border-r lg:[&>*:first-child]:border-ink lg:[&>*:first-child]:pr-8 lg:[&>*:last-child]:pl-8"
+              : "mx-auto max-w-2xl"
+          }
         >
-          {/* Équipe Domicile */}
-          {(activeTab === "both" || activeTab === "home") && (
-            <div
-              className={`space-y-4 rounded-3xl border bg-white/[0.02] p-5 shadow-xl backdrop-blur-xl transition-all ${
-                isEditMode && editingTeam === "home"
-                  ? "border-amber-400/50 ring-1 ring-amber-400/30"
-                  : "border-white/10"
-              }`}
-            >
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-cyan-400">
-                    Domicile
-                  </span>
-                  <span className="font-tech text-base font-black uppercase text-white">
-                    {homeShort}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isEditMode && editingTeam === "home" && (
-                    <span className="flex items-center gap-1 rounded bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                      <Pencil size={9} /> Édition
-                    </span>
-                  )}
-                  <span className="font-mono text-xs font-bold text-slate-400">
-                    {lineups.home.formation}
-                  </span>
-                </div>
-              </div>
-
-              {/* Terrain avec les 11 titulaires */}
-              <LineupPitch
-                lineup={lineups.home}
-                teamName={lineups.homeTeam}
-                isEditable={isEditMode && editingTeam === "home"}
-                onSlotClick={(idx) => {
-                  setEditingTeam("home");
-                  setSelectedSlotIndex(idx);
-                }}
-              />
-
-              {/* Banc des remplaçants */}
-              <SubstitutesBench
-                substitutes={lineups.home.substitutes}
-                teamName={lineups.homeTeam}
-                isEditable={isEditMode && editingTeam === "home"}
-                onMarkUnavailable={(player, reason) =>
-                  handleMarkUnavailable("home", player, reason)
-                }
-              />
-
-              {/* Section Blessés / Suspendus en dessous du banc */}
-              <UnavailablePlayersSection
-                unavailable={lineups.home.unavailable ?? []}
-                teamName={lineups.homeTeam}
-                isEditable={isEditMode && editingTeam === "home"}
-                onToggleReason={(id) => handleToggleUnavailableReason("home", id)}
-                onRestorePlayer={(id) => handleRestorePlayer("home", id)}
-                onAddClick={() => {
-                  setEditingTeam("home");
-                  setIsAbsenceModalOpen(true);
-                }}
-              />
-            </div>
-          )}
-
-          {/* Équipe Extérieur */}
-          {(activeTab === "both" || activeTab === "away") && (
-            <div
-              className={`space-y-4 rounded-3xl border bg-white/[0.02] p-5 shadow-xl backdrop-blur-xl transition-all ${
-                isEditMode && editingTeam === "away"
-                  ? "border-amber-400/50 ring-1 ring-amber-400/30"
-                  : "border-white/10"
-              }`}
-            >
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase text-slate-400">
-                    Extérieur
-                  </span>
-                  <span className="font-tech text-base font-black uppercase text-white">
-                    {awayShort}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isEditMode && editingTeam === "away" && (
-                    <span className="flex items-center gap-1 rounded bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                      <Pencil size={9} /> Édition
-                    </span>
-                  )}
-                  <span className="font-mono text-xs font-bold text-slate-400">
-                    {lineups.away.formation}
-                  </span>
-                </div>
-              </div>
-
-              {/* Terrain avec les 11 titulaires */}
-              <LineupPitch
-                lineup={lineups.away}
-                teamName={lineups.awayTeam}
-                isEditable={isEditMode && editingTeam === "away"}
-                onSlotClick={(idx) => {
-                  setEditingTeam("away");
-                  setSelectedSlotIndex(idx);
-                }}
-              />
-
-              {/* Banc des remplaçants */}
-              <SubstitutesBench
-                substitutes={lineups.away.substitutes}
-                teamName={lineups.awayTeam}
-                isEditable={isEditMode && editingTeam === "away"}
-                onMarkUnavailable={(player, reason) =>
-                  handleMarkUnavailable("away", player, reason)
-                }
-              />
-
-              {/* Section Blessés / Suspendus en dessous du banc */}
-              <UnavailablePlayersSection
-                unavailable={lineups.away.unavailable ?? []}
-                teamName={lineups.awayTeam}
-                isEditable={isEditMode && editingTeam === "away"}
-                onToggleReason={(id) => handleToggleUnavailableReason("away", id)}
-                onRestorePlayer={(id) => handleRestorePlayer("away", id)}
-                onAddClick={() => {
-                  setEditingTeam("away");
-                  setIsAbsenceModalOpen(true);
-                }}
-              />
-            </div>
-          )}
+          {(activeTab === "both" || activeTab === "home") && renderTeam("home")}
+          {(activeTab === "both" || activeTab === "away") && renderTeam("away")}
         </div>
       )}
     </section>

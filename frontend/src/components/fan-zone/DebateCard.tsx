@@ -1,9 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Lock, MessageCircle, MessagesSquare } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { Badge } from "@/src/components/ui/Badge";
 import { Button } from "@/src/components/ui/Button";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { ReplyComposer } from "@/src/components/fan-zone/ReplyComposer";
@@ -73,10 +70,10 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
   }
 
   return (
-    <article className="rounded-xl border border-white/8 bg-white/[0.02] p-3">
+    <article className="border-b border-ink/20 py-3 last:border-b-0">
       <div className="flex gap-3">
         <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/15 text-xs font-bold text-cyan-300"
+          className="display flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden border border-ink text-sm"
           aria-hidden="true"
         >
           {post.profile.avatar_url ? (
@@ -84,7 +81,7 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
             <img
               src={post.profile.avatar_url}
               alt=""
-              className="h-full w-full rounded-full object-cover"
+              className="h-full w-full object-cover grayscale"
             />
           ) : (
             getInitials(post.profile.display_name)
@@ -92,12 +89,12 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-sm font-semibold text-white">{post.profile.display_name}</span>
-            <time className="text-[11px] text-slate-500" dateTime={post.created_at}>
+            <span className="display text-lg">{post.profile.display_name}</span>
+            <time className="text-[11px] tabular text-ink/50" dateTime={post.created_at}>
               {formatRelativeTime(post.created_at)}
             </time>
           </div>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-slate-200">{post.content}</p>
+          <p className="mt-1 whitespace-pre-wrap text-[13px] text-ink">{post.content}</p>
 
           {!isClosed && (
             <button
@@ -105,7 +102,7 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
               onClick={() => {
                 void requireAuth(() => setReplying(true));
               }}
-              className="pressable mt-2 cursor-pointer text-xs font-medium text-cyan-400/80 hover:text-cyan-300"
+              className="label mt-2 cursor-pointer border-b border-ink/40 hover:border-accent hover:text-accent-text"
             >
               Répondre
             </button>
@@ -126,19 +123,19 @@ function DebatePostItem({ post, debateId, isClosed, liveReplies }: DebatePostIte
                   type="button"
                   onClick={loadReplies}
                   disabled={loadingReplies}
-                  className="pressable cursor-pointer text-xs font-medium text-slate-400 hover:text-slate-300 disabled:cursor-not-allowed"
+                  className="label cursor-pointer text-ink/60 hover:text-ink disabled:cursor-not-allowed"
                 >
                   {loadingReplies
-                    ? "Chargement..."
-                    : `Voir ${displayCount} réponse${displayCount > 1 ? "s" : ""}`}
+                    ? "Chargement…"
+                    : `Voir ${displayCount} réponse${displayCount > 1 ? "s" : ""} ↓`}
                 </button>
               ) : (
-                <ul className="mt-2 space-y-2 border-l border-white/10 pl-3" role="list">
+                <ul className="mt-2 space-y-2 border-l-[3px] border-ink pl-3" role="list">
                   {allReplies.map((reply) => (
-                    <li key={reply.id} className="text-sm">
-                      <span className="font-medium text-white">{reply.profile.display_name}</span>
-                      <span className="mx-1.5 text-slate-600">·</span>
-                      <span className="text-slate-300">{reply.content}</span>
+                    <li key={reply.id} className="text-[13px]">
+                      <span className="font-semibold uppercase">{reply.profile.display_name}</span>
+                      <span className="mx-1.5 text-ink/40">/</span>
+                      <span className="text-ink/80">{reply.content}</span>
                     </li>
                   ))}
                 </ul>
@@ -316,36 +313,29 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
   }
 
   return (
-    <Card variant="flat" className="border-cyan-400/15">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <MessagesSquare size={16} className="text-cyan-400" aria-hidden="true" />
-          <Badge variant="muted" className="border-cyan-400/25 text-cyan-200">
-            Débat
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          {isClosed && <Badge variant="muted">Clos</Badge>}
-          {isAdmin && !isClosed && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              loading={closing}
-              className="text-amber-300 hover:text-amber-200"
-            >
-              <Lock size={13} />
-              Fermer
-            </Button>
-          )}
-        </div>
-      </div>
+    <article className="border border-ink bg-paper">
+      <header className="flex items-center justify-between gap-3 border-b border-ink bg-ink px-4 py-2 text-paper">
+        <span className="label">
+          Débat{isClosed && <span className="text-paper/50"> · Clos</span>}
+        </span>
+        {isAdmin && !isClosed && (
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={closing}
+            className="label border-b border-paper/60 pb-0.5 hover:border-live disabled:opacity-40"
+          >
+            {closing ? "Fermeture…" : "Clore le débat"}
+          </button>
+        )}
+      </header>
 
-      <h3 className="font-tech text-lg font-bold text-white">{debate.question}</h3>
+      <div className="p-4">
+      <h3 className="editorial text-3xl leading-tight text-ink">« {debate.question} »</h3>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4">
         {visiblePosts.length === 0 ? (
-          <p className="text-sm text-slate-500">Soyez le premier à donner votre avis.</p>
+          <p className="editorial text-lg text-ink/55">Soyez le premier à donner votre avis.</p>
         ) : (
           visiblePosts.map((post) => (
             <DebatePostItem
@@ -359,7 +349,7 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
         )}
 
         {hasMore && (
-          <p className="text-xs text-slate-500">
+          <p className="label pt-2 text-ink/50">
             + {posts.length - DEBATE_POSTS_PREVIEW} autre{posts.length - DEBATE_POSTS_PREVIEW > 1 ? "s" : ""}{" "}
             prise{posts.length - DEBATE_POSTS_PREVIEW > 1 ? "s" : ""} de position
           </p>
@@ -367,7 +357,7 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
       </div>
 
       {!isClosed && (
-        <div className="mt-4 border-t border-white/8 pt-4">
+        <div className="mt-4 border-t border-ink pt-4">
           <label htmlFor={`debate-composer-${debate.id}`} className="sr-only">
             Participer au débat
           </label>
@@ -379,7 +369,7 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
               placeholder="Donnez votre avis..."
               rows={2}
               className={cn(
-                "min-w-0 flex-1 resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40",
+                "min-w-0 flex-1 resize-none border border-ink bg-paper px-3 py-2 text-sm text-ink outline-none placeholder:text-ink/40 focus:shadow-[3px_3px_0_0_var(--accent)]",
               )}
             />
             <Button
@@ -390,22 +380,24 @@ export function DebateCard({ debate, onClosed }: DebateCardProps) {
               disabled={!content.trim()}
               onClick={handleSubmit}
               className="self-end"
+              aria-label="Publier votre prise de position"
             >
-              <MessageCircle size={14} />
+              <span aria-hidden="true">→</span>
             </Button>
           </div>
         </div>
       )}
 
-      <p className="mt-3 text-xs text-slate-500">
-        {posts.length} prise{posts.length !== 1 ? "s" : ""} de position
+      <p className="label mt-3 text-ink/50">
+        <span className="tabular">{posts.length}</span> prise{posts.length !== 1 ? "s" : ""} de position
       </p>
 
       {error && (
-        <p className="mt-2 text-sm text-red-400" role="alert">
+        <p className="label mt-2 text-live-text" role="alert">
           {error}
         </p>
       )}
-    </Card>
+      </div>
+    </article>
   );
 }

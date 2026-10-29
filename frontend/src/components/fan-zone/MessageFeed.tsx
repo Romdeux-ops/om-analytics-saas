@@ -302,10 +302,10 @@ export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageF
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {reconnecting && (
-        <p className="text-center text-xs text-amber-400" role="status">
-          Reconnexion au fil en cours...
+        <p className="label border border-dashed border-ink px-3 py-2 text-center" role="status">
+          Reconnexion au fil en cours…
         </p>
       )}
 
@@ -315,11 +315,12 @@ export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageF
         onPostError={handlePostError}
       />
 
-      <div className="space-y-3" role="feed" aria-label="Fil de messages" aria-busy={loadingMore}>
+      <div className="space-y-5" role="feed" aria-label="Fil de messages" aria-busy={loadingMore}>
         {messages.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
-            Aucun message pour l&apos;instant. Soyez le premier à publier !
-          </p>
+          <div className="border-y border-ink py-10">
+            <p className="display text-5xl text-ink/30">Le mur est vide.</p>
+            <p className="editorial mt-2 text-lg text-ink/60">Soyez le premier à accrocher votre banderole.</p>
+          </div>
         ) : (
           messages.map((message) => (
             <MessageCard
@@ -335,15 +336,15 @@ export function MessageFeed({ roomId, initialMessages, initialCursor }: MessageF
       </div>
 
       {loadMoreError && (
-        <p className="text-center text-sm text-red-400" role="alert">
+        <p className="label text-center text-live-text" role="alert">
           {loadMoreError}
         </p>
       )}
 
       {cursor && (
         <div className="flex justify-center pt-2">
-          <Button variant="ghost" size="sm" onClick={loadMore} loading={loadingMore}>
-            Charger plus
+          <Button variant="outline" size="sm" onClick={loadMore} loading={loadingMore}>
+            Remonter le fil ↓
           </Button>
         </div>
       )}

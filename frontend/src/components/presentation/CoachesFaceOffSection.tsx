@@ -1,9 +1,9 @@
 "use client";
 
 import { memo } from "react";
-import { UserCheck, Shield, Compass, Swords, Award } from "lucide-react";
-import { TeamCrest } from "@/src/components/ui/TeamCrest";
+import { SectionHeading } from "@/src/components/ui/SectionHeading";
 import { shortTeamName } from "@/src/lib/ui/teams";
+import { cn } from "@/src/lib/ui/cn";
 import type { CoachProfile } from "@/src/lib/data/coaches";
 
 interface CoachesFaceOffSectionProps {
@@ -23,39 +23,22 @@ export const CoachesFaceOffSection = memo(function CoachesFaceOffSection({
   const awayShort = shortTeamName(awayTeamName);
 
   return (
-    <section className="space-y-4">
-      {/* En-tête de section */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10 text-blue-400">
-            <UserCheck size={16} />
-          </span>
-          <div>
-            <h3 className="font-tech text-base font-bold uppercase tracking-wider text-white">
-              Le Duel des Entraîneurs
-            </h3>
-            <p className="text-xs text-slate-400">
-              Philosophies tactiques, schémas préférentiels et confrontation des styles
-            </p>
-          </div>
-        </div>
+    <section>
+      <SectionHeading
+        index="04"
+        title="Le duel des bancs"
+        subtitle="Philosophies tactiques, schémas et confrontation des styles"
+      />
 
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold text-slate-300">
-          <Swords size={12} className="text-cyan-400" />
-          Bataille des bancs
-        </span>
-      </div>
-
-      {/* Cartes des deux entraîneurs côte à côte */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <CoachCard coach={homeCoach} teamName={homeShort} isHome />
-        <CoachCard coach={awayCoach} teamName={awayShort} isHome={false} />
+      <div className="grid md:grid-cols-2">
+        <CoachColumn coach={homeCoach} teamName={homeShort} isHome />
+        <CoachColumn coach={awayCoach} teamName={awayShort} isHome={false} />
       </div>
     </section>
   );
 });
 
-function CoachCard({
+function CoachColumn({
   coach,
   teamName,
   isHome,
@@ -65,86 +48,27 @@ function CoachCard({
   isHome: boolean;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-xl shadow-xl">
-      {/* Halo d'ambiance */}
-      <div
-        className={`pointer-events-none absolute -top-16 ${
-          isHome ? "-left-16 bg-cyan-500/10" : "-right-16 bg-blue-600/10"
-        } h-40 w-40 rounded-full blur-3xl`}
-      />
+    <article className={cn("flex flex-col", isHome ? "md:border-r md:border-ink md:pr-8" : "mt-10 md:mt-0 md:pl-8")}>
+      <p className="label text-ink/60">
+        {isHome ? "Domicile" : "Extérieur"} · {coach.role} · {teamName}
+        {coach.nationality && ` · ${coach.nationality}`}
+        {coach.age && ` · ${coach.age} ans`}
+      </p>
+      <h4 className="display mt-2 text-5xl text-ink md:text-6xl">{coach.name}</h4>
 
-      <div className="relative z-10">
-        {/* Entête du coach */}
-        <div className="flex items-start justify-between border-b border-white/5 pb-5">
-          <div className="flex items-center gap-4">
-            {/* Avatar Stylisé */}
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 shadow-lg">
-              <UserCheck size={28} className="text-cyan-400" />
-              <div className="absolute -bottom-1 -right-1">
-                <TeamCrest name={coach.club} size="sm" className="h-6 w-6 text-[9px] rounded-md" />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="rounded bg-white/5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-400">
-                  {isHome ? "Domicile" : "Extérieur"}
-                </span>
-                {coach.nationality && (
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    {coach.nationality}
-                  </span>
-                )}
-                {coach.age && (
-                  <span className="text-[10px] text-slate-500">
-                    · {coach.age} ans
-                  </span>
-                )}
-              </div>
-
-              <h4 className="mt-1 font-tech text-xl font-black uppercase text-white md:text-2xl">
-                {coach.name}
-              </h4>
-              <p className="text-xs text-slate-400 font-medium">
-                {coach.role} · {teamName}
-              </p>
-            </div>
-          </div>
-
-          {/* Système préférentiel */}
-          <div className="text-right">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block">
-              Système
-            </span>
-            <span className="mt-0.5 inline-block rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 font-mono text-xs font-bold text-cyan-300">
-              {coach.system}
-            </span>
-          </div>
+      <div className="mt-5 grid grid-cols-[auto_1fr] border-y border-ink">
+        <div className="border-r border-ink py-3 pr-5">
+          <span className="label block text-ink/60">Système</span>
+          <span className="display text-4xl tabular text-accent-text">{coach.system}</span>
         </div>
-
-        {/* Détails tactiques */}
-        <div className="mt-5 space-y-3.5">
-          <div>
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-              <Compass size={12} className="text-cyan-400" />
-              Style de jeu prédominant
-            </span>
-            <p className="rounded-xl border border-white/5 bg-black/20 p-2.5 text-xs font-semibold text-slate-200">
-              {coach.style}
-            </p>
-          </div>
-
-          <div>
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-              <Shield size={12} className="text-cyan-400" />
-              Principes &amp; Philosophie
-            </span>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {coach.philosophy}
-            </p>
-          </div>
+        <div className="py-3 pl-5">
+          <span className="label block text-ink/60">Style de jeu</span>
+          <span className="mt-1 block text-sm font-bold uppercase leading-snug">{coach.style}</span>
         </div>
       </div>
-    </div>
+
+      <p className="label mt-5 text-ink/60">Principes &amp; philosophie</p>
+      <p className="editorial mt-2 text-xl leading-snug text-ink/80">{coach.philosophy}</p>
+    </article>
   );
 }

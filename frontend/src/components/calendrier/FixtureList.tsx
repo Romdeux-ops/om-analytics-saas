@@ -1,6 +1,3 @@
-import { CalendarDays, Info } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { Badge } from "@/src/components/ui/Badge";
 import { FixtureRow } from "@/src/components/calendrier/FixtureRow";
 import type { CalendarFixture } from "@/src/lib/types/fixture";
 
@@ -47,36 +44,26 @@ export function FixtureList({
   const groups = groupByMonth(fixtures);
 
   return (
-    <Card className="flex flex-col">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-tech text-lg font-black uppercase tracking-tight text-white">
-            {title} <span className="text-slate-500">·</span>{" "}
-            <span className="text-gradient">{season}</span>
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            {fixtures.length} matchs · Calendrier Olympique de Marseille
-          </p>
-        </div>
-        <Badge variant="om">
-          <CalendarDays size={10} />
-          Saison en cours
-        </Badge>
+    <section className="flex flex-col">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="display text-4xl text-ink md:text-6xl">
+          {title} <span className="text-accent-text">{season}</span>
+        </h2>
+        <span className="label border border-ink bg-ink px-2 py-1 text-paper">{fixtures.length} matchs</span>
       </div>
 
-      {note && (
-        <p className="mb-5 flex items-start gap-2 rounded-2xl border border-white/5 bg-white/[0.02] p-3 text-xs leading-relaxed text-slate-400">
-          <Info size={14} className="mt-0.5 shrink-0 text-cyan-400" />
-          {note}
-        </p>
-      )}
+      {note && <p className="editorial mb-8 max-w-2xl text-xl leading-snug text-ink/70">{note}</p>}
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {Array.from(groups.entries()).map(([month, monthFixtures]) => (
-          <section key={month} aria-labelledby={`month-${month}`}>
+          <section
+            key={month}
+            aria-labelledby={`month-${month}`}
+            className="grid gap-3 md:grid-cols-[9rem_1fr] md:gap-6"
+          >
             <h3
               id={`month-${month}`}
-              className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 capitalize"
+              className="display border-t-[6px] border-ink pt-2 text-3xl capitalize text-ink md:sticky md:top-4 md:self-start"
             >
               {month}
             </h3>
@@ -91,9 +78,9 @@ export function FixtureList({
         ))}
       </div>
 
-      <p className="mt-6 border-t border-white/5 pt-4 text-[10px] uppercase tracking-widest text-slate-600">
+      <p className="label mt-10 border-t border-ink pt-3 text-ink/50">
         {fixtures.length} rencontres · Données officielles
       </p>
-    </Card>
+    </section>
   );
 }

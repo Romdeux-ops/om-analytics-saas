@@ -8,35 +8,37 @@ import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 export default function Home() {
   return (
     <>
-      <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-12">
-        <div className="h-full lg:col-span-7">
-          <Suspense fallback={<CardSkeleton rows={4} className="min-h-[280px]" />}>
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-0">
+        <div className="lg:col-span-8 lg:pr-10">
+          <Suspense fallback={<CardSkeleton rows={4} className="min-h-[420px]" />}>
             <NextMatchCard />
           </Suspense>
         </div>
-        <div className="h-full lg:col-span-5">
-          <Suspense fallback={<CardSkeleton rows={5} className="min-h-[280px]" />}>
+        <div className="lg:col-span-4 lg:border-l lg:border-ink lg:pl-8">
+          <Suspense fallback={<CardSkeleton rows={5} className="min-h-[420px]" />}>
             <StandingsCard />
-          </Suspense>
-        </div>
-        <div className="lg:col-span-12">
-          <Suspense fallback={<CardSkeleton rows={3} />}>
-            <SimulationPanel />
-          </Suspense>
-        </div>
-        <div className="lg:col-span-12">
-          <Suspense fallback={<CardSkeleton rows={4} />}>
-            <NewsFeed />
           </Suspense>
         </div>
       </div>
 
-      <footer className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/5 pt-6 text-xs text-slate-600 sm:flex-row">
-        <p>
-          <span className="font-tech font-bold text-slate-400">OM ANALYTICS</span> — simulation
-          sportive par IA
-        </p>
-        <p className="uppercase tracking-widest">Saison 2026/27 · Données live</p>
+      <div className="mt-16 md:mt-20">
+        <Suspense fallback={<div className="ink-block relative left-1/2 h-96 w-screen -translate-x-1/2" />}>
+          <SimulationPanel />
+        </Suspense>
+      </div>
+
+      <div className="mt-16 md:mt-20">
+        <Suspense fallback={<CardSkeleton rows={4} />}>
+          <NewsFeed />
+        </Suspense>
+      </div>
+
+      <footer className="mt-20 border-t-[6px] border-ink pt-4">
+        <p className="display text-[clamp(3rem,12vw,11rem)] text-ink">Droit au but.</p>
+        <div className="mt-4 flex flex-col justify-between gap-2 border-t border-ink pt-3 sm:flex-row">
+          <p className="label text-ink/60">OM Analytics — simulation sportive par IA</p>
+          <p className="label text-ink/60">Saison 2026-2027 · Données live</p>
+        </div>
       </footer>
     </>
   );

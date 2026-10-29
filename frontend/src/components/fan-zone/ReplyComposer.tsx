@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Send } from "lucide-react";
 import { Button } from "@/src/components/ui/Button";
 import { MAX_REPLY_LENGTH } from "@/src/lib/fan-zone/constants";
 
@@ -42,10 +41,10 @@ export function ReplyComposer({
         onChange={(e) => setContent(e.target.value.slice(0, MAX_REPLY_LENGTH))}
         placeholder={placeholder}
         maxLength={MAX_REPLY_LENGTH}
-        className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-violet-400/40"
+        className="min-w-0 flex-1 border border-ink bg-paper px-3 py-2 text-sm text-ink outline-none placeholder:text-ink/40 focus:shadow-[3px_3px_0_0_var(--accent)]"
       />
-      <Button type="submit" variant="primary" size="sm" loading={submitting} disabled={!content.trim()}>
-        <Send size={14} />
+      <Button type="submit" variant="primary" size="sm" loading={submitting} disabled={!content.trim()} aria-label="Envoyer la réponse">
+        <span aria-hidden="true">→</span>
       </Button>
       {onCancel && (
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

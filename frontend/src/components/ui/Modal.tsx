@@ -57,14 +57,14 @@ export function Modal({ open, onClose, titleId, children, className }: ModalProp
       role="presentation"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "modal-panel relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-[var(--bg-raise)] p-6 shadow-2xl",
+          "modal-panel relative z-10 w-full max-w-md border border-ink border-t-[6px] bg-paper p-6 shadow-[8px_8px_0_0_var(--ink)]",
           className,
         )}
         onClick={(e) => e.stopPropagation()}
@@ -72,10 +72,10 @@ export function Modal({ open, onClose, titleId, children, className }: ModalProp
         <button
           type="button"
           onClick={onClose}
-          className="pressable absolute right-4 top-4 cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+          className="pressable absolute right-3 top-3 cursor-pointer border border-ink p-1 text-ink hover:bg-ink hover:text-paper"
           aria-label="Fermer"
         >
-          <X size={18} />
+          <X size={16} strokeWidth={2.5} />
         </button>
         {children}
       </div>

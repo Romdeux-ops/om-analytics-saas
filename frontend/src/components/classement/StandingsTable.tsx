@@ -1,11 +1,9 @@
-import { CalendarClock } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { Badge } from "@/src/components/ui/Badge";
 import {
   DiffCell,
   PointsCell,
   RankBadge,
   TeamCell,
+  ZoneBar,
   ZONE_META,
 } from "@/src/components/classement/standing-cells";
 import { fullTeamName } from "@/src/lib/ui/teams";
@@ -13,28 +11,32 @@ import { cn } from "@/src/lib/ui/cn";
 import type { StandingRow, StandingZone } from "@/src/lib/types/standing";
 
 const ROW_GRID =
-  "grid min-w-[32rem] grid-cols-[2rem_minmax(8rem,1fr)_2rem_2rem_2rem_2rem_2.5rem_2.5rem_2.5rem_3rem] gap-x-2 sm:min-w-0 sm:grid-cols-[2rem_minmax(10rem,1fr)_2rem_2rem_2rem_2rem_2.5rem_2.5rem_2.5rem_3rem]";
+  "grid min-w-[36rem] grid-cols-[0.375rem_2.5rem_minmax(10rem,1fr)_2.25rem_2.25rem_2.25rem_2.25rem_2.5rem_2.5rem_3rem_3.5rem] items-center gap-x-2";
 
-function StandingLine({ row }: { row: StandingRow }) {
+function StandingLine({ row, zoneStart }: { row: StandingRow; zoneStart: boolean }) {
   const diff = row.goalsFor - row.goalsAgainst;
   return (
     <li
       className={cn(
         ROW_GRID,
-        "items-center rounded-xl px-2 py-2",
-        row.isOm && "om-highlight",
+        "pr-3 transition-colors duration-100",
+        zoneStart ? "border-t-[3px] border-ink" : "border-t border-ink/15",
+        row.isOm ? "om-highlight" : "hover:bg-ink hover:text-paper",
       )}
     >
-      <RankBadge rank={row.rank} isOm={row.isOm} zone={row.zone} />
+      <ZoneBar zone={row.zone} />
+      <span className="py-2.5">
+        <RankBadge rank={row.rank} />
+      </span>
       <TeamCell clubName={row.clubName} isOm={row.isOm} label={fullTeamName(row.clubName)} />
-      <span className="text-center text-xs tabular-nums text-slate-500">{row.played}</span>
-      <span className="text-center text-xs tabular-nums text-slate-400">{row.won}</span>
-      <span className="text-center text-xs tabular-nums text-slate-400">{row.drawn}</span>
-      <span className="text-center text-xs tabular-nums text-slate-400">{row.lost}</span>
-      <span className="text-center text-xs tabular-nums text-slate-500">{row.goalsFor}</span>
-      <span className="text-center text-xs tabular-nums text-slate-500">{row.goalsAgainst}</span>
+      <span className="text-center text-xs tabular">{row.played}</span>
+      <span className="text-center text-xs tabular">{row.won}</span>
+      <span className="text-center text-xs tabular">{row.drawn}</span>
+      <span className="text-center text-xs tabular">{row.lost}</span>
+      <span className="text-center text-xs tabular opacity-70">{row.goalsFor}</span>
+      <span className="text-center text-xs tabular opacity-70">{row.goalsAgainst}</span>
       <DiffCell diff={diff} />
-      <PointsCell points={row.points} isOm={row.isOm} />
+      <PointsCell points={row.points} />
     </li>
   );
 }
@@ -48,10 +50,10 @@ function ZoneLegend({ standings }: { standings: readonly StandingRow[] }) {
   if (zones.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-2">
+    <div className="flex flex-wrap gap-x-5 gap-y-2">
       {zones.map((zone) => (
-        <span key={zone} className="flex items-center gap-1.5 text-[10px] text-slate-400">
-          <span className={cn("h-2 w-2 rounded-full", ZONE_META[zone].dot)} />
+        <span key={zone} className="label flex items-center gap-2 text-ink/70">
+          <ZoneBar zone={zone} className="h-3.5" />
           {ZONE_META[zone].label}
         </span>
       ))}
@@ -68,28 +70,18 @@ interface StandingsTableProps {
 
 export function StandingsTable({ standings, title, season, badgeLabel }: StandingsTableProps) {
   return (
-    <Card className="flex flex-col">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-tech text-lg font-black uppercase tracking-tight text-white">
-            {title} <span className="text-slate-500">·</span>{" "}
-            <span className="text-gradient">{season}</span>
-          </h2>
-        </div>
-        <Badge variant="gold">
-          <CalendarClock size={10} />
-          {badgeLabel}
-        </Badge>
+    <section className="flex flex-col">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="display text-4xl text-ink md:text-6xl">
+          {title} <span className="text-accent-text">{season}</span>
+        </h2>
+        <span className="label border border-ink bg-ink px-2 py-1 text-paper">{badgeLabel}</span>
       </div>
 
-      <div className="no-scrollbar -mx-2 overflow-x-auto px-2">
-        <div
-          className={cn(
-            ROW_GRID,
-            "mb-1 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400",
-          )}
-        >
-          <span>#</span>
+      <div className="no-scrollbar overflow-x-auto border-t-[6px] border-ink">
+        <div className={cn(ROW_GRID, "label border-b border-ink py-2 pr-3 text-ink/60")}>
+          <span />
+          <span className="text-right">#</span>
           <span>Club</span>
           <span className="text-center">J</span>
           <span className="text-center">G</span>
@@ -101,19 +93,21 @@ export function StandingsTable({ standings, title, season, badgeLabel }: Standin
           <span className="text-right">Pts</span>
         </div>
 
-        <ul className="space-y-0.5">
-          {standings.map((row) => (
-            <StandingLine key={row.clubName} row={row} />
+        <ul className="border-b border-ink">
+          {standings.map((row, i) => (
+            <StandingLine
+              key={row.clubName}
+              row={row}
+              zoneStart={i > 0 && row.zone !== standings[i - 1].zone}
+            />
           ))}
         </ul>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <ZoneLegend standings={standings} />
-        <p className="text-[10px] uppercase tracking-widest text-slate-600">
-          {standings.length} clubs
-        </p>
+        <p className="label text-ink/50">{standings.length} clubs</p>
       </div>
-    </Card>
+    </section>
   );
 }

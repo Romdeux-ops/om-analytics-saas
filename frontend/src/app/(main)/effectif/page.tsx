@@ -1,4 +1,3 @@
-import { Users } from "lucide-react";
 import { CoachCard } from "@/src/components/effectif/CoachCard";
 import { SquadTable } from "@/src/components/effectif/SquadTable";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
@@ -10,12 +9,14 @@ export default async function EffectifPage() {
   const { squad, coach, totalMarketValue } = await getOmSquadPageData();
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageSectionHeader
-        title={<span className="text-gradient">Effectif</span>}
+        title={
+          <>
+            Effec<span className="text-accent-text">tif</span>
+          </>
+        }
         subtitle="Olympique de Marseille · Saison 2026-2027"
-        icon={<Users size={18} />}
-        accent="cyan"
       />
 
       <CoachCard

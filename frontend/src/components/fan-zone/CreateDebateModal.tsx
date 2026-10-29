@@ -42,16 +42,17 @@ export function CreateDebateModal({ open, roomId, onClose, onCreated }: CreateDe
 
   return (
     <Modal open={open} onClose={onClose} titleId="create-debate-title">
-        <h2 id="create-debate-title" className="font-tech text-xl font-bold text-white">
+        <p className="label text-ink/50">Zone débat</p>
+        <h2 id="create-debate-title" className="display mt-1 text-4xl">
           Nouveau débat
         </h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Posez une question pour lancer un débat entre supporters.
+        <p className="editorial mt-1 text-base text-ink/60">
+          Une question pour lancer les supporters.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="debate-question" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="debate-question" className="label mb-1.5 block">
               Question du débat
             </label>
             <textarea
@@ -62,12 +63,12 @@ export function CreateDebateModal({ open, roomId, onClose, onCreated }: CreateDe
               minLength={MIN_DEBATE_QUESTION_LENGTH}
               rows={3}
               placeholder="Ex : Greenwood doit-il être titulaire contre le PSG ?"
-              className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/50"
+              className="field resize-none"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="label text-live-text" role="alert">
               {error}
             </p>
           )}

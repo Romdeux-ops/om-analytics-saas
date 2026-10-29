@@ -60,19 +60,20 @@ export function AuthModal({ open, intent, onClose, onSuccess, onSwitchIntent }: 
 
   return (
     <Modal open={open} onClose={onClose} titleId="auth-modal-title">
-        <h2 id="auth-modal-title" className="font-tech text-xl font-bold text-white">
+        <p className="label text-ink/50">Accès tribune</p>
+        <h2 id="auth-modal-title" className="display mt-1 text-4xl">
           {intent === "login" ? "Se connecter" : "Créer un compte"}
         </h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="editorial mt-1 text-base text-ink/60">
           {intent === "login"
-            ? "Accédez à la Fan Zone et participez aux débats."
+            ? "Fan Zone, débats et votes — entrez dans le virage."
             : "Rejoignez la communauté des supporters OM."}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {intent === "signup" && (
             <div>
-              <label htmlFor="auth-display-name" className="mb-1.5 block text-xs font-medium text-slate-400">
+              <label htmlFor="auth-display-name" className="label mb-1.5 block">
                 Pseudo
               </label>
               <input
@@ -83,13 +84,13 @@ export function AuthModal({ open, intent, onClose, onSuccess, onSwitchIntent }: 
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
                 autoComplete="username"
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50"
+                className="field"
               />
             </div>
           )}
 
           <div>
-            <label htmlFor="auth-email" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="auth-email" className="label mb-1.5 block">
               Email
             </label>
             <input
@@ -100,12 +101,12 @@ export function AuthModal({ open, intent, onClose, onSuccess, onSwitchIntent }: 
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50"
+              className="field"
             />
           </div>
 
           <div>
-            <label htmlFor="auth-password" className="mb-1.5 block text-xs font-medium text-slate-400">
+            <label htmlFor="auth-password" className="label mb-1.5 block">
               Mot de passe
             </label>
             <input
@@ -116,12 +117,12 @@ export function AuthModal({ open, intent, onClose, onSuccess, onSwitchIntent }: 
               required
               minLength={MIN_PASSWORD_LENGTH}
               autoComplete={intent === "login" ? "current-password" : "new-password"}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-400/50"
+              className="field"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="label text-live-text" role="alert">
               {error}
             </p>
           )}
@@ -131,7 +132,7 @@ export function AuthModal({ open, intent, onClose, onSuccess, onSwitchIntent }: 
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-slate-400">
+        <p className="mt-4 text-center text-[13px] text-ink/60">
           {intent === "login" ? "Pas encore de compte ?" : "Déjà un compte ?"}{" "}
           <button
             type="button"
@@ -139,7 +140,7 @@ export function AuthModal({ open, intent, onClose, onSuccess, onSwitchIntent }: 
               setError(null);
               onSwitchIntent(intent === "login" ? "signup" : "login");
             }}
-            className="pressable cursor-pointer font-medium text-cyan-400 hover:text-cyan-300"
+            className="label cursor-pointer border-b border-ink pb-0.5 hover:border-accent"
           >
             {intent === "login" ? "Créer un compte" : "Se connecter"}
           </button>

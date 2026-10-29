@@ -2,7 +2,6 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Activity, Zap, Shield, TrendingUp, Users } from "lucide-react";
 import { simulateMatchAction } from "@/src/app/actions/match";
 import { Button } from "@/src/components/ui/Button";
 import { LineupPitch, SubstitutesBench, UnavailablePlayersSection } from "@/src/components/simulation/LineupPitch";
@@ -104,26 +103,19 @@ export default function MatchLiveInterface({
       {/* Compositions pré-match */}
       {!match.played && match.match_log.length === 0 && (
         <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Users size={16} className="text-cyan-400" />
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">
-              Compositions probables
-            </h3>
-            {lineupsLoading && (
-              <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                <span className="pulse-dot" /> Chargement…
-              </span>
-            )}
+          <div className="flex items-baseline justify-between border-t-[6px] border-ink pt-2">
+            <h3 className="display text-3xl">Compositions probables</h3>
+            {lineupsLoading && <span className="label text-ink/50">Chargement…</span>}
           </div>
 
           {lineups && (
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-0">
+              <div className="space-y-6 lg:border-r lg:border-ink lg:pr-8">
                 <LineupPitch lineup={lineups.home} teamName={lineups.homeTeam} />
                 <SubstitutesBench substitutes={lineups.home.substitutes} teamName={lineups.homeTeam} />
                 <UnavailablePlayersSection unavailable={lineups.home.unavailable ?? []} teamName={lineups.homeTeam} />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-6 lg:pl-8">
                 <LineupPitch lineup={lineups.away} teamName={lineups.awayTeam} />
                 <SubstitutesBench substitutes={lineups.away.substitutes} teamName={lineups.awayTeam} />
                 <UnavailablePlayersSection unavailable={lineups.away.unavailable ?? []} teamName={lineups.awayTeam} />
@@ -200,33 +192,25 @@ function LivePlayback({
   }, [isPlaying, match.match_log]);
 
   return (
-    <div className="flex min-h-[70vh] w-full max-w-[1600px] flex-col gap-6">
-      <header className="flex h-16 shrink-0 items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="font-tech text-xl font-bold leading-none tracking-tight text-white">
-              SIMULATION LIVE
-            </h1>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
-              {match.home_team_name} vs {match.away_team_name}
-            </p>
-          </div>
+    <div className="flex min-h-[70vh] w-full flex-col gap-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-ink pb-3">
+        <div>
+          <p className="label flex items-center gap-2">
+            <span className={isPlaying ? "pulse-dot text-live" : "inline-block h-2 w-2 bg-ink/30"} aria-hidden="true" />
+            Simulation live
+          </p>
+          <h2 className="display mt-1 text-4xl md:text-5xl">
+            {match.home_team_name} <span className="editorial text-3xl normal-case text-ink/50">contre</span>{" "}
+            {match.away_team_name}
+          </h2>
         </div>
         <Button onClick={handleStart} loading={isLoading}>
-          {isPlaying ? (
-            <>
-              <Pause size={14} /> Pause
-            </>
-          ) : (
-            <>
-              <Play size={14} /> Lancer Simulation
-            </>
-          )}
+          {isPlaying ? "Pause ‖" : "Lancer la simulation →"}
         </Button>
       </header>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
-        <div className="lg:col-span-8 flex flex-col gap-6">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-0">
+        <div className="flex flex-col gap-10 lg:col-span-8 lg:border-r lg:border-ink lg:pr-8">
           <ScoreBoard
             home={match.home_team_name}
             away={match.away_team_name}
@@ -234,50 +218,28 @@ function LivePlayback({
             minute={currentMinute}
           />
 
-          <div className="grid grid-cols-3 gap-6 h-32">
-            <StatCard
-              label="Possession"
-              value={`${50 + Math.round(Math.sin(currentMinute) * 5)}%`}
-              icon={<Activity size={18} />}
-              color="text-cyan-400"
-            />
-            <StatCard
-              label="Danger (xG)"
-              value={(displayEvents.length * 0.12).toFixed(2)}
-              icon={<Zap size={18} />}
-              color="text-amber-400"
-            />
-            <StatCard
-              label="Défense"
-              value="Haut"
-              icon={<Shield size={18} />}
-              color="text-emerald-400"
-            />
-          </div>
+          <dl className="grid grid-cols-3 border-y border-ink">
+            <StatCard label="Possession" value={`${50 + Math.round(Math.sin(currentMinute) * 5)}%`} />
+            <StatCard label="Danger (xG)" value={(displayEvents.length * 0.12).toFixed(2)} />
+            <StatCard label="Bloc défensif" value="Haut" />
+          </dl>
 
           {children}
         </div>
 
-        <div className="lg:col-span-4 bento-card p-0 flex flex-col h-full overflow-hidden relative min-h-[400px]">
-          <div className="p-5 border-b border-white/5 bg-white/5 z-10">
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              Fil du match
-            </h3>
-          </div>
-          <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 relative">
+        <div className="relative flex min-h-[400px] flex-col lg:col-span-4 lg:pl-8">
+          <h3 className="flex items-baseline justify-between border-t-[6px] border-ink pt-2">
+            <span className="display text-3xl">Fil du match</span>
+            <span className="label tabular text-ink/50">{currentMinute}&apos;</span>
+          </h3>
+          <div className="no-scrollbar relative mt-2 max-h-[70vh] flex-1 overflow-y-auto">
             <AnimatePresence>
               {displayEvents.map((event, i) => (
                 <FeedItem key={`${event.minute}-${event.type}-${i}`} event={event} />
               ))}
             </AnimatePresence>
             {displayEvents.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 opacity-50">
-                <TrendingUp size={32} className="mb-2" />
-                <span className="text-xs uppercase tracking-widest">
-                  En attente du coup d&apos;envoi
-                </span>
-              </div>
+              <p className="editorial py-10 text-2xl text-ink/45">En attente du coup d&apos;envoi…</p>
             )}
           </div>
         </div>
@@ -318,33 +280,30 @@ const PlayerPerformances = memo(function PlayerPerformances({
   }, [homePlayers, awayPlayers]);
 
   return (
-    <div className="flex-1 bento-card p-6 min-h-[300px] flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-          Performances Joueurs (Live)
-        </h3>
-      </div>
-      <div className="flex-1 grid grid-cols-2 gap-12 overflow-y-auto no-scrollbar">
+    <section className="flex min-h-[300px] flex-1 flex-col">
+      <h3 className="flex items-baseline justify-between border-t-[6px] border-ink pt-2">
+        <span className="display text-3xl">Les notes</span>
+        <span className="label text-ink/50">Performances live</span>
+      </h3>
+      <div className="no-scrollbar mt-4 grid flex-1 grid-cols-2 gap-8 overflow-y-auto md:gap-12">
         {ratings ? (
           <>
             <PlayerList
               players={homePlayers.slice(0, 8).map((p) => p.shortName)}
               ratings={ratings.home}
-              color="bg-cyan-500"
+              color="bg-accent"
             />
             <PlayerList
               players={awayPlayers.slice(0, 8).map((p) => p.shortName)}
               ratings={ratings.away}
-              color="bg-white"
+              color="bg-ink"
             />
           </>
         ) : (
-          <div className="col-span-2 flex items-center justify-center text-slate-600 text-sm">
-            En attente de données...
-          </div>
+          <p className="editorial col-span-2 text-xl text-ink/50">En attente de données…</p>
         )}
       </div>
-    </div>
+    </section>
   );
 });
 
@@ -363,45 +322,38 @@ function ScoreBoard({
   score: { home: number; away: number };
   minute: number;
 }) {
+  const leader = score.home > score.away ? "home" : score.away > score.home ? "away" : null;
+
   return (
-    <div className="h-64 bento-card relative overflow-hidden flex flex-col justify-center items-center">
-      <div
-        className={`absolute inset-0 opacity-20 blur-[100px] transition-colors duration-700 ${
-          score.home > score.away
-            ? "bg-cyan-600"
-            : score.away > score.home
-              ? "bg-red-600"
-              : "bg-slate-800"
-        }`}
-      />
-      <div className="relative z-10 w-full px-8 md:px-16 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-        <div className="text-right">
-          <h2 className="text-2xl md:text-4xl font-black text-white font-tech uppercase tracking-tighter leading-none">
-            {home}
-          </h2>
-          <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Domicile</span>
+    <div className="ink-block relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-paper/20 px-4 py-2">
+        <span className="label text-paper/60">Tableau d&apos;affichage</span>
+        <span className="label flex items-center gap-2 tabular">
+          {minute > 0 && minute < 90 && <span className="pulse-dot text-live" aria-hidden="true" />}
+          {minute >= 90 ? "Coup de sifflet final" : `${minute}'`}
+        </span>
+      </div>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-8 md:px-10">
+        <div className="min-w-0 text-right">
+          <p className="label text-paper/50">Domicile</p>
+          <h2 className="display mt-1 truncate text-3xl md:text-5xl">{home}</h2>
         </div>
-        <div className="flex flex-col items-center mx-4 md:mx-8">
-          <div className="flex items-center gap-6 mb-4">
-            <span className="text-6xl md:text-8xl font-black text-white font-tech leading-none">
-              {score.home}
-            </span>
-            <div className="w-px h-12 bg-white/10" />
-            <span className="text-6xl md:text-8xl font-black text-slate-400 font-tech leading-none">
-              {score.away}
-            </span>
-          </div>
-          <div className="px-4 py-1 rounded-full border border-white/10 bg-black/30 text-cyan-400 font-mono font-bold text-lg">
-            {minute}
-            <span className="animate-pulse">&apos;</span>
-          </div>
+        <div className="flex items-center gap-2 md:gap-3" aria-label={`Score ${score.home} à ${score.away}`}>
+          <span className={`count-tile display border border-paper/30 px-3 !text-6xl leading-none md:px-5 md:!text-8xl ${leader === "home" ? "!bg-accent !text-on-accent" : ""}`}>
+            <span key={score.home} className="flap">{score.home}</span>
+          </span>
+          <span className="display text-4xl text-paper/40">–</span>
+          <span className={`count-tile display border border-paper/30 px-3 !text-6xl leading-none md:px-5 md:!text-8xl ${leader === "away" ? "!bg-accent !text-on-accent" : ""}`}>
+            <span key={score.away} className="flap">{score.away}</span>
+          </span>
         </div>
-        <div className="text-left">
-          <h2 className="text-2xl md:text-4xl font-black text-white font-tech uppercase tracking-tighter leading-none">
-            {away}
-          </h2>
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Extérieur</span>
+        <div className="min-w-0 text-left">
+          <p className="label text-paper/50">Extérieur</p>
+          <h2 className="display mt-1 truncate text-3xl md:text-5xl">{away}</h2>
         </div>
+      </div>
+      <div className="h-1.5 bg-paper/10" aria-hidden="true">
+        <div className="h-full bg-accent transition-[width] duration-150" style={{ width: `${Math.min(100, (minute / 90) * 100)}%` }} />
       </div>
     </div>
   );
@@ -413,34 +365,21 @@ function FeedItem({ event }: { event: MatchEvent }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20, scale: 0.95 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      className={`p-4 rounded-xl border flex gap-4 ${
-        isGoal
-          ? "bg-cyan-900/10 border-cyan-500/40 shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]"
-          : isCard
-            ? "bg-amber-900/10 border-amber-500/40"
-            : "bg-white/5 border-white/5"
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      className={`grid grid-cols-[3.5rem_1fr] gap-3 border-b py-3 ${
+        isGoal ? "border-ink bg-accent px-2 text-on-accent" : "border-ink/20"
       }`}
     >
-      <span
-        className={`text-lg font-bold font-mono ${isGoal ? "text-cyan-400" : isCard ? "text-amber-400" : "text-slate-500"}`}
-      >
-        {event.minute}&apos;
-      </span>
-      <div className="flex-1">
+      <span className="display text-3xl leading-none tabular">{event.minute}&apos;</span>
+      <div className="min-w-0">
         <span
-          className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
-            isGoal
-              ? "bg-cyan-500 text-black"
-              : isCard
-                ? "bg-amber-500 text-black"
-                : "bg-white/10 text-slate-400"
-          }`}
+          className={`label inline-flex items-center gap-1.5 ${isGoal ? "" : "text-ink/60"}`}
         >
+          {isCard && <span className="inline-block h-3 w-2 border border-ink bg-[#f5c400]" aria-hidden="true" />}
           {event.type.replace("_", " ")}
         </span>
-        <p className="text-sm text-slate-300 font-medium leading-relaxed mt-1">
+        <p className={`mt-1 text-[13px] leading-relaxed ${isGoal ? "font-semibold" : "text-ink/80"}`}>
           {event.description}
         </p>
       </div>
@@ -448,22 +387,11 @@ function FeedItem({ event }: { event: MatchEvent }) {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  color: string;
-}) {
+function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bento-card flex flex-col items-center justify-center gap-2">
-      <div className={`p-2 rounded-lg bg-white/5 ${color}`}>{icon}</div>
-      <span className="text-2xl font-bold text-white font-tech">{value}</span>
-      <span className="text-[10px] text-slate-500 uppercase tracking-widest">{label}</span>
+    <div className="border-r border-ink px-3 py-4 last:border-r-0 md:px-5">
+      <dt className="label text-ink/50">{label}</dt>
+      <dd className="display mt-1 text-4xl tabular md:text-5xl">{value}</dd>
     </div>
   );
 }
@@ -481,15 +409,15 @@ function PlayerList({
     <div className="space-y-3">
       {players.map((p, i) => (
         <div key={p}>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-slate-300">{p}</span>
+          <div className="mb-1 flex items-baseline justify-between text-[13px]">
+            <span className="truncate font-semibold uppercase">{p}</span>
             <span
-              className={`font-mono font-bold ${parseFloat(ratings[i].score) > 7 ? "text-white" : "text-slate-500"}`}
+              className={`display text-xl tabular ${parseFloat(ratings[i].score) > 7 ? "text-accent-text" : "text-ink/50"}`}
             >
               {ratings[i].score}
             </span>
           </div>
-          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+          <div className="h-2 w-full border border-ink">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${ratings[i].width}%` }}

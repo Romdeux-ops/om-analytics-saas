@@ -1,4 +1,3 @@
-import { ListOrdered } from "lucide-react";
 import { ClassementView } from "@/src/components/classement/ClassementView";
 import { StandingsTable } from "@/src/components/classement/StandingsTable";
 import { DrawPlaceholder } from "@/src/components/classement/DrawPlaceholder";
@@ -41,12 +40,14 @@ export default async function ClassementPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageSectionHeader
-        title={<span className="text-gradient-gold">Classements</span>}
+        title={
+          <>
+            Classe<span className="text-accent-text">ments</span>
+          </>
+        }
         subtitle="Ligue 1 · Europa League · Coupe de France"
-        icon={<ListOrdered size={18} />}
-        accent="gold"
       />
 
       <ClassementView competitions={COMPETITIONS} panels={panels} />

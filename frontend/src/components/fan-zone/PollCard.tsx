@@ -1,10 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, Lock } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { Badge } from "@/src/components/ui/Badge";
-import { Button } from "@/src/components/ui/Button";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { castVoteAction } from "@/src/lib/fan-zone/actions";
 import { closePollAction } from "@/src/lib/fan-zone/admin-actions";
@@ -77,82 +73,99 @@ export function PollCard({ poll, featured = false, onClosed }: PollCardProps) {
     onClosed?.(localPoll.id);
   }
 
+  const showResults = hasVoted || isClosed;
+  const leaderVotes = Math.max(0, ...localPoll.options.map((o) => o.vote_count));
+
   return (
-    <Card variant={featured ? "hero" : "flat"} className={featured ? "border-violet-400/20" : ""}>
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <BarChart3 size={16} className="text-violet-400" aria-hidden="true" />
-          {featured && <Badge variant="om">Match du jour</Badge>}
-        </div>
-        <div className="flex items-center gap-2">
-          {isClosed && <Badge variant="muted">Clos</Badge>}
-          {isAdmin && !isClosed && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClosePoll}
-              loading={closing}
-              className="text-amber-300 hover:text-amber-200"
-            >
-              <Lock size={13} />
-              Fermer
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <h3 className="font-tech text-lg font-bold text-white">{localPoll.question}</h3>
-
-      <ul className="mt-4 space-y-2" role="list">
-        {localPoll.options.map((option) => {
-          const pct = totalVotes > 0 ? Math.round((option.vote_count / totalVotes) * 100) : 0;
-          const isSelected = localPoll.user_vote_option_id === option.id;
-
-          return (
-            <li key={option.id}>
-              <button
-                type="button"
-                disabled={hasVoted || isClosed || voting}
-                onClick={() => handleVote(option.id)}
-                className={cn(
-                  "pressable relative w-full cursor-pointer overflow-hidden rounded-xl border px-4 py-3 text-left disabled:cursor-not-allowed",
-                  isSelected
-                    ? "border-violet-400/40 bg-violet-500/10"
-                    : "border-white/10 bg-white/[0.02] hover:border-violet-400/25 hover:bg-white/[0.04]",
-                  (hasVoted || isClosed) && "cursor-default",
-                )}
-                aria-pressed={isSelected}
-                aria-label={`Voter pour ${option.label}`}
-              >
-                {(hasVoted || isClosed) && (
-                  <span
-                    className="absolute inset-y-0 left-0 bg-violet-500/15 transition-all"
-                    style={{ width: `${pct}%` }}
-                    aria-hidden="true"
-                  />
-                )}
-                <span className="relative flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-white">{option.label}</span>
-                  {(hasVoted || isClosed) && (
-                    <span className="text-xs text-slate-400">{pct}%</span>
-                  )}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-
-      <p className="mt-3 text-xs text-slate-500">
-        {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
-        {!hasVoted && !isClosed && " · Cliquez pour voter"}
-      </p>
-
-      {error && (
-        <p className="mt-2 text-sm text-red-400" role="alert">
-          {error}
-        </p>
+    <article
+      className={cn(
+        "border border-ink bg-paper",
+        featured ? "border-t-[6px] shadow-[6px_6px_0_0_var(--ink)]" : "",
       )}
-    </Card>
+    >
+      <header className="flex items-center justify-between gap-3 border-b border-ink px-4 py-2">
+        <span className="label flex items-center gap-2">
+          <span className={featured ? "bg-accent px-1.5 py-0.5 text-on-accent" : ""}>
+            {featured ? "Match du jour" : "Sondage"}
+          </span>
+          {isClosed && <span className="text-ink/50">· Clos</span>}
+        </span>
+        {isAdmin && !isClosed && (
+          <button
+            type="button"
+            onClick={handleClosePoll}
+            disabled={closing}
+            className="label border-b border-ink pb-0.5 hover:border-live hover:text-live-text disabled:opacity-40"
+          >
+            {closing ? "Fermeture…" : "Fermer le vote"}
+          </button>
+        )}
+      </header>
+
+      <div className="p-4">
+        <h3 className="display text-3xl leading-[0.95] text-ink">{localPoll.question}</h3>
+
+        <ul className="mt-5 space-y-3" role="list">
+          {localPoll.options.map((option) => {
+            const pct = totalVotes > 0 ? Math.round((option.vote_count / totalVotes) * 100) : 0;
+            const isSelected = localPoll.user_vote_option_id === option.id;
+            const isLeader = showResults && totalVotes > 0 && option.vote_count === leaderVotes;
+
+            return (
+              <li key={option.id}>
+                <button
+                  type="button"
+                  disabled={hasVoted || isClosed || voting}
+                  onClick={() => handleVote(option.id)}
+                  className={cn(
+                    "group block w-full text-left disabled:cursor-default",
+                    !showResults && "cursor-pointer border border-ink px-3 py-2.5 transition-colors duration-100 hover:bg-ink hover:text-paper",
+                  )}
+                  aria-pressed={isSelected}
+                  aria-label={`Voter pour ${option.label}`}
+                >
+                  {showResults ? (
+                    <>
+                      <span className="flex items-end justify-between gap-3">
+                        <span className="text-[13px] font-semibold uppercase tracking-wide">
+                          {isSelected && <span className="mr-1.5 text-accent-text">●</span>}
+                          {option.label}
+                        </span>
+                        <span className={cn("display text-5xl leading-none tabular", isLeader ? "text-accent-text" : "text-ink/40")}>
+                          {pct}
+                          <span className="text-2xl">%</span>
+                        </span>
+                      </span>
+                      <span className="mt-1.5 block h-3 border border-ink" aria-hidden="true">
+                        <span
+                          className={cn("block h-full transition-[width] duration-500", isLeader ? "bg-accent" : "bg-ink")}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-[13px] font-semibold uppercase tracking-wide">{option.label}</span>
+                      <span className="arrow" aria-hidden="true">→</span>
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <p className="label mt-4 text-ink/50">
+          <span className="tabular">{totalVotes}</span> vote{totalVotes !== 1 ? "s" : ""}
+          {!hasVoted && !isClosed && " · Choisis ton camp"}
+        </p>
+
+        {error && (
+          <p className="label mt-2 text-live-text" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </article>
   );
 }

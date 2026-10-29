@@ -1,7 +1,3 @@
-import { CalendarDays, Trophy } from "lucide-react";
-import { Card } from "@/src/components/ui/Card";
-import { Badge } from "@/src/components/ui/Badge";
-import { cn } from "@/src/lib/ui/cn";
 import type { Competition } from "@/src/lib/types/competition";
 
 interface DrawPlaceholderProps {
@@ -12,43 +8,22 @@ export function DrawPlaceholder({ competition }: DrawPlaceholderProps) {
   const isEuropa = competition.id === "europa";
 
   return (
-    <Card className="flex flex-col items-center py-14 text-center md:py-20">
-      <div className="relative mb-6 flex h-16 w-16 items-center justify-center">
-        <span
-          className={cn("absolute inset-0 rounded-2xl blur-xl", isEuropa ? "bg-cyan-500/20" : "bg-amber-500/20")}
-        />
-        <span
-          className={cn(
-            "relative flex h-16 w-16 items-center justify-center rounded-2xl border",
-            isEuropa
-              ? "border-cyan-400/30 bg-cyan-500/10 text-cyan-300"
-              : "border-amber-400/30 bg-amber-500/10 text-amber-300",
-          )}
-        >
-          {isEuropa ? <Trophy size={28} /> : <CalendarDays size={28} />}
-        </span>
-      </div>
-
-      <Badge variant={isEuropa ? "om" : "gold"} className="mb-4">
-        Tirage à venir
-      </Badge>
-
-      <h2 className="mb-2 font-tech text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
-        {competition.label}
-      </h2>
-      <p className="mb-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
-        Saison {competition.season}
-      </p>
-
-      <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-400">
-        {competition.drawMessage}
-      </p>
-
-      {isEuropa && (
-        <p className="mt-6 font-tech text-xl font-black tabular-nums text-cyan-300">
-          28 août 2026
+    <section className="grid gap-8 border-t-[6px] border-ink pt-6 md:grid-cols-12">
+      <div className="md:col-span-8">
+        <p className="label text-ink/60">Saison {competition.season}</p>
+        <h2 className="display mt-2 text-6xl text-ink md:text-8xl">{competition.label}</h2>
+        <p className="editorial mt-5 max-w-lg text-2xl leading-snug text-ink/75">
+          {competition.drawMessage}
         </p>
-      )}
-    </Card>
+      </div>
+      <div className="flex flex-col justify-between border-l border-ink pl-6 md:col-span-4">
+        <span className="label inline-flex w-fit border border-ink bg-ink px-2 py-1 text-paper">
+          Tirage à venir
+        </span>
+        {isEuropa && (
+          <p className="display mt-6 text-5xl text-accent-text tabular">28.08.26</p>
+        )}
+      </div>
+    </section>
   );
 }

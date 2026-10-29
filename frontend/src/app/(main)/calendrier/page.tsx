@@ -1,4 +1,3 @@
-import { CalendarDays } from "lucide-react";
 import {
   CalendarView,
   type CalendarTabId,
@@ -58,12 +57,14 @@ export default async function CalendrierPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageSectionHeader
-        title={<span className="text-gradient">Calendrier</span>}
+        title={
+          <>
+            Calen<span className="text-accent-text">drier</span>
+          </>
+        }
         subtitle="Ligue 1 · Europa League · Coupe de France"
-        icon={<CalendarDays size={18} />}
-        accent="cyan"
       />
 
       <NextMatchHighlight />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { ChevronDown, MoreHorizontal, Pin, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import { cn } from "@/src/lib/ui/cn";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { MessageActions } from "@/src/components/fan-zone/MessageActions";
@@ -226,25 +226,31 @@ export function MessageCard({
   const visibleReplies = showAllReplies ? allReplies : allReplies.slice(0, REPLIES_PREVIEW);
   const hiddenReplyCount = allReplies.length - REPLIES_PREVIEW;
 
+  // Banderole légèrement de travers, de façon stable pour un même message
+  const tilt = compact ? 0 : ((Math.abs(message.id * 37) % 5) - 2) * 0.35;
+
   return (
     <article
       className={cn(
-        compact ? "flex gap-2 py-2" : "flex gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-4",
+        compact
+          ? "flex gap-2 border-b border-ink/15 py-2 last:border-b-0"
+          : "flex gap-3 border border-ink bg-paper p-4 transition-transform duration-150 hover:!rotate-0",
         pending && "opacity-60",
-        displayMessage.is_pinned && !compact && "border-amber-400/30 bg-amber-500/5",
+        displayMessage.is_pinned && !compact && "border-t-[6px] shadow-[4px_4px_0_0_var(--accent)]",
       )}
+      style={tilt ? { rotate: `${tilt}deg` } : undefined}
       aria-busy={pending}
     >
       <div
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 font-bold text-violet-200 ring-1 ring-violet-400/20",
-          compact ? "h-7 w-7 text-[10px]" : "h-10 w-10 text-sm",
+          "display flex shrink-0 items-center justify-center overflow-hidden border border-ink bg-ink text-paper",
+          compact ? "h-7 w-7 text-sm" : "h-10 w-10 text-lg",
         )}
         aria-hidden="true"
       >
         {profile.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+          <img src={profile.avatar_url} alt="" className="h-full w-full object-cover grayscale" />
         ) : (
           getInitials(profile.display_name)
         )}
@@ -252,26 +258,22 @@ export function MessageCard({
 
       <div className="min-w-0 flex-1">
         <header className="flex flex-wrap items-baseline gap-2">
-          <span className={cn("font-tech font-bold text-white", compact && "text-sm")}>
+          <span className={cn("display text-ink", compact ? "text-lg" : "text-2xl")}>
             {profile.display_name}
           </span>
-          <time className="text-xs text-slate-500" dateTime={created_at}>
+          <time className="text-[11px] tabular text-ink/50" dateTime={created_at}>
             {formatRelativeTime(created_at)}
           </time>
           {displayMessage.is_pinned && !compact && (
-            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-300">
-              Épinglé
-            </span>
+            <span className="label bg-accent px-1.5 py-0.5 text-on-accent">Épinglé</span>
           )}
-          {pending && (
-            <span className="text-[10px] uppercase tracking-wider text-slate-500">Envoi...</span>
-          )}
+          {pending && <span className="label text-ink/50">Envoi…</span>}
           {isAdmin && !pending && (
             <div className="relative ml-auto">
               <button
                 type="button"
                 onClick={() => setAdminMenuOpen((v) => !v)}
-                className="pressable cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="pressable cursor-pointer border border-transparent p-1 text-ink/60 hover:border-ink hover:text-ink"
                 aria-label="Actions admin"
                 aria-expanded={adminMenuOpen}
                 disabled={adminLoading}
@@ -288,16 +290,16 @@ export function MessageCard({
                   />
                   <div
                     role="menu"
-                    className="absolute right-0 top-full z-20 mt-1 min-w-[10rem] rounded-xl border border-white/10 bg-[var(--bg-raise)] p-1 shadow-xl"
+                    className="absolute right-0 top-full z-20 mt-1 min-w-[10rem] border border-ink bg-paper shadow-[4px_4px_0_0_var(--ink)]"
                   >
                     {!compact && (
                       <button
                         type="button"
                         role="menuitem"
                         onClick={handlePinToggle}
-                        className="pressable flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-200 hover:bg-white/10"
+                        className="label flex w-full cursor-pointer items-center gap-2 border-b border-ink px-3 py-2.5 text-left hover:bg-ink hover:text-paper"
                       >
-                        <Pin size={13} />
+                        <Pin size={12} />
                         {displayMessage.is_pinned ? "Désépingler" : "Épingler"}
                       </button>
                     )}
@@ -305,9 +307,9 @@ export function MessageCard({
                       type="button"
                       role="menuitem"
                       onClick={handleDelete}
-                      className="pressable flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-red-400 hover:bg-red-500/10"
+                      className="label flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-live-text hover:bg-live hover:text-on-accent"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={12} />
                       Supprimer
                     </button>
                   </div>
@@ -317,7 +319,7 @@ export function MessageCard({
           )}
         </header>
 
-        <p className={cn("mt-1 whitespace-pre-wrap break-words text-slate-200", compact ? "text-xs" : "text-sm")}>
+        <p className={cn("mt-1 whitespace-pre-wrap break-words text-ink", compact ? "text-xs" : "text-[13px] leading-relaxed")}>
           {content}
         </p>
 
@@ -339,10 +341,9 @@ export function MessageCard({
             type="button"
             onClick={handleOpenReplies}
             aria-expanded={false}
-            className="pressable mt-2 flex cursor-pointer items-center gap-1 text-xs font-medium text-cyan-400 hover:text-cyan-300"
+            className="label mt-3 inline-flex cursor-pointer items-center gap-1.5 border-b-2 border-ink pb-0.5 hover:border-accent"
           >
-            <ChevronDown size={14} />
-            {replyCountLabel(displayMessage.reply_count)}
+            {replyCountLabel(displayMessage.reply_count)} <span aria-hidden="true">↓</span>
           </button>
         )}
 
@@ -354,14 +355,14 @@ export function MessageCard({
         )}
 
         {repliesOpen && !compact && (
-          <div className="mt-3 space-y-1 border-l-2 border-violet-400/20 pl-3">
+          <div className="mt-3 border-l-[3px] border-ink pl-3">
             {loadingReplies ? (
               <div className="space-y-2 py-1" aria-busy="true" aria-label="Chargement des réponses">
-                <div className="h-10 animate-pulse rounded-xl bg-white/[0.04]" />
-                <div className="h-10 animate-pulse rounded-xl bg-white/[0.03]" />
+                <div className="h-10 animate-pulse bg-ink/10" />
+                <div className="h-10 animate-pulse bg-ink/5" />
               </div>
             ) : allReplies.length === 0 ? (
-              <p className="text-xs text-slate-500">Aucune réponse pour l&apos;instant.</p>
+              <p className="editorial text-base text-ink/55">Aucune réponse pour l&apos;instant.</p>
             ) : (
               <>
                 {visibleReplies.map((reply) => (
@@ -377,7 +378,7 @@ export function MessageCard({
                   <button
                     type="button"
                     onClick={() => setShowAllReplies(true)}
-                    className="pressable cursor-pointer py-2 text-xs font-medium text-violet-400 hover:text-violet-300"
+                    className="label cursor-pointer py-2 text-accent-text hover:underline"
                   >
                     Voir plus ({hiddenReplyCount} réponse{hiddenReplyCount > 1 ? "s" : ""})
                   </button>

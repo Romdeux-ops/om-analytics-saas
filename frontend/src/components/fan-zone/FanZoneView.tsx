@@ -169,7 +169,9 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
 
   if (!selectedRoom) {
     return (
-      <p className="text-center text-slate-500">Aucun salon disponible pour le moment.</p>
+      <p className="editorial border-y border-ink py-10 text-2xl text-ink/60">
+        Aucun salon ouvert pour le moment.
+      </p>
     );
   }
 
@@ -199,9 +201,9 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
         id={`panel-${selectedSlug}`}
         aria-labelledby={`tab-${selectedSlug}`}
         tabIndex={0}
-        className="grid grid-cols-1 gap-6 lg:grid-cols-5"
+        className="grid grid-cols-1 gap-10 outline-none lg:grid-cols-12 lg:gap-0"
       >
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-7 lg:border-r lg:border-ink lg:pr-8">
           {isLoading || !feed ? (
             <CardSkeleton rows={5} />
           ) : (
@@ -214,7 +216,7 @@ export function FanZoneView({ rooms: initialRooms, initialFeed, defaultSlug }: F
           )}
         </div>
 
-        <aside className="lg:col-span-2">
+        <aside className="lg:col-span-5 lg:pl-8">
           {feed && (
             <>
               <PollList
