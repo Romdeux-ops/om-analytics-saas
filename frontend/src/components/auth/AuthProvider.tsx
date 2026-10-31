@@ -21,6 +21,7 @@ type AuthIntent = "login" | "signup";
 interface AuthContextValue {
   user: User | null;
   profile: ProfileView | null;
+  /** Visiteur sans session : lecture seule. */
   isGuest: boolean;
   isAdmin: boolean;
   isLoading: boolean;
@@ -35,25 +36,26 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 interface AuthProviderProps {
   children: ReactNode;
-  initialGuest?: boolean;
+  /** La session a déjà été lue côté serveur : initialUser fait foi, même s'il est null. */
+  resolvedOnServer?: boolean;
   initialUser?: User | null;
   initialProfile?: ProfileView | null;
 }
 
 export function AuthProvider({
   children,
-  initialGuest = false,
+  resolvedOnServer = false,
   initialUser = null,
   initialProfile = null,
 }: AuthProviderProps) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const seeded = initialUser !== null || initialGuest;
+  const seeded = resolvedOnServer || initialUser !== null;
 
   const [user, setUser] = useState<User | null>(initialUser);
   const [profile, setProfile] = useState<ProfileView | null>(initialProfile);
-  const [isGuest, setIsGuest] = useState(initialGuest);
   const [isLoading, setIsLoading] = useState(!seeded);
+  const isGuest = !isLoading && !user;
   const [modalOpen, setModalOpen] = useState(false);
   const [modalIntent, setModalIntent] = useState<AuthIntent>("login");
 
@@ -87,7 +89,6 @@ export function AuthProvider({
       if (cancelled) return;
       setUser(nextUser);
       if (nextUser) {
-        setIsGuest(false);
         await fetchProfile(nextUser);
       } else {
         setProfile(null);
@@ -122,33 +123,32 @@ export function AuthProvider({
   const enterGuestMode = useCallback(() => {
     setUser(null);
     setProfile(null);
-    setIsGuest(true);
     setIsLoading(false);
   }, []);
 
   const requireAuth = useCallback(
     async <T,>(action: () => T | Promise<T>): Promise<T | undefined> => {
       if (isLoading) return undefined;
-      if (isGuest || !user) {
+      if (!user) {
         openAuthModal("login");
         return undefined;
       }
       return await action();
     },
-    [isGuest, isLoading, user, openAuthModal],
+    [isLoading, user, openAuthModal],
   );
 
   const requireAdmin = useCallback(
     async <T,>(action: () => T | Promise<T>): Promise<T | undefined> => {
       if (isLoading) return undefined;
-      if (isGuest || !user) {
+      if (!user) {
         openAuthModal("login");
         return undefined;
       }
       if (profile?.role !== "admin") return undefined;
       return await action();
     },
-    [isGuest, isLoading, user, profile?.role, openAuthModal],
+    [isLoading, user, profile?.role, openAuthModal],
   );
 
   const handleAuthSuccess = useCallback(async () => {
@@ -162,9 +162,8 @@ export function AuthProvider({
     const authUser = session?.user ?? null;
     if (authUser) {
       setUser(authUser);
-      setIsGuest(false);
       await fetchProfile(authUser);
-      router.push("/");
+      if (window.location.pathname === "/welcome") router.push("/");
     }
   }, [router, supabase, fetchProfile]);
 
@@ -172,8 +171,6 @@ export function AuthProvider({
     await signOutAction();
     setUser(null);
     setProfile(null);
-    setIsGuest(false);
-    router.push("/welcome");
     router.refresh();
   }, [router]);
 

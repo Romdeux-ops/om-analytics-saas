@@ -2,7 +2,6 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const GUEST_COOKIE = "om_guest";
-const PUBLIC_PATHS = ["/welcome", "/auth/callback", "/api/revalidate", "/api/lineup"];
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
@@ -48,15 +47,15 @@ function clearSupabaseCookies(response: NextResponse, request: NextRequest) {
   }
 }
 
+/**
+ * Le site est lisible sans compte : on ne fait que rafraîchir la session Supabase
+ * et renvoyer un utilisateur connecté de /welcome vers la Une.
+ */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isPublicPath = PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  );
-  const hasGuestCookie = request.cookies.get(GUEST_COOKIE)?.value === "1";
 
-  // Invité sans session Supabase : pas besoin de vérifier le JWT à chaque navigation.
-  if (hasGuestCookie && !isPublicPath && pathname !== "/welcome" && !hasSupabaseAuthCookies(request)) {
+  // Sans cookie Supabase, aucune session à rafraîchir.
+  if (!hasSupabaseAuthCookies(request)) {
     return NextResponse.next({ request });
   }
 
@@ -100,7 +99,7 @@ export async function middleware(request: NextRequest) {
 
   if (dropSession) clearSupabaseCookies(supabaseResponse, request);
 
-  if (user && hasGuestCookie) {
+  if (user && request.cookies.has(GUEST_COOKIE)) {
     supabaseResponse.cookies.delete(GUEST_COOKIE);
   }
 
@@ -108,14 +107,6 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return redirectWithCookies(url, supabaseResponse);
-  }
-
-  if (!user && !hasGuestCookie && !isPublicPath) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/welcome";
-    const response = redirectWithCookies(url, supabaseResponse);
-    if (dropSession) clearSupabaseCookies(response, request);
-    return response;
   }
 
   return supabaseResponse;

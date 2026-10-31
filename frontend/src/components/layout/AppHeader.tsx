@@ -9,6 +9,7 @@ import { MAIN_NAV_LINKS } from "@/src/lib/navigation";
 import { cn } from "@/src/lib/ui/cn";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 import { signInAsAdminDemoAction } from "@/src/app/actions/auth";
+import { isAdminDemoEnabled } from "@/src/lib/admin/demo";
 
 function isNavActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -17,7 +18,7 @@ function isNavActive(pathname: string, href: string) {
 
 export function AppHeader() {
   const pathname = usePathname();
-  const { isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, isLoading, openAuthModal, signOut } = useAuth();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [prevPathname, setPrevPathname] = useState(pathname);
 
@@ -49,9 +50,9 @@ export function AppHeader() {
         </Link>
 
         <div className="flex shrink-0 items-center gap-2 pb-1">
-          {isAdmin ? (
+          {user ? (
             <div className="label flex items-center gap-2 border border-ink bg-ink px-2.5 py-2 text-paper">
-              <span>Admin</span>
+              <span className="max-w-[10rem] truncate">{isAdmin ? "Admin" : (profile?.display_name ?? "Supporter")}</span>
               <button
                 type="button"
                 onClick={async () => {
@@ -65,17 +66,30 @@ export function AppHeader() {
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={async () => {
-                await signInAsAdminDemoAction();
-                window.location.reload();
-              }}
-              className="pressable label hidden h-9 items-center border border-ink px-3 text-ink hover:bg-ink hover:text-paper sm:inline-flex"
-              title="Activer le mode Admin pour tester l'édition des compos et des textes IA"
-            >
-              Accès admin
-            </button>
+            !isLoading && (
+              <>
+                {isAdminDemoEnabled() && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await signInAsAdminDemoAction();
+                      window.location.reload();
+                    }}
+                    className="pressable label hidden h-9 items-center border border-dashed border-ink px-3 text-ink/60 hover:bg-ink hover:text-paper sm:inline-flex"
+                    title="Activer le mode Admin pour tester l'édition des compos et des textes IA"
+                  >
+                    Accès admin
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => openAuthModal("login")}
+                  className="pressable label inline-flex h-9 items-center border border-ink px-3 text-ink hover:bg-ink hover:text-paper"
+                >
+                  Se connecter
+                </button>
+              </>
+            )
           )}
           <ThemeToggle />
         </div>
