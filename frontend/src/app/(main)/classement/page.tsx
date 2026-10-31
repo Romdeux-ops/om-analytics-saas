@@ -3,6 +3,7 @@ import { ClassementView } from "@/src/components/classement/ClassementView";
 import { StandingsTable } from "@/src/components/classement/StandingsTable";
 import { DrawPlaceholder } from "@/src/components/classement/DrawPlaceholder";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
+import { pageMetadata } from "@/src/lib/site";
 import {
   COMPETITIONS,
   getCompetition,
@@ -13,11 +14,11 @@ import {
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Classements",
   description: "Classement de Ligue 1 et de la phase de ligue d'Europa League, avec la position de l'OM.",
-  alternates: { canonical: "/classement" },
-};
+  path: "/classement",
+});
 
 export default async function ClassementPage() {
   const ligue1 = getCompetition("ligue1");

@@ -11,12 +11,13 @@ import {
   getRoomPolls,
 } from "@/src/lib/fan-zone/queries.server";
 import type { RoomView } from "@/src/lib/fan-zone/types";
+import { pageMetadata } from "@/src/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Fan Zone",
   description: "Le mur du virage : salons de discussion, sondages et débats entre supporters de l'OM.",
-  alternates: { canonical: "/fan-zone" },
-};
+  path: "/fan-zone",
+});
 
 export default async function FanZonePage() {
   const rooms = await getActiveRooms();

@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 export const SITE_NAME = "OM Analytics";
 export const SITE_DESCRIPTION =
   "Calendrier, classements, effectif, actus et Fan Zone : le programme de match de l'Olympique de Marseille.";
@@ -15,3 +17,19 @@ function resolveSiteUrl(): string {
 }
 
 export const SITE_URL = resolveSiteUrl();
+
+/**
+ * Les champs openGraph/twitter d'une page remplacent ceux du layout, image comprise :
+ * on les reconstruit en entier. Un opengraph-image propre à la route reste prioritaire.
+ */
+export function pageMetadata({ title, description, path }: { title: string; description: string; path: string }): Metadata {
+  const fullTitle = `${title} · ${SITE_NAME}`;
+  const images = ["/opengraph-image"];
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "website", locale: "fr_FR", siteName: SITE_NAME, title: fullTitle, description, url: path, images },
+    twitter: { card: "summary_large_image", title: fullTitle, description, images },
+  };
+}

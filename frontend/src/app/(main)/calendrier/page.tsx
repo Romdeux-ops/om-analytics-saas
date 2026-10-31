@@ -11,14 +11,15 @@ import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
 import { COMPETITIONS, getCompetition } from "@/src/lib/data/competitions";
 import { getAllOmFixtures, getOmFixtures } from "@/src/lib/data/calendar";
 import { formatSeason } from "@om/db/season";
+import { pageMetadata } from "@/src/lib/site";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Calendrier",
   description: "Calendrier et résultats de l'OM : Ligue 1, Europa League et Coupe de France.",
-  alternates: { canonical: "/calendrier" },
-};
+  path: "/calendrier",
+});
 
 export default async function CalendrierPage() {
   const season = formatSeason();

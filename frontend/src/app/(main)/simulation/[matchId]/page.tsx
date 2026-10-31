@@ -4,7 +4,7 @@ import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getMatch } from "@/src/lib/data/match";
 import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
-import { SITE_NAME } from "@/src/lib/site";
+import { pageMetadata } from "@/src/lib/site";
 import { fullTeamName, shortTeamName } from "@/src/lib/ui/teams";
 
 export const dynamic = "force-dynamic";
@@ -22,17 +22,12 @@ export async function generateMetadata({ params }: SimulationPageProps): Promise
   const { matchId } = await params;
   const match = await getMatch(matchId);
   if (!match) return { title: "Match introuvable", robots: { index: false } };
-  const id = match.id;
 
-  const title = `${shortTeamName(match.home_team_name)} – ${shortTeamName(match.away_team_name)}`;
-  const description = `Avant-match ${fullTeamName(match.home_team_name)} – ${fullTeamName(match.away_team_name)} : forme, classement, compositions probables et simulation.`;
-  return {
-    title,
-    description,
-    alternates: { canonical: `/simulation/${id}` },
-    openGraph: { type: "website", locale: "fr_FR", siteName: SITE_NAME, title, description, url: `/simulation/${id}` },
-    twitter: { title, description },
-  };
+  return pageMetadata({
+    title: `${shortTeamName(match.home_team_name)} – ${shortTeamName(match.away_team_name)}`,
+    description: `Avant-match ${fullTeamName(match.home_team_name)} – ${fullTeamName(match.away_team_name)} : forme, classement, compositions probables et simulation.`,
+    path: `/simulation/${match.id}`,
+  });
 }
 
 export default async function SimulationPage({ params }: SimulationPageProps) {

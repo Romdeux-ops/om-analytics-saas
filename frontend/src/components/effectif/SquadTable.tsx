@@ -58,7 +58,7 @@ function PlayerCard({ player, featured }: { player: PlayerView; featured: boolea
 interface SquadTableProps {
   players: readonly PlayerView[];
   season?: string;
-  /** Dernière journée de Ligue 1 jouée ; 0 avant la reprise. */
+  /** Journée de Ligue 1 couverte par les stats joueurs ; 0 avant la reprise. */
   matchday?: number;
 }
 
