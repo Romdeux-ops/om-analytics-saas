@@ -51,7 +51,7 @@ function clearSupabaseCookies(response: NextResponse, request: NextRequest) {
  * Le site est lisible sans compte : on ne fait que rafraîchir la session Supabase
  * et renvoyer un utilisateur connecté de /welcome vers la Une.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Sans cookie Supabase, aucune session à rafraîchir.
