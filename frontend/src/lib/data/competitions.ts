@@ -1,3 +1,4 @@
+import { formatSeason } from "@om/db/season";
 import type { Competition, CompetitionId } from "@/src/lib/types/competition";
 import type { StandingRow } from "@/src/lib/types/standing";
 import { isOmTeam } from "@/src/lib/ui/teams";
@@ -30,21 +31,21 @@ export const COMPETITIONS: Competition[] = [
     id: "ligue1",
     label: "Ligue 1",
     shortLabel: "L1",
-    season: "2026-2027",
+    season: formatSeason(),
     status: "active",
   },
   {
     id: "europa",
     label: "Europa League",
     shortLabel: "EL",
-    season: "2026-2027",
+    season: formatSeason(),
     status: "active",
   },
   {
     id: "coupe",
     label: "Coupe de France",
     shortLabel: "CDF",
-    season: "2026-2027",
+    season: formatSeason(),
     status: "draw-pending",
     drawMessage: "Le tirage sera communiqué prochainement.",
   },

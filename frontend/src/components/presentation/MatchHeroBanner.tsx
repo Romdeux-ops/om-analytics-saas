@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { currentSeasonYear, formatSeason } from "@om/db/season";
 import { ResultMark } from "@/src/components/ui/ResultMark";
 import { shortTeamName, fullTeamName, isOmTeam } from "@/src/lib/ui/teams";
 import { cn } from "@/src/lib/ui/cn";
@@ -48,7 +49,8 @@ export const MatchHeroBanner = memo(function MatchHeroBanner({
     <section className="border-y-[6px] border-ink">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink py-2.5">
         <p className="label">
-          {competition === "europa" ? "Europa League" : "Ligue 1"} · J{matchday} · 2026-2027
+          {competition === "europa" ? "Europa League" : "Ligue 1"} · J{matchday} ·{" "}
+          {formatSeason(currentSeasonYear(matchDate))}
         </p>
         <p className="label text-ink/60">
           {stadium.name} · {stadium.city} · <span className="capitalize">{formatMatchDate(matchDate)}</span>

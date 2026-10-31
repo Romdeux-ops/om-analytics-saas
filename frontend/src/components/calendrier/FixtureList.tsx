@@ -1,5 +1,6 @@
 import { FixtureRow } from "@/src/components/calendrier/FixtureRow";
 import type { CalendarFixture } from "@/src/lib/types/fixture";
+import { formatSeason } from "@om/db/season";
 
 const PARIS_TZ = "Europe/Paris";
 
@@ -37,7 +38,7 @@ interface FixtureListProps {
 export function FixtureList({
   fixtures,
   title = "Ligue 1",
-  season = "2026-2027",
+  season = formatSeason(),
   showCompetition = false,
   note,
 }: FixtureListProps) {

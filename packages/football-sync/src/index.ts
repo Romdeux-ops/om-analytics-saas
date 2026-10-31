@@ -1,5 +1,6 @@
 import {
   createDb,
+  currentSeasonYear,
   deleteUnlistedPressArticles,
   deleteExcludedPressArticles,
   getNewsItemsSince,
@@ -14,7 +15,6 @@ import {
   type SnapshotStanding,
 } from "@om/db";
 import { buildAutoNews, type CompetitionData } from "./auto-news";
-import { currentSeasonYear } from "./dates";
 import { europaZone, fetchEspnFixtures, fetchEspnStandings } from "./espn";
 import { fetchLigue1 } from "./football-data";
 import { fetchPressArticles } from "./news";

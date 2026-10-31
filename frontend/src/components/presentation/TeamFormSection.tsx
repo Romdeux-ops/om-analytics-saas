@@ -13,6 +13,8 @@ interface TeamFormSectionProps {
   homeTeamName: string;
   awayTeamName: string;
   competition?: "ligue1" | "europa" | "coupe";
+  /** Format court, ex. "2026/27". */
+  season: string;
 }
 
 export const TeamFormSection = memo(function TeamFormSection({
@@ -21,6 +23,7 @@ export const TeamFormSection = memo(function TeamFormSection({
   homeTeamName,
   awayTeamName,
   competition = "ligue1",
+  season,
 }: TeamFormSectionProps) {
   const homeShort = shortTeamName(homeTeamName);
   const awayShort = shortTeamName(awayTeamName);
@@ -34,7 +37,7 @@ export const TeamFormSection = memo(function TeamFormSection({
         index="01"
         title="La forme du moment"
         subtitle={`${matchCount > 0 ? `${matchCount} match${matchCount > 1 ? "s" : ""}` : "Rencontres"} · ${compLabel} uniquement`}
-        action={<span className="bg-ink px-2 py-1 text-paper">Filtré {compLabel} 2026/27</span>}
+        action={<span className="bg-ink px-2 py-1 text-paper">Filtré {compLabel} {season}</span>}
       />
 
       <div className="grid md:grid-cols-2">

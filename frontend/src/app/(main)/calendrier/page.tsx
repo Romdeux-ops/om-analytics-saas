@@ -9,12 +9,12 @@ import type { TabDescriptor } from "@/src/components/classement/CompetitionTabs"
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
 import { COMPETITIONS, getCompetition } from "@/src/lib/data/competitions";
 import { getAllOmFixtures, getOmFixtures } from "@/src/lib/data/calendar";
-
-const SEASON = "2026-2027";
+import { formatSeason } from "@om/db/season";
 
 export const revalidate = 300;
 
 export default async function CalendrierPage() {
+  const season = formatSeason();
   const [allFixtures, ligue1Fixtures, europaFixtures, coupeFixtures] = await Promise.all([
     getAllOmFixtures(),
     getOmFixtures("ligue1"),
@@ -23,7 +23,7 @@ export default async function CalendrierPage() {
   ]);
 
   const tabs: TabDescriptor<CalendarTabId>[] = [
-    { id: "general", label: "Calendrier général", shortLabel: "Tous", season: SEASON },
+    { id: "general", label: "Calendrier général", shortLabel: "Tous", season: season },
     ...COMPETITIONS.map((c) => ({
       id: c.id,
       label: c.label,
@@ -37,7 +37,7 @@ export default async function CalendrierPage() {
       <FixtureList
         fixtures={allFixtures}
         title="Calendrier général"
-        season={SEASON}
+        season={season}
         showCompetition
         note={
           coupeFixtures.length === 0
@@ -46,11 +46,11 @@ export default async function CalendrierPage() {
         }
       />
     ),
-    ligue1: <FixtureList fixtures={ligue1Fixtures} title="Ligue 1" season={SEASON} />,
-    europa: <FixtureList fixtures={europaFixtures} title="Europa League" season={SEASON} />,
+    ligue1: <FixtureList fixtures={ligue1Fixtures} title="Ligue 1" season={season} />,
+    europa: <FixtureList fixtures={europaFixtures} title="Europa League" season={season} />,
     coupe:
       coupeFixtures.length > 0 ? (
-        <FixtureList fixtures={coupeFixtures} title="Coupe de France" season={SEASON} />
+        <FixtureList fixtures={coupeFixtures} title="Coupe de France" season={season} />
       ) : (
         <DrawPlaceholder competition={getCompetition("coupe")} />
       ),

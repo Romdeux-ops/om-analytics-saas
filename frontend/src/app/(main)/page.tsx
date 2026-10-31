@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { formatSeason } from "@om/db/season";
 import { NextMatchCard } from "@/src/components/home/NextMatchCard";
 import { StandingsCard } from "@/src/components/home/StandingsCard";
 import { SimulationPanel } from "@/src/components/home/SimulationPanel";
@@ -37,7 +38,7 @@ export default function Home() {
         <p className="display text-[clamp(3rem,12vw,11rem)] text-ink">Droit au but.</p>
         <div className="mt-4 flex flex-col justify-between gap-2 border-t border-ink pt-3 sm:flex-row">
           <p className="label text-ink/60">OM Analytics — simulation sportive par IA</p>
-          <p className="label text-ink/60">Saison 2026-2027 · Données live</p>
+          <p className="label text-ink/60">Saison {formatSeason()} · Données live</p>
         </div>
       </footer>
     </>

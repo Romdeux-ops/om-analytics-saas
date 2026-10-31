@@ -1,3 +1,4 @@
+import { formatSeason } from "@om/db/season";
 import type { PlayerView } from "@/src/lib/types/player";
 import { cn } from "@/src/lib/ui/cn";
 import { formatMarketValue, groupPlayersByPosition } from "@/src/lib/ui/market-value";
@@ -57,9 +58,11 @@ function PlayerCard({ player, featured }: { player: PlayerView; featured: boolea
 interface SquadTableProps {
   players: readonly PlayerView[];
   season?: string;
+  /** Dernière journée de Ligue 1 jouée ; 0 avant la reprise. */
+  matchday?: number;
 }
 
-export function SquadTable({ players, season = "2026-2027" }: SquadTableProps) {
+export function SquadTable({ players, season = formatSeason(), matchday = 0 }: SquadTableProps) {
   const groups = groupPlayersByPosition(players);
 
   return (
@@ -95,7 +98,8 @@ export function SquadTable({ players, season = "2026-2027" }: SquadTableProps) {
       </div>
 
       <p className="label mt-10 border-t border-ink pt-3 text-ink/50">
-        MJ = matchs joués · B = buts · PD = passes décisives · Ligue 1 après J5
+        MJ = matchs joués · B = buts · PD = passes décisives
+        {matchday > 0 && ` · Ligue 1 après J${matchday}`}
       </p>
     </section>
   );
