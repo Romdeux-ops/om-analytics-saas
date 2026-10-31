@@ -1,10 +1,7 @@
 import { cache } from "react";
-import { cookies } from "next/headers";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/src/lib/supabase/server";
 import type { ProfileView } from "@/src/lib/fan-zone/types";
-
-const GUEST_COOKIE = "om_guest";
 
 /** Déduplique getUser() au sein d'une même requête RSC. */
 export const getAuthUser = cache(async (): Promise<User | null> => {
@@ -19,12 +16,6 @@ export const getAuthUser = cache(async (): Promise<User | null> => {
   } catch {
     return null;
   }
-});
-
-/** Déduplique la lecture du cookie invité au sein d'une même requête RSC. */
-export const getGuestModeFromCookies = cache(async (): Promise<boolean> => {
-  const cookieStore = await cookies();
-  return cookieStore.get(GUEST_COOKIE)?.value === "1";
 });
 
 function profileFromUser(user: User): ProfileView {

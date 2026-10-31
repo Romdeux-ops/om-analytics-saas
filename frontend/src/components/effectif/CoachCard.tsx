@@ -1,3 +1,4 @@
+import { formatSeason } from "@om/db/season";
 import { formatSquadTotalValue } from "@/src/lib/ui/market-value";
 
 interface CoachCardProps {
@@ -11,7 +12,7 @@ export function CoachCard({
   coachName,
   totalMarketValue,
   playerCount,
-  season = "2026-2027",
+  season = formatSeason(),
 }: CoachCardProps) {
   return (
     <section className="mb-16 grid border-y-[6px] border-ink md:grid-cols-12">

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { cookies } from "next/headers";
+import { isAdminDemoEnabled } from "@/src/lib/admin/demo";
 import {
   MAX_DISPLAY_NAME_LENGTH,
   MIN_DISPLAY_NAME_LENGTH,
@@ -46,6 +47,9 @@ export async function signInAction(
 export async function signInAsAdminDemoAction(): Promise<
   { ok: true } | { ok: false; error: string }
 > {
+  if (!isAdminDemoEnabled()) {
+    return { ok: false, error: "Accès admin de démonstration désactivé." };
+  }
   return signInAction("admin@test.om", "password123");
 }
 

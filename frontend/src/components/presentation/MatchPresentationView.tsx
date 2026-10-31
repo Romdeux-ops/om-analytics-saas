@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { currentSeasonYear, formatSeason } from "@om/db/season";
 import type { MatchPresentationData } from "@/src/lib/data/match-presentation";
 import type { MatchLineups } from "@/src/lib/types/lineup";
 import type { MatchEditorialPreview } from "@/src/lib/data/match-preview";
@@ -33,6 +34,7 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
 
   const homeShort = shortTeamName(data.match.home_team_name);
   const awayShort = shortTeamName(data.match.away_team_name);
+  const season = formatSeason(currentSeasonYear(new Date(data.match.date)), "short");
 
   return (
     <div className="w-full space-y-10">
@@ -99,7 +101,7 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
           <span className="text-ink">
             {homeShort} – {awayShort}
           </span>{" "}
-          · Saison 2026/27
+          · Saison {season}
         </p>
       </div>
 
@@ -122,6 +124,7 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
             homeTeamName={data.match.home_team_name}
             awayTeamName={data.match.away_team_name}
             competition={data.competition}
+            season={season}
           />
 
           {/* 3. Classement officiel des deux équipes */}

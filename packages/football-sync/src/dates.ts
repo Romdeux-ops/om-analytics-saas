@@ -34,8 +34,3 @@ export function toParisIso(input: string): string {
 
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
 }
-
-/** Année de début de saison : 2026 pour 2026-2027 (bascule au 1er juillet). */
-export function currentSeasonYear(now = new Date()): number {
-  return now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-}

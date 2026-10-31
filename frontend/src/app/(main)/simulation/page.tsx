@@ -1,11 +1,19 @@
+import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import { getFirstUnplayedMatch, getNextOmMatch } from "@om/db";
 import { getDb } from "@/src/lib/db";
 import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
+import { pageMetadata } from "@/src/lib/site";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Prochain match",
+  description: "Avant-match de l'OM : forme, classement, compositions probables et simulation.",
+  path: "/simulation",
+});
 
 const MatchPresentationView = nextDynamic(
   () => import("@/src/components/presentation/MatchPresentationView").then((mod) => mod.MatchPresentationView),

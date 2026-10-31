@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
-import { getMatchById } from "@om/db";
-import { getDb } from "@/src/lib/db";
+import { getMatch } from "@/src/lib/data/match";
 import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
+import { pageMetadata } from "@/src/lib/site";
+import { fullTeamName, shortTeamName } from "@/src/lib/ui/teams";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,18 @@ interface SimulationPageProps {
   params: Promise<{ matchId: string }>;
 }
 
+export async function generateMetadata({ params }: SimulationPageProps): Promise<Metadata> {
+  const { matchId } = await params;
+  const match = await getMatch(matchId);
+  if (!match) return { title: "Match introuvable", robots: { index: false } };
+
+  return pageMetadata({
+    title: `${shortTeamName(match.home_team_name)} – ${shortTeamName(match.away_team_name)}`,
+    description: `Avant-match ${fullTeamName(match.home_team_name)} – ${fullTeamName(match.away_team_name)} : forme, classement, compositions probables et simulation.`,
+    path: `/simulation/${match.id}`,
+  });
+}
+
 export default async function SimulationPage({ params }: SimulationPageProps) {
   const { matchId } = await params;
   const id = Number(matchId);
@@ -24,7 +38,7 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
     return <SimulationError message="Identifiant de match invalide." />;
   }
 
-  const match = await getMatchById(getDb(), id);
+  const match = await getMatch(matchId);
 
   if (!match) {
     return <SimulationError message="Ce match n'existe pas ou a été supprimé." />;

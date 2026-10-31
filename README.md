@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" alt="Next.js 15" />
-  <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/React-19.2-blue?style=for-the-badge&logo=react" alt="React 19.2" />
   <img src="https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS 4" />
   <img src="https://img.shields.io/badge/Drizzle_ORM-PostgreSQL-green?style=for-the-badge&logo=drizzle" alt="Drizzle ORM" />
   <img src="https://img.shields.io/badge/Supabase-Auth_%26_DB-emerald?style=for-the-badge&logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/Bun-1.3-fbf0df?style=for-the-badge&logo=bun" alt="Bun" />
@@ -62,7 +62,7 @@ Le projet est structuré sous forme de monorepo géré avec **Bun Workspaces** :
 
 ```text
 om-analytics-saas/
-├── frontend/                   # Application Next.js 15 (App Router, React 19, Tailwind CSS)
+├── frontend/                   # Application Next.js 16 (App Router, React 19.2, Tailwind CSS 4)
 │   ├── src/
 │   │   ├── app/                # Routes et layouts (main, auth, welcome, simulation...)
 │   │   ├── components/         # Composants UI, Bento Cards, MatchLiveInterface, FanZone...
@@ -88,7 +88,7 @@ om-analytics-saas/
 
 ## 🛠️ Stack Technologique
 
-- **Frontend** : [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/), [Lucide React](https://lucide.dev/)
+- **Frontend** : [Next.js 16](https://nextjs.org/) (App Router), [React 19.2](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS 4](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/), [Lucide React](https://lucide.dev/)
 - **Base de Données & ORM** : [PostgreSQL](https://www.postgresql.org/), [Supabase](https://supabase.com/), [Drizzle ORM](https://orm.drizzle.team/)
 - **Gestionnaire de Paquets & Runtime** : [Bun](https://bun.sh/)
 - **APIs & Données Externes** : Football-Data.org API, ESPN API, flux d'actualités sportives
@@ -133,6 +133,9 @@ SUPABASE_SERVICE_ROLE_KEY=votre_cle_service_role
 FOOTBALL_DATA_TOKEN=votre_cle_football_data
 REVALIDATE_SECRET=votre_secret_revalidation
 SITE_URL=http://localhost:3000
+
+# Bouton « Accès admin » de démo (toujours actif en dev, désactivé en production sauf si true)
+NEXT_PUBLIC_ADMIN_DEMO=false
 ```
 
 ### 4. Initialiser la Base de Données
@@ -179,7 +182,7 @@ L'application sera accessible sur [http://localhost:3000](http://localhost:3000)
 
 ## 🗺️ Roadmap
 
-- [x] Architecture Monorepo moderne (Bun, Next.js 15, Drizzle)
+- [x] Architecture Monorepo moderne (Bun, Next.js 16, Drizzle)
 - [x] Synchronisation automatique du calendrier, classement et effectif
 - [x] Agrégation et scoring des flux d'actualités OM
 - [x] Espace Fan Zone & Sondages
