@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { FanZoneView } from "@/src/components/fan-zone/FanZoneView";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
@@ -10,6 +11,12 @@ import {
   getRoomPolls,
 } from "@/src/lib/fan-zone/queries.server";
 import type { RoomView } from "@/src/lib/fan-zone/types";
+
+export const metadata: Metadata = {
+  title: "Fan Zone",
+  description: "Le mur du virage : salons de discussion, sondages et débats entre supporters de l'OM.",
+  alternates: { canonical: "/fan-zone" },
+};
 
 export default async function FanZonePage() {
   const rooms = await getActiveRooms();

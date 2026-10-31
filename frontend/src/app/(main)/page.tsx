@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { formatSeason } from "@om/db/season";
 import { NextMatchCard } from "@/src/components/home/NextMatchCard";
@@ -5,6 +6,10 @@ import { StandingsCard } from "@/src/components/home/StandingsCard";
 import { SimulationPanel } from "@/src/components/home/SimulationPanel";
 import { NewsFeed } from "@/src/components/home/NewsFeed";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   CalendarView,
   type CalendarTabId,
@@ -12,6 +13,12 @@ import { getAllOmFixtures, getOmFixtures } from "@/src/lib/data/calendar";
 import { formatSeason } from "@om/db/season";
 
 export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: "Calendrier",
+  description: "Calendrier et résultats de l'OM : Ligue 1, Europa League et Coupe de France.",
+  alternates: { canonical: "/calendrier" },
+};
 
 export default async function CalendrierPage() {
   const season = formatSeason();

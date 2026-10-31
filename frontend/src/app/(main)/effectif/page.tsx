@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { formatSeason } from "@om/db/season";
 import { CoachCard } from "@/src/components/effectif/CoachCard";
 import { SquadTable } from "@/src/components/effectif/SquadTable";
@@ -6,6 +7,12 @@ import { getLigue1Standings, standingsMatchday } from "@/src/lib/data/competitio
 import { getOmSquadPageData } from "@/src/lib/data/squad";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Effectif",
+  description: "L'effectif de l'Olympique de Marseille : joueurs par poste, statistiques et valeurs marchandes.",
+  alternates: { canonical: "/effectif" },
+};
 
 export default async function EffectifPage() {
   const [{ squad, coach, totalMarketValue }, ligue1Standings] = await Promise.all([

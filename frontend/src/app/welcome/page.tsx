@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { Reveal } from "@/src/components/ui/Reveal";
 import { WelcomeActions } from "@/src/components/welcome/WelcomeActions";
 
 const ERROR_MESSAGES: Record<string, string> = {
   auth_callback_failed: "La connexion a échoué. Veuillez réessayer.",
+};
+
+export const metadata: Metadata = {
+  title: "Connexion",
+  robots: { index: false, follow: true },
 };
 
 export default async function WelcomePage({
