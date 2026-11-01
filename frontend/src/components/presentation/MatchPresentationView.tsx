@@ -13,24 +13,34 @@ import { MatchEditorialSection } from "@/src/components/presentation/MatchEditor
 import { CoachesFaceOffSection } from "@/src/components/presentation/CoachesFaceOffSection";
 import { ProbableLineupsSection } from "@/src/components/presentation/ProbableLineupsSection";
 import MatchLiveInterface from "@/src/components/match/MatchLiveInterface";
+import { PredictionCard } from "@/src/components/predictions/PredictionCard";
+import { PlayerRatingsPanel } from "@/src/components/predictions/PlayerRatingsPanel";
+import { SectionHeading } from "@/src/components/ui/SectionHeading";
+import type { MatchCommunityData } from "@/src/lib/predictions/types";
 import { shortTeamName } from "@/src/lib/ui/teams";
 import { useAuth } from "@/src/components/auth/AuthProvider";
 
+export type MatchViewTab = "presentation" | "simulation" | "notes";
+
 interface MatchPresentationViewProps {
   data: MatchPresentationData;
+  community?: MatchCommunityData;
+  initialTab?: MatchViewTab;
 }
 
-export function MatchPresentationView({ data }: MatchPresentationViewProps) {
+export function MatchPresentationView({ data, community, initialTab = "presentation" }: MatchPresentationViewProps) {
   const { isAdmin } = useAuth();
 
   // État local réactif pour les compositions et les textes éditoriaux
   const [lineups, setLineups] = useState<MatchLineups | null>(data.lineups);
   const [editorial, setEditorial] = useState<MatchEditorialPreview>(data.editorialPreview);
 
-  // Par défaut, l'utilisateur arrive sur la Présentation du match
-  const [activeTab, setActiveTab] = useState<"presentation" | "simulation">(
-    "presentation",
-  );
+  const notesAvailable = community !== undefined && community.ratings.window !== "upcoming";
+  const [activeTab, setActiveTab] = useState<MatchViewTab>(() => {
+    if (initialTab === "notes" && notesAvailable) return "notes";
+    if (initialTab === "simulation" && data.isNextMatch) return "simulation";
+    return "presentation";
+  });
 
   const homeShort = shortTeamName(data.match.home_team_name);
   const awayShort = shortTeamName(data.match.away_team_name);
@@ -95,6 +105,22 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
               02 · Simulateur verrouillé
             </span>
           )}
+
+          {notesAvailable && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "notes"}
+              onClick={() => setActiveTab("notes")}
+              className={`-mb-px border border-b-0 border-ink px-4 transition-all duration-100 ${
+                activeTab === "notes"
+                  ? "bg-ink py-3 text-paper"
+                  : "py-2 text-ink hover:bg-accent hover:py-3 hover:text-on-accent"
+              }`}
+            >
+              <span className="label">03 · Notes des fans</span>
+            </button>
+          )}
         </div>
 
         <p className="label pb-2 text-ink/60">
@@ -116,6 +142,16 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
               }
             }}
           />
+
+          {community && (
+            <section>
+              <SectionHeading
+                title={community.prediction.isOpen ? "À toi de pronostiquer" : "Les pronos"}
+                subtitle="Communauté · Pronostics des supporters"
+              />
+              <PredictionCard data={community.prediction} />
+            </section>
+          )}
 
           {/* 2. Forme des deux équipes (filtrée par compétition) */}
           <TeamFormSection
@@ -206,6 +242,10 @@ export function MatchPresentationView({ data }: MatchPresentationViewProps) {
               )}
             </section>
           )}
+        </div>
+      ) : activeTab === "notes" && community ? (
+        <div className="animate-fade-in">
+          <PlayerRatingsPanel data={community.ratings} />
         </div>
       ) : (
         <div className="space-y-6 animate-fade-in">

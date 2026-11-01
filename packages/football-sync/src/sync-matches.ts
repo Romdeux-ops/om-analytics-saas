@@ -1,4 +1,4 @@
-import { createDb, clubs, matches, eq, and, type Db } from "@om/db";
+import { createDb, clubs, matches, eq, and, scoreMatchPredictions, type Db } from "@om/db";
 import { canonicalTeamName } from "./teams";
 
 export const CLUB_PROFILES: Record<
@@ -224,6 +224,44 @@ export async function syncPlayedMatchesFromSnapshots(
   }
 
   return updatedCount;
+}
+
+/**
+ * Attribue les points des pronostics d'après les résultats réels des snapshots.
+ * Ne lit jamais matches.home_score / away_score, qui peuvent contenir un score simulé.
+ */
+export async function scorePredictionsFromSnapshots(
+  db: Db,
+  fixtures: { homeTeam: string; awayTeam: string; played: boolean; homeScore?: number; awayScore?: number }[],
+): Promise<number> {
+  const existingClubs = await db.select({ id: clubs.id, name: clubs.name }).from(clubs);
+  const clubIdByCanonical = new Map<string, number>();
+  for (const c of existingClubs) {
+    clubIdByCanonical.set(canonicalTeamName(c.name), c.id);
+  }
+
+  let scoredCount = 0;
+  for (const f of fixtures) {
+    if (!f.played || f.homeScore == null || f.awayScore == null) continue;
+    const homeId = clubIdByCanonical.get(canonicalTeamName(f.homeTeam));
+    const awayId = clubIdByCanonical.get(canonicalTeamName(f.awayTeam));
+    if (!homeId || !awayId) continue;
+
+    const [match] = await db
+      .select({ id: matches.id })
+      .from(matches)
+      .where(and(eq(matches.homeTeamId, homeId), eq(matches.awayTeamId, awayId)))
+      .limit(1);
+    if (!match) continue;
+
+    scoredCount += await scoreMatchPredictions(db, match.id, { home: f.homeScore, away: f.awayScore });
+  }
+
+  if (scoredCount > 0) {
+    console.log(`✓ ${scoredCount} pronostic(s) corrigé(s).`);
+  }
+
+  return scoredCount;
 }
 
 if (import.meta.main) {

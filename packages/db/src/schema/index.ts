@@ -2,6 +2,7 @@ export * from "./core";
 export * from "./fan-zone";
 export * from "./football";
 export * from "./news";
+export * from "./predictions";
 
 import { relations } from "drizzle-orm";
 import { clubs, matches, players } from "./core";

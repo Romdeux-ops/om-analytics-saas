@@ -85,6 +85,20 @@ const EUROPA_TEAMS = new Set([
   "Anderlecht",
 ]);
 
+/** Compositions probables écrasées par celles enregistrées par le staff. */
+export function applyCustomLineup(
+  lineups: MatchLineups | null,
+  customLineup: Record<string, unknown> | null | undefined,
+): MatchLineups | null {
+  if (!lineups || !customLineup) return lineups;
+  const custom = customLineup as Partial<MatchLineups>;
+  return {
+    ...lineups,
+    home: custom.home ?? lineups.home,
+    away: custom.away ?? lineups.away,
+  };
+}
+
 export async function getMatchPresentationData(
   match: MatchView,
 ): Promise<MatchPresentationData> {
@@ -181,15 +195,7 @@ export async function getMatchPresentationData(
   });
 
   // 3. Fusion des personnalisations staff/admin sauvegardées
-  let finalLineups = lineupsResult;
-  if (customization?.customLineup && finalLineups) {
-    const custom = customization.customLineup as Partial<MatchLineups>;
-    finalLineups = {
-      ...finalLineups,
-      home: custom.home ?? finalLineups.home,
-      away: custom.away ?? finalLineups.away,
-    };
-  }
+  const finalLineups = applyCustomLineup(lineupsResult, customization?.customLineup);
 
   let finalEditorial = baseEditorial;
   if (customization?.customEditorial) {

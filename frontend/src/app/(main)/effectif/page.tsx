@@ -4,6 +4,7 @@ import { CoachCard } from "@/src/components/effectif/CoachCard";
 import { SquadTable } from "@/src/components/effectif/SquadTable";
 import { PageSectionHeader } from "@/src/components/layout/PageSectionHeader";
 import { getOmSquadPageData } from "@/src/lib/data/squad";
+import { getSeasonFanRatings } from "@/src/lib/predictions/queries.server";
 import { pageMetadata } from "@/src/lib/site";
 
 export const revalidate = 60;
@@ -15,7 +16,10 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function EffectifPage() {
-  const { squad, coach, totalMarketValue } = await getOmSquadPageData();
+  const [{ squad, coach, totalMarketValue }, fanRatings] = await Promise.all([
+    getOmSquadPageData(),
+    getSeasonFanRatings(),
+  ]);
   const season = formatSeason();
   // Les stats joueurs ne suivent pas forcément le classement : on date le tableau d'après elles.
   const statsMatchday = Math.max(0, ...squad.map((p) => p.matchesPlayed));
@@ -37,7 +41,7 @@ export default async function EffectifPage() {
         playerCount={squad.length}
         season={season}
       />
-      <SquadTable players={squad} season={season} matchday={statsMatchday} />
+      <SquadTable players={squad} season={season} matchday={statsMatchday} fanRatings={fanRatings} />
     </div>
   );
 }

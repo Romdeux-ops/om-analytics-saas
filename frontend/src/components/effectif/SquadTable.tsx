@@ -1,10 +1,21 @@
 import { formatSeason } from "@om/db/season";
+import { normalizePlayerName } from "@/src/lib/predictions/rateable";
+import type { FanSeasonRating } from "@/src/lib/predictions/types";
+import { formatRating } from "@/src/lib/predictions/window";
 import type { PlayerView } from "@/src/lib/types/player";
 import { cn } from "@/src/lib/ui/cn";
 import { formatMarketValue, groupPlayersByPosition } from "@/src/lib/ui/market-value";
 
 /** Fiche joueur façon vignette d'album : numéro géant en filigrane, stats en pied. */
-function PlayerCard({ player, featured }: { player: PlayerView; featured: boolean }) {
+function PlayerCard({
+  player,
+  featured,
+  fanRating,
+}: {
+  player: PlayerView;
+  featured: boolean;
+  fanRating?: FanSeasonRating;
+}) {
   return (
     <li
       className={cn(
@@ -27,6 +38,14 @@ function PlayerCard({ player, featured }: { player: PlayerView; featured: boolea
           N°{player.jerseyNumber ?? "—"} · {player.positionLabel}
         </p>
         <p className={cn("display mt-2 leading-[0.9]", featured ? "text-5xl" : "text-3xl")}>{player.name}</p>
+        {fanRating && (
+          <p className="label mt-2 inline-flex items-center gap-1.5 border border-current px-1.5 py-0.5">
+            Note fans <span className="font-bold tabular">{formatRating(fanRating.average)}</span>
+            <span className="opacity-60">
+              · {fanRating.matchesRated} match{fanRating.matchesRated > 1 ? "s" : ""}
+            </span>
+          </p>
+        )}
       </div>
 
       <dl className="relative mt-4 grid grid-cols-4 gap-2 border-t border-current pt-2 text-[11px] tabular">
@@ -60,9 +79,11 @@ interface SquadTableProps {
   season?: string;
   /** Journée de Ligue 1 couverte par les stats joueurs ; 0 avant la reprise. */
   matchday?: number;
+  /** Indexé par nom normalisé (normalizePlayerName). */
+  fanRatings?: Record<string, FanSeasonRating>;
 }
 
-export function SquadTable({ players, season = formatSeason(), matchday = 0 }: SquadTableProps) {
+export function SquadTable({ players, season = formatSeason(), matchday = 0, fanRatings = {} }: SquadTableProps) {
   const groups = groupPlayersByPosition(players);
 
   return (
@@ -90,7 +111,12 @@ export function SquadTable({ players, season = formatSeason(), matchday = 0 }: S
 
             <ul className="grid grid-cols-1 border-l border-t border-ink sm:grid-cols-2 lg:grid-cols-4">
               {groupPlayers.map((player, i) => (
-                <PlayerCard key={player.id} player={player} featured={i === 0 && groupPlayers.length > 2} />
+                <PlayerCard
+                  key={player.id}
+                  player={player}
+                  featured={i === 0 && groupPlayers.length > 2}
+                  fanRating={fanRatings[normalizePlayerName(player.name)]}
+                />
               ))}
             </ul>
           </section>
@@ -98,7 +124,7 @@ export function SquadTable({ players, season = formatSeason(), matchday = 0 }: S
       </div>
 
       <p className="label mt-10 border-t border-ink pt-3 text-ink/50">
-        MJ = matchs joués · B = buts · PD = passes décisives
+        MJ = matchs joués · B = buts · PD = passes décisives · Note fans = moyenne des supporters sur la saison
         {matchday > 0 && ` · Ligue 1 après J${matchday}`}
       </p>
     </section>

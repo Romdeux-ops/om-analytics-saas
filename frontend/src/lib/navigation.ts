@@ -9,6 +9,7 @@ export const MAIN_NAV_LINKS: MainNavLink[] = [
   { href: "/calendrier", label: "Calendrier" },
   { href: "/classement", label: "Classement" },
   { href: "/simulation", label: "Simulation" },
+  { href: "/pronostics", label: "Pronos" },
   { href: "/effectif", label: "Effectif" },
   { href: "/fan-zone", label: "Fan Zone", live: true },
 ];
