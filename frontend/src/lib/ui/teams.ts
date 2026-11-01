@@ -38,6 +38,23 @@ const SHORT_NAMES: Record<string, string> = {
   "OGC Nice": "OGCN",
   "RC Lens": "RCL",
   "Stade Rennais": "SRFC",
+  "RC Strasbourg": "RCSA",
+  "Toulouse FC": "TFC",
+  "AJ Auxerre": "AJA",
+  "ESTAC Troyes": "ESTAC",
+  "Angers SCO": "SCO",
+  "Stade Brestois": "SB29",
+  "Le Havre AC": "HAC",
+  "FC Lorient": "FCL",
+  "Le Mans FC": "LM",
+  "Bayer Leverkusen": "B04",
+  "Olympiacos FC": "OLY",
+  "Beşiktaş JK": "BJK",
+  "Celtic FC": "CTC",
+  "Celta de Vigo": "CEL",
+  "RSC Anderlecht": "RSCA",
+  "SK Sturm Graz": "STU",
+  "PFC Levski Sofia": "LEV",
 };
 
 /** Nom complet / officiel d'un club (pour affichage quand la place le permet). */
