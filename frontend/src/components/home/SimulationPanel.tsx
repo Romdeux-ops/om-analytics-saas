@@ -59,10 +59,18 @@ function FeaturedMatchBanner({ match }: { match: MatchView }) {
 
 function TeamBlock({ name, align }: { name: string; align: "left" | "right" }) {
   const om = isOmTeam(name);
+  const label = shortTeamName(name);
   return (
-    <div className={cn("min-w-0", align === "right" && "text-right")}>
-      <p className={cn("display text-[clamp(3.5rem,9vw,8rem)]", om ? "text-accent-inverse" : "text-paper")}>
-        {shortTeamName(name)}
+    <div className={cn("@container min-w-0", align === "right" && "text-right")}>
+      <p
+        className={cn(
+          "display max-w-full overflow-hidden leading-[0.85]",
+          om ? "text-accent-inverse" : "text-paper",
+        )}
+        // Taille calée sur la colonne : un nom long rétrécit au lieu de déborder.
+        style={{ fontSize: `min(8rem, ${Math.round(140 / Math.max(label.length, 2))}cqi)` }}
+      >
+        {label}
       </p>
       <p className="label mt-2 truncate text-paper/50">{fullTeamName(name)}</p>
     </div>
