@@ -6,6 +6,7 @@ const ROUTES: { path: string; changeFrequency: "hourly" | "daily"; priority: num
   { path: "/calendrier", changeFrequency: "daily", priority: 0.8 },
   { path: "/classement", changeFrequency: "daily", priority: 0.8 },
   { path: "/simulation", changeFrequency: "daily", priority: 0.7 },
+  { path: "/pronostics", changeFrequency: "hourly", priority: 0.6 },
   { path: "/effectif", changeFrequency: "daily", priority: 0.7 },
   { path: "/fan-zone", changeFrequency: "hourly", priority: 0.6 },
 ];

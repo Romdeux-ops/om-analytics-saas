@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
-    "./season": "./src/season.ts"
+    "./season": "./src/season.ts",
+    "./prediction-points": "./src/prediction-points.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",

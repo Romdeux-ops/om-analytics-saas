@@ -4,6 +4,8 @@ import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getMatch } from "@/src/lib/data/match";
 import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
+import { getMatchCommunityData } from "@/src/lib/predictions/queries.server";
+import type { MatchViewTab } from "@/src/components/presentation/MatchPresentationView";
 import { pageMetadata } from "@/src/lib/site";
 import { fullTeamName, shortTeamName } from "@/src/lib/ui/teams";
 
@@ -16,7 +18,10 @@ const MatchPresentationView = nextDynamic(
 
 interface SimulationPageProps {
   params: Promise<{ matchId: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }
+
+const TABS: readonly MatchViewTab[] = ["presentation", "simulation", "notes"];
 
 export async function generateMetadata({ params }: SimulationPageProps): Promise<Metadata> {
   const { matchId } = await params;
@@ -30,8 +35,8 @@ export async function generateMetadata({ params }: SimulationPageProps): Promise
   });
 }
 
-export default async function SimulationPage({ params }: SimulationPageProps) {
-  const { matchId } = await params;
+export default async function SimulationPage({ params, searchParams }: SimulationPageProps) {
+  const [{ matchId }, { tab }] = await Promise.all([params, searchParams]);
   const id = Number(matchId);
 
   if (Number.isNaN(id)) {
@@ -45,8 +50,10 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
   }
 
   const presentationData = await getMatchPresentationData(match);
+  const community = await getMatchCommunityData(match, presentationData.lineups);
+  const initialTab = TABS.find((t) => t === tab);
 
-  return <MatchPresentationView data={presentationData} />;
+  return <MatchPresentationView data={presentationData} community={community} initialTab={initialTab} />;
 }
 
 function SimulationError({ message }: { message: string }) {

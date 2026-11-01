@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { createDb } from "../client";
 import { clubs, matches, matchCustomizations, players, type MatchEvent } from "../schema";
@@ -57,6 +57,27 @@ export async function getMatchById(
     .limit(1);
 
   return row ?? null;
+}
+
+export async function getMatchesByIds(
+  db: ReturnType<typeof createDb>,
+  ids: number[],
+): Promise<MatchView[]> {
+  if (ids.length === 0) return [];
+  return matchBaseQuery(db)
+    .where(inArray(matches.id, ids))
+    .orderBy(desc(matches.date));
+}
+
+/** Matchs dont le coup d'envoi tombe dans [from, to[, du plus récent au plus ancien. */
+export async function getMatchesKickingOffBetween(
+  db: ReturnType<typeof createDb>,
+  from: Date,
+  to: Date,
+): Promise<MatchView[]> {
+  return matchBaseQuery(db)
+    .where(and(gte(matches.date, from), lt(matches.date, to)))
+    .orderBy(desc(matches.date));
 }
 
 export async function getFirstUnplayedMatch(

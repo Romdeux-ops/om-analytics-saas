@@ -4,6 +4,8 @@ export { eq, and, asc, desc, inArray, or } from "drizzle-orm";
 export { currentSeasonYear, formatSeason } from "./season";
 export {
   getMatchById,
+  getMatchesByIds,
+  getMatchesKickingOffBetween,
   getFirstUnplayedMatch,
   getUpcomingMatches,
   getNextOmMatch,
@@ -37,6 +39,8 @@ export {
   pruneStalePressArticles,
   type NewsItemRecord,
 } from "./queries/news";
+export { scoreMatchPredictions } from "./queries/predictions";
+export { PREDICTION_POINTS, predictionPoints, type Scoreline } from "./prediction-points";
 export {
   isQualityPressSource,
   isExcludedPressTitle,

@@ -5,6 +5,7 @@ import { getDb } from "@/src/lib/db";
 import { Button } from "@/src/components/ui/Button";
 import { CardSkeleton } from "@/src/components/ui/CardSkeleton";
 import { getMatchPresentationData } from "@/src/lib/data/match-presentation";
+import { getMatchCommunityData } from "@/src/lib/predictions/queries.server";
 import { pageMetadata } from "@/src/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,7 @@ export default async function SimulationIndexPage() {
   }
 
   const presentationData = await getMatchPresentationData(match);
+  const community = await getMatchCommunityData(match, presentationData.lineups);
 
-  return <MatchPresentationView data={presentationData} />;
+  return <MatchPresentationView data={presentationData} community={community} />;
 }
