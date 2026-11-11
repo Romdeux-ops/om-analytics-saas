@@ -50,3 +50,10 @@ export function syncedTime(main: SimulatedMatch, other: SimulatedMatch, t: numbe
   const secondHalfElapsed = t - main.halfTimeAt;
   return Math.min(other.halfTimeAt + secondHalfElapsed, other.duration - 0.001);
 }
+
+/** Inverse de `syncedTime` : instant du match principal où survient un événement d'un autre match. */
+export function toMainTime(main: SimulatedMatch, other: SimulatedMatch, t: number): number {
+  if (t >= other.duration) return main.duration;
+  if (t < other.halfTimeAt) return Math.min(t, main.halfTimeAt - 0.01);
+  return Math.min(main.halfTimeAt + (t - other.halfTimeAt), main.duration - 0.01);
+}
