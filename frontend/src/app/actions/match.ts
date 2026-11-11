@@ -1,18 +1,11 @@
 "use server";
 
 import { revalidateTag, revalidatePath } from "next/cache";
-import { simulateMatch, upsertMatchCustomization } from "@om/db";
+import { upsertMatchCustomization } from "@om/db";
 import { getDb } from "@/src/lib/db";
 import { requireAdmin } from "@/src/lib/admin/permissions";
 import type { MatchLineups } from "@/src/lib/types/lineup";
 import type { MatchEditorialPreview } from "@/src/lib/data/match-preview";
-
-export async function simulateMatchAction(matchId: number) {
-  const result = await simulateMatch(getDb(), matchId);
-  revalidateTag("matches", { expire: 0 });
-  revalidatePath("/", "layout");
-  return result;
-}
 
 export async function saveMatchLineupAction(
   matchId: number,

@@ -12,7 +12,7 @@ import { StandingsComparisonSection } from "@/src/components/presentation/Standi
 import { MatchEditorialSection } from "@/src/components/presentation/MatchEditorialSection";
 import { CoachesFaceOffSection } from "@/src/components/presentation/CoachesFaceOffSection";
 import { ProbableLineupsSection } from "@/src/components/presentation/ProbableLineupsSection";
-import MatchLiveInterface from "@/src/components/match/MatchLiveInterface";
+import { LiveSimulationView } from "@/src/components/simulation/live/LiveSimulationView";
 import { PredictionCard } from "@/src/components/predictions/PredictionCard";
 import { PlayerRatingsPanel } from "@/src/components/predictions/PlayerRatingsPanel";
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
@@ -210,7 +210,7 @@ export function MatchPresentationView({ data, community, initialTab = "presentat
                 </div>
                 <div className="flex flex-col justify-end gap-6 md:col-span-4">
                   <p className="editorial text-xl leading-snug text-paper/75">
-                    Moteur prédictif minute par minute, xG en direct et suivi des performances joueurs.
+                    Simulation de démonstration minute par minute : score, xG, notes des joueurs et classement en direct.
                   </p>
                   <button
                     type="button"
@@ -260,8 +260,8 @@ export function MatchPresentationView({ data, community, initialTab = "presentat
             </button>
           </div>
 
-          {/* Interface de simulation en direct (avec les compositions personnalisées) */}
-          <MatchLiveInterface matchData={data.match} initialLineups={lineups} />
+          {/* Simulation live locale (avec les compositions personnalisées) */}
+          <LiveSimulationView data={data} lineups={lineups} />
         </div>
       )}
     </div>

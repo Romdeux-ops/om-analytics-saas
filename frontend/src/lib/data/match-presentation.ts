@@ -63,6 +63,8 @@ export interface MatchPresentationData {
   stadium: StadiumInfo;
   homeStanding?: StandingRow;
   awayStanding?: StandingRow;
+  /** Classement complet de la compétition (classement live du simulateur). */
+  standings: readonly StandingRow[];
   homeForm: TeamFormData;
   awayForm: TeamFormData;
   homeCoach: CoachProfile;
@@ -218,6 +220,7 @@ export async function getMatchPresentationData(
     stadium,
     homeStanding,
     awayStanding,
+    standings,
     homeForm,
     awayForm,
     homeCoach,
