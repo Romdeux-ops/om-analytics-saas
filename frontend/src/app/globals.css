@@ -602,6 +602,9 @@ html.dark .theme-icon-moon {
   .page-enter {
     animation: page-enter 150ms ease-out both;
   }
+  .animate-fade-in {
+    animation: page-enter 200ms ease-out both;
+  }
   html.theme-switching :where(body, header, footer, main, section, article, div, span, p, h1, h2, h3, li, a, nav, button, code) {
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.25s ease;
   }
