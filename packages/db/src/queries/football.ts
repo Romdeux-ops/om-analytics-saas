@@ -1,7 +1,8 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { createDb } from "../client";
 import {
   footballSnapshots,
+  simulationParams,
   type FootballCompetitionId,
   type SnapshotFixture,
   type SnapshotStanding,
@@ -38,4 +39,16 @@ export async function upsertFootballSnapshot(
         syncedAt: sql`now()`,
       },
     });
+}
+
+export async function getSimulationParams(db: ReturnType<typeof createDb>, key: string): Promise<unknown | null> {
+  const rows = await db.select().from(simulationParams).where(eq(simulationParams.key, key)).limit(1);
+  return rows[0]?.params ?? null;
+}
+
+export async function upsertSimulationParams(db: ReturnType<typeof createDb>, key: string, params: unknown): Promise<void> {
+  await db
+    .insert(simulationParams)
+    .values({ key, params })
+    .onConflictDoUpdate({ target: simulationParams.key, set: { params, generatedAt: sql`now()` } });
 }

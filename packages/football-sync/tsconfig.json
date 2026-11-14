@@ -3,11 +3,19 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022", "DOM"],
-    "types": ["bun"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "bun"
+    ],
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }

@@ -18,6 +18,7 @@ import { buildAutoNews, type CompetitionData } from "./auto-news";
 import { europaZone, fetchEspnFixtures, fetchEspnStandings } from "./espn";
 import { fetchLigue1 } from "./football-data";
 import { fetchPressArticles } from "./news";
+import { refreshSimulationModel } from "./simulation-model";
 import { scorePredictionsFromSnapshots, syncPlayedMatchesFromSnapshots } from "./sync-matches";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -203,6 +204,18 @@ async function main() {
       await scorePredictionsFromSnapshots(db!, fixtures);
     } catch (err) {
       console.warn(`[sync] Impossible de corriger les pronostics pour ${job.competition}:`, err);
+    }
+  }
+
+  // Modèle de prédiction : régénéré dès que de nouveaux résultats de Ligue 1 sont connus.
+  // Un échec ici (table absente, API indisponible) ne doit pas faire échouer la synchro du calendrier :
+  // le site retombe sur les derniers paramètres connus.
+  const modelToken = process.env.FOOTBALL_DATA_TOKEN;
+  if (modelToken) {
+    try {
+      if (await refreshSimulationModel(db, modelToken, seasonYear)) written++;
+    } catch (error) {
+      console.warn("⚠ modèle de simulation non régénéré :", error);
     }
   }
 

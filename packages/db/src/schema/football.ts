@@ -44,3 +44,13 @@ export const footballSnapshots = pgTable("football_snapshots", {
   source: text("source").notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Paramètres du modèle de prédiction (JSON produit hors ligne par `@om/match-model`).
+ * Une ligne par clé (« ligue1 »). Le contenu est typé côté modèle, pas ici.
+ */
+export const simulationParams = pgTable("simulation_params", {
+  key: text("key").primaryKey(),
+  params: jsonb("params").$type<unknown>().notNull(),
+  generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+});

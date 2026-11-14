@@ -106,3 +106,35 @@ export async function fetchLigue1(
 
   return { fixtures, standings: rows };
 }
+
+export interface Ligue1SeasonMatch {
+  matchday: number;
+  /** Coup d'envoi, ISO UTC. */
+  date: string;
+  home: string;
+  away: string;
+  played: boolean;
+  homeScore?: number;
+  awayScore?: number;
+}
+
+/**
+ * Tous les matchs de Ligue 1 de la saison (306) en une requête : résultats des 18 clubs
+ * et calendrier réel de chaque journée. Sert au modèle de prédiction et au multiplex.
+ */
+export async function fetchLigue1Season(token: string, seasonYear: number): Promise<Ligue1SeasonMatch[]> {
+  const { matches } = await request<{ matches: FdMatch[] }>(`/competitions/${LIGUE1_CODE}/matches?season=${seasonYear}`, token);
+  if (matches.length === 0) throw new Error("football-data.org : calendrier de Ligue 1 vide");
+  return matches.map((m) => {
+    const { home, away } = m.score.fullTime;
+    const played = (m.status === "FINISHED" || m.status === "AWARDED") && home !== null && away !== null;
+    return {
+      matchday: m.matchday ?? 0,
+      date: m.utcDate,
+      home: teamName(m.homeTeam),
+      away: teamName(m.awayTeam),
+      played,
+      ...(played ? { homeScore: home, awayScore: away } : {}),
+    };
+  });
+}

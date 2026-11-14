@@ -26,6 +26,8 @@ export {
 export {
   getFootballSnapshots,
   upsertFootballSnapshot,
+  getSimulationParams,
+  upsertSimulationParams,
   type FootballSnapshot,
 } from "./queries/football";
 export {
