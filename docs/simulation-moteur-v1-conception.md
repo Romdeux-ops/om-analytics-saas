@@ -1,6 +1,6 @@
 # Moteur de simulation et de prédiction v1 — document de conception (phase 1)
 
-Statut : **proposition, en attente de validation**. Aucun code de moteur n'est écrit.
+Statut : **validée avec amendements le 14 novembre 2026.** Implémentation et chiffres de référence : [simulation-moteur-v1-validation.md](simulation-moteur-v1-validation.md). Les chiffres ci-dessous sont ceux du backtest exploratoire et sont remplacés par ceux du backtest de référence. La règle 5 a été reformulée après ces résultats (voir § 5).
 Date : 14 novembre 2026 (J10 jouée, prochain match : Marseille – Le Mans, J11, 22 novembre).
 
 Tous les chiffres viennent d'un backtest **exploratoire** lancé pour ce document (script jetable, hors dépôt).
