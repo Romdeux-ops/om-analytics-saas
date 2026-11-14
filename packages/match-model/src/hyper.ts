@@ -19,7 +19,8 @@ const backtest = summary as unknown as BacktestSummary;
 
 /**
  * Hyperparamètres retenus par le dernier backtest (`bun run model:backtest`), choisis sur les saisons
- * de validation. Ils ne sont jamais réglés à la main : relancer le backtest pour les changer.
+ * de validation. ATTENTION : la production n'utilise pas cette valeur mais celle gelée pour la saison
+ * (`frozen-hyper.ts`). Celle-ci sert à préparer le gel de la saison suivante.
  */
 export const SELECTED_HYPER: Hyper = {
   halfLifeDays: backtest.selected.halfLifeDays ?? Infinity,

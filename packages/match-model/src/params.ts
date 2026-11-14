@@ -162,6 +162,8 @@ export interface ModelParams {
     windowDays: number;
     elo: { k: number; homeAdvantage: number; promotedRating: number; mean: number };
   };
+  /** Hyperparamètres gelés pour la saison (voir `frozen-hyper.ts`) : absents des JSON antérieurs au gel. */
+  hyper?: { season: string; frozenAt: string; signature: string };
   teams: Record<string, TeamParams>;
   eventRates: EventRates;
   /** Journée réelle du prochain match de l'OM, ou null si le calendrier est indisponible. */

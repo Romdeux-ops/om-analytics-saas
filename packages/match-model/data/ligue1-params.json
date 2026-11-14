@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-14T18:06:45.836Z",
+ "generatedAt": "2026-11-14T18:20:25.233Z",
  "dataThrough": "2026-11-08",
  "matchesUsed": 1298,
  "seasonResults": 90,
@@ -26,6 +26,11 @@
    "promotedRating": 1500,
    "mean": 1632.7
   }
+ },
+ "hyper": {
+  "season": "2627",
+  "frozenAt": "2026-11-14",
+  "signature": "demi-vie=365;sigma=0.15;fenetre=1500;elo.k=20;elo.promu=1500;elo.domicile=60;elo.depart=1500"
  },
  "teams": {
   "Angers": {

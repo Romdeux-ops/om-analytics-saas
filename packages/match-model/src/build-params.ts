@@ -44,6 +44,8 @@ export interface BuildInput {
   /** Clubs engagés cette saison (sinon déduits des matchs connus). */
   teams?: readonly string[];
   hyper: Hyper;
+  /** Trace du gel des hyperparamètres, recopiée dans le JSON. */
+  hyperInfo?: ModelParams["hyper"];
   components?: ComponentStatus[];
   backtest?: ModelParams["backtest"];
   now: Date;
@@ -243,6 +245,7 @@ export function buildModelParams(input: BuildInput): ModelParams {
       windowDays: input.hyper.windowDays,
       elo: { k: eloConfig.k, homeAdvantage: eloConfig.homeAdvantage, promotedRating: eloConfig.promotedRating, mean: round(eloMean, 1) },
     },
+    hyper: input.hyperInfo,
     teams,
     eventRates,
     matchday: input.matchday ?? null,

@@ -7,3 +7,5 @@ export * from "./metrics";
 export * from "./model";
 export * from "./build-params";
 export * from "./hyper";
+export * from "./frozen-hyper";
+export * from "./prospective";
