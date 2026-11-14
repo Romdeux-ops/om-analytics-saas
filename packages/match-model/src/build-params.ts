@@ -134,8 +134,41 @@ export function measureEventRates(
   };
 }
 
+interface LogRates {
+  logHome: number;
+  sdHome: number;
+  logAway: number;
+  sdAway: number;
+  rho: number;
+}
+
 function predictFixture(fit: FitResult, fixture: SeasonFixture): FixturePrediction {
-  const r = matchLogRates(fit, fixture.home, fixture.away);
+  return predictFromRates({ ...matchLogRates(fit, fixture.home, fixture.away), rho: fit.rho }, fixture);
+}
+
+/**
+ * Prédiction complète (grille, 1/N/2, intervalle, λ) d'une affiche de Ligue 1 à partir du JSON de
+ * paramètres : même calcul que pour les affiches de la journée, à l'arrondi des forces près (4 décimales).
+ * Sert au journal prospectif pour les affiches hors de la journée en cours. Null si un club est inconnu.
+ */
+export function predictFixtureFromParams(params: ModelParams, fixture: SeasonFixture): FixturePrediction | null {
+  const h = params.teams[fixture.home];
+  const a = params.teams[fixture.away];
+  if (!h || !a) return null;
+  return predictFromRates(
+    {
+      logHome: params.league.mu + params.league.gamma + h.att + a.def,
+      sdHome: Math.hypot(h.attSd, a.defSd),
+      logAway: params.league.mu + a.att + h.def,
+      sdAway: Math.hypot(a.attSd, h.defSd),
+      rho: params.league.rho,
+    },
+    fixture,
+  );
+}
+
+function predictFromRates(r: LogRates, fixture: SeasonFixture): FixturePrediction {
+  const fit = { rho: r.rho };
   const grid = predictiveGrid(r.logHome, r.sdHome, r.logAway, r.sdAway, fit.rho);
   const means = gridMeans(grid);
   // Intervalle : tirages des forces dans leur loi a posteriori (graine dérivée de l'affiche).

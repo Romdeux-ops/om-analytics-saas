@@ -16,6 +16,7 @@ export interface ProspectiveRow {
   writtenAt: Date;
   paramsHash: string;
   hyperHash: string;
+  codeCommit: string;
   grid: number[][];
   probabilities: [number, number, number];
 }
@@ -103,6 +104,7 @@ export interface ProspectiveReport {
     oddsRps: number | null;
     deltaRpsVsOdds: { mean: number; lo: number; hi: number } | null;
     hyperHashes: number;
+    codeCommits: number;
   };
 }
 
@@ -124,6 +126,7 @@ export function evaluateProspective(rows: readonly ProspectiveRow[], history: re
     return match ? [{ row, match, outcome: outcomeOf(match.hg, match.ag) as Outcome }] : [];
   });
   const hyperHashes = new Set(kept.map((r) => r.hyperHash)).size;
+  const commits = [...new Set(kept.map((r) => r.codeCommit))];
   const out: string[] = [];
   const say = (line = "") => out.push(line);
   const table = (header: string[], body: string[][]) => {
@@ -140,10 +143,11 @@ export function evaluateProspective(rows: readonly ProspectiveRow[], history: re
   say(`- Lignes du journal : ${rows.filter((r) => r.season === season).length} ; matchs distincts : ${kept.length} ; prédictions remplacées par une plus récente : ${superseded} ; écrites trop tard et écartées : ${late}.`);
   say(`- Matchs avec résultat connu : ${joined.length} ; sans résultat (pas encore joués ou absents de l'historique) : ${kept.length - joined.length}.`);
   say(`- Jeux d'hyperparamètres rencontrés : ${hyperHashes}${hyperHashes > 1 ? " — **ATTENTION : les hyperparamètres ont changé en cours de saison, le test n'est plus prospectif au sens strict.**" : " (gel respecté)."}`);
+  say(`- Versions du code rencontrées : ${commits.length}${commits.length > 1 ? ` (${commits.map((c) => c.slice(0, 8)).join(", ")}) — le code du modèle a changé en cours de saison : vérifier que ces changements ne touchent pas l'ajustement.` : commits.length === 1 ? ` (${commits[0].slice(0, 8)}).` : "."}`);
   say(`- Intervalles à 95 % : bootstrap par blocs de journées, ${resamples} rééchantillonnages.`);
   say();
 
-  const empty: ProspectiveReport["summary"] = { logged: rows.length, matches: kept.length, evaluated: joined.length, withOdds: 0, rps: null, logloss: null, oddsRps: null, deltaRpsVsOdds: null, hyperHashes };
+  const empty: ProspectiveReport["summary"] = { logged: rows.length, matches: kept.length, evaluated: joined.length, withOdds: 0, rps: null, logloss: null, oddsRps: null, deltaRpsVsOdds: null, hyperHashes, codeCommits: commits.length };
   if (joined.length === 0) {
     say("Aucun match évaluable pour l'instant.");
     return { markdown: `${out.join("\n")}\n`, summary: empty };
