@@ -28,6 +28,10 @@ export {
   upsertFootballSnapshot,
   getSimulationParams,
   upsertSimulationParams,
+  appendPredictionLog,
+  getPredictionLog,
+  type PredictionLogEntry,
+  type PredictionLogRow,
   type FootballSnapshot,
 } from "./queries/football";
 export {

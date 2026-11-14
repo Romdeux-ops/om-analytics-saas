@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
     "./season": "./src/season.ts",
-    "./prediction-points": "./src/prediction-points.ts"
+    "./prediction-points": "./src/prediction-points.ts",
+    "./testing": "./src/testing.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.4",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "@electric-sql/pglite": "^0.5.16"
   }
 }
