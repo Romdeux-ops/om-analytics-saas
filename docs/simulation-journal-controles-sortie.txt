@@ -1,0 +1,39 @@
+— Écriture seule —
+✓ une prédiction d'avant-match est écrite
+✓ la même prédiction n'est pas réécrite (ni doublon, ni écrasement)
+✓ de nouveaux paramètres ajoutent une ligne, l'ancienne reste intacte
+✓ la grille complète, l'intervalle et les λ sont relus tels qu'écrits
+✓ UPDATE refusé par la base — prediction_log est en écriture seule : UPDATE interdit
+✓ DELETE refusé par la base — prediction_log est en écriture seule : DELETE interdit
+✓ TRUNCATE refusé par la base — prediction_log est en écriture seule : TRUNCATE interdit
+✓ écrasement par ON CONFLICT DO UPDATE refusé par la base — prediction_log est en écriture seule : UPDATE interdit
+
+— Refus après le coup d'envoi —
+✓ côté application : le match commencé est écarté, les autres sont écrits
+✓ côté base : écriture refusée même si l'application la laisse passer — prediction_log : écriture refusée, le match 1002 a commencé (coup d'envoi 2026-11-14 17:21:11.596+00)
+✓ antidater l'horodatage ne permet pas d'écrire après le coup d'envoi — prediction_log : écriture refusée, le match 1004 a commencé (coup d'envoi 2026-11-14 18:20:11.645+00)
+✓ l'horodatage d'écriture est imposé par la base — 2026-11-14T18:21:11.647Z
+✓ probabilités qui ne somment pas à 1 : refusées
+
+— Contenu du journal : les 9 affiches, empreinte stable —
+✓ une ligne par affiche de Ligue 1 de la journée, pas seulement l'OM — 9 lignes
+✓ chaque ligne porte grille, 1/N/2, intervalle, λ, coup d'envoi et empreintes
+✓ un match déjà joué n'est pas consigné
+✓ empreinte des paramètres insensible à l'ordre des clés
+✓ empreinte sensible au moindre changement de force
+✓ deux synchros avec les mêmes paramètres n'écrivent qu'une fois
+
+— Gel des hyperparamètres —
+✓ la saison 2026-27 a des hyperparamètres gelés — demi-vie=365;sigma=0.15;fenetre=1500;elo.k=20;elo.promu=1500;elo.domicile=60;elo.depart=1500
+✓ la copie de référence des paramètres a été produite avec ces hyperparamètres
+✓ une saison sans gel est refusée (pas de repli silencieux)
+  Pour information, dernier backtest : demi-vie=365;sigma=0.15;fenetre=1500;elo.k=20;elo.promu=1500;elo.domicile=60;elo.depart=1500 (identique au gel)
+
+— Évaluation prospective —
+✓ on garde la dernière prédiction écrite avant le coup d'envoi — 306 gardées, 306 remplacées, 306 écartées car tardives
+✓ jointure résultats + cotes : une prédiction égale aux cotes donne un écart nul — 306 matchs, RPS 0.2003
+✓ le rapport contient RPS, log-loss, calibration et intervalles
+✓ journal vide : rapport sans erreur
+✓ un changement d'hyperparamètres en cours de saison est signalé
+
+Tous les contrôles passent.

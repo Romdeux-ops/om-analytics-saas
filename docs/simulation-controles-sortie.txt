@@ -21,7 +21,7 @@
 ✓ convergence (modèle calibré) : chaque score exact ≈ grille (écart < 4 σ par case) — pire case 2.38 σ ; distance en variation totale 0.0320
 ✓ convergence (repli sans modèle) : 1/N/2 simulé ≈ prédit (6000 graines, écart < 3,5 σ) — simulé 39.3 / 25.3 / 35.4 % ; prédit 39.1 / 25.4 / 35.5 % ; écart max 0.37 σ
 ✓ convergence (repli sans modèle) : chaque score exact ≈ grille (écart < 4 σ par case) — pire case 2.55 σ ; distance en variation totale 0.0318
-✓ un match simulé en moins de 20 ms (navigateur : 1 + 8 matchs) — 7.32 ms par match
+✓ un match simulé en moins de 20 ms (navigateur : 1 + 8 matchs) — 7.05 ms par match
 ✓ probabilités à t = 0 identiques à la prédiction d'avant-match — 1.39e-17
 ✓ buts attendus transmis = moyennes de la grille
 ✓ chaque frame se recalcule depuis les seuls événements passés
