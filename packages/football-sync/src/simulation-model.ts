@@ -33,7 +33,14 @@ export function buildParamsFromSeason(season: readonly Ligue1SeasonMatch[], seas
     results: season
       .filter((m) => m.played)
       .map((m) => ({ date: m.date, home: m.home, away: m.away, hg: m.homeScore!, ag: m.awayScore! })),
-    fixtures: upcoming?.fixtures.map((m) => ({ matchday: m.matchday, date: m.date, home: m.home, away: m.away })),
+    // Un match de la journée déjà joué garde son score réel : il n'est ni prédit ni simulé.
+    fixtures: upcoming?.fixtures.map((m) => ({
+      matchday: m.matchday,
+      date: m.date,
+      home: m.home,
+      away: m.away,
+      ...(m.played ? { result: { home: m.homeScore!, away: m.awayScore! } } : {}),
+    })),
     matchday: upcoming?.matchday ?? null,
     teams: clubs,
     hyper: SELECTED_HYPER,
@@ -64,7 +71,7 @@ export async function refreshSimulationModel(db: Db | null, token: string, seaso
   const params = buildParamsFromSeason(season, seasonYear);
   console.log(
     `✓ modèle de simulation : ${params.matchesUsed} matchs ajustés, données jusqu'au ${params.dataThrough}, ` +
-      `journée ${params.matchday ?? "—"} (${params.fixtures.length} affiches réelles)`,
+      `journée ${params.matchday ?? "—"} (${params.fixtures.length} affiches à jouer, ${params.playedFixtures?.length ?? 0} déjà jouées)`,
   );
   if (!db) return false;
   await upsertSimulationParams(db, SIMULATION_PARAMS_KEY, params);
