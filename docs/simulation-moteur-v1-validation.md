@@ -111,8 +111,8 @@ Trois réserves, à écrire dans le mémoire :
 
 La seule évaluation réellement vierge est donc **prospective** : les matchs à partir de la J11 de 2026-27, que
 personne n'a encore vus. Les paramètres étant régénérés et horodatés à chaque synchro, il suffirait de conserver
-chaque prédiction d'avant-match pour disposer, en fin de saison, d'un test que rien n'a pu contaminer. Ce
-journal n'existe pas encore.
+chaque prédiction d'avant-match pour disposer, en fin de saison, d'un test que rien n'a pu contaminer. C'est
+l'objet du journal prospectif décrit au § 13.
 
 Lecture :
 
@@ -346,9 +346,102 @@ Aucune de ces valeurs non mesurées n'agit sur le score ni sur les probabilités
 
 ## 12. Mise en service
 
-1. Appliquer la migration `20261114120000_simulation_params.sql`. Tant qu'elle ne l'est pas, la synchro journalise
+1. Appliquer les migrations `20261114120000_simulation_params.sql` et `20261114130000_prediction_log.sql`. Tant qu'elle ne l'est pas, la synchro journalise
    un avertissement et le site utilise la copie de référence du dépôt.
 2. La synchro existante régénère les paramètres dès que le nombre de matchs de Ligue 1 joués augmente ou que la
    journée à prédire change : une requête de plus à football-data.org par exécution (3 au total).
 3. Relancer `model:ingest` puis `model:fit` environ une fois par mois pour rafraîchir statistiques et cotes, et
    `model:backtest` en fin de saison.
+
+---
+
+## 13. Journal prospectif
+
+But : disposer en fin de saison d'un test que rien n'a pu contaminer. Chaque prédiction est consignée avant le
+coup d'envoi, dans une table que personne ne peut retoucher, avec des hyperparamètres gelés.
+
+### Table `prediction_log` (migration `20261114130000_prediction_log.sql`)
+
+Une ligne par affiche de Ligue 1 et par jeu de paramètres : les 9 affiches de la journée, pas seulement celle
+de Marseille.
+
+| Colonne | Contenu |
+|---|---|
+| `match_id` | identifiant football-data.org du match |
+| `season`, `matchday`, `home_team`, `away_team` | affiche |
+| `kickoff` | date et heure du coup d'envoi au moment de la prédiction |
+| `written_at` | horodatage de la prédiction, **imposé par la base** |
+| `params_hash` | SHA-256 des paramètres qui déterminent la prédiction (niveau de ligue, forces, hyperparamètres) |
+| `hyper_hash` | SHA-256 des hyperparamètres gelés |
+| `data_through` | date du dernier match pris en compte |
+| `grid` | grille de scores complète (11 × 11) |
+| `p_home`, `p_draw`, `p_away` | probabilités 1/N/2 |
+| `probability_interval` | intervalle à 90 % de chaque issue |
+| `lambda_home`, `lambda_away` | buts attendus |
+
+Garanties, portées par des déclencheurs en base et non par le code applicatif :
+
+- **écriture seule** : `UPDATE`, `DELETE`, `TRUNCATE` et `INSERT … ON CONFLICT DO UPDATE` sont refusés, y
+  compris pour le rôle qui écrit ;
+- **refus après le coup d'envoi** : une ligne dont le coup d'envoi est passé est rejetée ; l'horodatage étant
+  réécrit par la base, l'antidater ne sert à rien ;
+- **pas de doublon** : la même prédiction (même match, mêmes paramètres, même coup d'envoi) n'est écrite
+  qu'une fois ; de nouveaux paramètres ajoutent une ligne sans toucher à l'ancienne.
+
+Limite à connaître : un administrateur de la base peut toujours supprimer un déclencheur ou la table. Le
+journal protège contre l'erreur et la tentation, pas contre un accès propriétaire délibéré.
+
+### Alimentation
+
+À chaque synchro, après la mise à jour éventuelle des paramètres, les prédictions des affiches encore à jouer
+sont consignées si elles ne le sont pas déjà. Quand un résultat arrive (un match du vendredi, par exemple), les
+paramètres changent et les affiches restantes reçoivent une nouvelle ligne. **Pour chaque match, c'est la
+dernière ligne écrite avant le coup d'envoi qui sera évaluée.** Un échec d'écriture du journal n'interrompt pas
+la synchro.
+
+Ne sont pas couverts : les matchs en retard d'une autre journée que celle du prochain match de l'OM, et les
+affiches dont l'horaire n'est pas encore fixé si la date provisoire est déjà passée.
+
+### Gel des hyperparamètres
+
+`packages/match-model/src/frozen-hyper.ts` fixe pour 2026-27 : demi-vie 365 jours, σ = 0,15, fenêtre 1 500
+jours, Elo K = 20, promu 1 500, avantage du domicile 60. La production lit ce fichier et **ne suit plus le
+dernier backtest** : le relancer ne change rien aux prédictions. Une saison sans entrée gelée fait échouer la
+génération des paramètres au lieu de retomber silencieusement sur une valeur par défaut. Si un changement
+survenait malgré tout, `hyper_hash` différerait et le rapport prospectif le signalerait.
+
+Ce qui n'est pas gelé : le code du modèle lui-même. Toute modification de l'ajustement en cours de saison
+changerait `params_hash` sans alerte particulière ; elle doit donc être évitée ou consignée à la main.
+
+### Évaluation : `bun run model:prospective`
+
+À lancer après `bun run model:ingest`, qui récupère résultats et cotes de clôture. Le script est en lecture
+seule. Il garde la dernière prédiction d'avant-match de chaque rencontre, la joint au résultat et aux cotes
+(`AvgC*`, normalisation proportionnelle) par saison et affiche, puis écrit `docs/simulation-prospectif-<saison>.md`
+avec :
+
+- RPS, log-loss, Brier et log-perte du score exact, chacun avec son intervalle à 95 % ;
+- les mêmes mesures pour les cotes de clôture et pour les fréquences de base des saisons précédentes ;
+- l'écart apparié modèle − cotes, avec intervalle ;
+- la table de calibration par tranche de probabilité, modèle et cotes côte à côte ;
+- le nombre de jeux d'hyperparamètres rencontrés, avec un avertissement s'il y en a plus d'un.
+
+Intervalles par bootstrap par blocs de journées, 2 000 rééchantillonnages. En dessous de 100 matchs, le rapport
+prévient que l'échantillon est trop petit pour conclure. Sur le reste de la saison (24 journées, 216 matchs au
+plus), un écart de RPS inférieur à 0,007 environ restera invisible : le journal vaut surtout par accumulation
+sur plusieurs saisons.
+
+### Contrôles : `bun run model:check-log`
+
+27 contrôles, tous passent ([sortie](simulation-journal-controles-sortie.txt)). La migration réelle est
+exécutée dans un Postgres embarqué en mémoire (PGlite) : ce sont les vrais déclencheurs qui sont testés.
+Aucune base réelle n'a été touchée, et la migration n'a pas été appliquée en production.
+
+| Famille | Ce qui est vérifié |
+|---|---|
+| Écriture seule | `UPDATE`, `DELETE`, `TRUNCATE` et écrasement par `ON CONFLICT DO UPDATE` refusés ; pas de doublon ; ancienne ligne intacte |
+| Refus après le coup d'envoi | écarté côté application ; refusé par la base quand on contourne l'application ; antidatage inopérant |
+| Contenu | 9 lignes, une par affiche ; grille, 1/N/2, intervalle, λ, empreintes ; match déjà joué non consigné |
+| Empreinte | insensible à l'ordre des clés d'un jsonb relu, sensible à un changement de force de 0,001 |
+| Gel | hyperparamètres 2026-27 gelés ; saison sans gel refusée |
+| Évaluation | dernière prédiction d'avant-match retenue ; prédiction égale aux cotes → écart nul ; journal vide géré ; changement d'hyperparamètres signalé |
