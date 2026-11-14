@@ -82,6 +82,38 @@ figés : demi-vie 365 jours, σ = 0,15, K = 20, note d'entrée d'un promu 1 500.
 | **E. Dixon-Coles + a priori Elo** | **0,2082** | **0,9997** | **0,5977** | **2,9745** | référence |
 | (4) Cotes de clôture | 0,2027 | 0,9816 | 0,5856 | — | −0,0055 [−0,0088 ; −0,0024] |
 
+### Étanchéité entre réglage et test
+
+**Confirmation : le choix de la demi-vie, de σ, de la note d'entrée des promus, du K de l'Elo et de la puissance
+de recalibrage n'utilise aucun match de 2023-24 à 2025-26, ni de 2026-27.** Ce n'est pas une déclaration
+d'intention, c'est imposé par le script :
+
+- pendant le réglage, le jeu de données visible est tronqué au dernier match de la validation (3 juin 2023,
+  3 319 matchs) : l'Elo, la pente Elo → buts, les ajustements Dixon-Coles et le recalibrage ne reçoivent que
+  ces matchs ;
+- toute tentative de prédire ou d'évaluer un match postérieur pendant cette phase arrête le script ;
+- les réglages sont gelés, puis le test est ouvert une seule fois.
+
+Le backtest relancé avec ce garde-fou redonne exactement les réglages et les chiffres précédents, ce qui montre
+que la version antérieure ne fuyait pas non plus.
+
+Trois réserves, à écrire dans le mémoire :
+
+1. **Le test a été vu avant que le protocole final soit écrit.** En phase 1, le backtest exploratoire a affiché
+   les résultats de 2023-24 à 2025-26 pour deux réglages (120 jours / σ = 0,25, puis 730 jours / σ = 0,06).
+   C'est après cela qu'ont été arrêtés la grille de valeurs candidates, le passage de deux à cinq saisons de
+   validation et le critère de choix. La sélection ne lit pas le test, mais celui qui a défini la sélection
+   l'avait lu. L'effet possible est borné par la platitude de la surface : sur la validation, toute la grille
+   tient entre 0,2076 et 0,2105.
+2. **Les choix de structure ont été faits en connaissant le test** : garder ρ, garder la pondération, afficher
+   la moyenne prédictive, reformuler la règle 5.
+3. **Les 90 matchs de 2026-27 ont aussi été vus** en phase 1.
+
+La seule évaluation réellement vierge est donc **prospective** : les matchs à partir de la J11 de 2026-27, que
+personne n'a encore vus. Les paramètres étant régénérés et horodatés à chaque synchro, il suffirait de conserver
+chaque prédiction d'avant-match pour disposer, en fin de saison, d'un test que rien n'a pu contaminer. Ce
+journal n'existe pas encore.
+
 Lecture :
 
 - **E et B sont indiscernables sur le 1/N/2.** RPS identique à quatre décimales, log-loss identique.
@@ -223,7 +255,7 @@ disponible, ces valeurs sont stockées à titre informatif (`xg.used = false`) e
 
 ## 8. Contrôles
 
-`bun scripts/check-simulation.ts` depuis `frontend/` : 40 contrôles, tous passent.
+`bun scripts/check-simulation.ts` depuis `frontend/` : 42 contrôles, tous passent.
 
 | Famille | Résultat |
 |---|---|
@@ -233,7 +265,7 @@ disponible, ces valeurs sont stockées à titre informatif (`xg.used = false`) e
 | Performance | 7,5 ms par match (hors navigateur) |
 | Probabilités en direct | voir § 5 |
 | Fréquences simulées contre mesurées | tirs 26,4 / 26,3 ; corners 9,8 / 9,8 ; fautes 24,6 / 24,6 ; jaunes 3,78 / 3,79 ; rouges 0,21 / 0,22 ; buts en 1re période 43,8 % / 44,0 % |
-| Multiplex | 8 affiches réelles prédites ; repli étiqueté illustratif ; hors Ligue 1 : rien de transmis |
+| Multiplex | 8 affiches réelles prédites ; match déjà joué : score réel, non simulé ; repli étiqueté illustratif ; hors Ligue 1 : rien de transmis |
 
 Non vérifié : le rendu dans le navigateur. `tsc` passe sur les trois paquets ; `next build` compile, puis échoue
 au prérendu faute de base de données locale dans cet environnement. `bun run lint` signale une erreur
@@ -264,6 +296,17 @@ Tous sont dans `MatchSimulationInput.model` (ou dans le JSON complet côté serv
 | Statut des composants | `params.components` (serveur) | dernier backtest |
 | Résumé du backtest | `params.backtest` (serveur) | dernier backtest |
 | Origine du multiplex | `MultiplexFixture.source` | « calendrier » ou « illustratif » |
+| Matchs de la journée déjà joués | `SimulationModelData.played` | score réel de football-data.org, jamais simulé |
+| Mention de prudence | `provenance.highConfidence` | calibration mesurée au-dessus de 70 % dans le dernier backtest |
+
+Affichage avant le match : chaque pourcentage est suivi de son intervalle à 90 % (« 72 %, entre 59 et 83 % »).
+Quand l'issue la plus probable atteint 70 %, une mention de prudence cite la calibration mesurée (77 % annoncés,
+68 % observés, 68 cas). L'intervalle ne couvre que l'incertitude sur les forces : il ne corrige pas le surcroît
+de confiance, d'où les deux informations côte à côte. En cours de match, ni l'un ni l'autre n'est affiché : une
+probabilité élevée y vient du score, pas du modèle de forces.
+
+Multiplex : un match de la journée déjà joué affiche son score réel, étiqueté « score réel ». Il n'est ni
+prédit ni simulé, et il n'est pas rajouté au classement en direct, qui le compte déjà.
 
 Aucun facteur d'ajustement (absences, composition, repos, enjeu) n'est exposé, parce qu'aucun n'est appliqué.
 Le scénario « non validé » prévu par la règle 5 n'est pas implémenté en v1.
@@ -299,8 +342,6 @@ Aucune de ces valeurs non mesurées n'agit sur le score ni sur les probabilités
 - Il ignore compositions, absences, entraîneurs, repos et enchaînement européen.
 - Les promus et la tranche J6 à J11 sont ses points faibles face au marché.
 - Un carton rouge ne change pas le nombre de buts simulés.
-- Un match déjà joué de la journée en cours reste prédit et simulé dans le multiplex, avec des forces qui
-  tiennent déjà compte de son résultat.
 - Trois saisons de test : un effet inférieur à 0,002 de RPS environ n'est pas mesurable.
 
 ## 12. Mise en service
