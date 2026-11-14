@@ -20,6 +20,8 @@
     "football:sync:press:dry": "bun run --cwd packages/football-sync sync:press:dry",
     "model:ingest": "bun run --cwd packages/match-model ingest",
     "model:backtest": "bun run --cwd packages/match-model backtest",
-    "model:fit": "bun run --cwd packages/football-sync model:fit"
+    "model:fit": "bun run --cwd packages/football-sync model:fit",
+    "model:prospective": "bun run --cwd packages/football-sync model:prospective",
+    "model:check-log": "bun run --cwd packages/football-sync model:check-log"
   }
 }

@@ -14,6 +14,7 @@ interface FdTeam {
 }
 
 interface FdMatch {
+  id: number;
   utcDate: string;
   status: string;
   matchday: number | null;
@@ -108,6 +109,8 @@ export async function fetchLigue1(
 }
 
 export interface Ligue1SeasonMatch {
+  /** Identifiant football-data.org, stable d'une synchro à l'autre. */
+  id: number;
   matchday: number;
   /** Coup d'envoi, ISO UTC. */
   date: string;
@@ -129,6 +132,7 @@ export async function fetchLigue1Season(token: string, seasonYear: number): Prom
     const { home, away } = m.score.fullTime;
     const played = (m.status === "FINISHED" || m.status === "AWARDED") && home !== null && away !== null;
     return {
+      id: m.id,
       matchday: m.matchday ?? 0,
       date: m.utcDate,
       home: teamName(m.homeTeam),
