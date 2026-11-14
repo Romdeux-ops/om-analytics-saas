@@ -1,7 +1,8 @@
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendPredictionLog, getSimulationParams, upsertSimulationParams, type Db, type PredictionLogEntry } from "@om/db";
+import { appendPredictionLog, getPredictionLogFor, getSimulationParams, upsertSimulationParams, type Db, type PredictionLogEntry } from "@om/db";
 import type { ModelParams } from "@om/match-model";
-import { BACKTEST_COMPONENTS, BACKTEST_HEADLINE, buildModelParams, hyperSignature, seasonHyper } from "@om/match-model/fit";
+import { BACKTEST_COMPONENTS, BACKTEST_HEADLINE, buildModelParams, hyperSignature, predictFixtureFromParams, seasonHyper } from "@om/match-model/fit";
 import { loadHistory } from "@om/match-model/history";
 import { fetchLigue1Season, type Ligue1SeasonMatch } from "./football-data";
 
@@ -11,9 +12,35 @@ const OM = "Marseille";
 /** Les 18 clubs attendus : un nom inconnu signale un alias manquant, on préfère échouer que mal ajuster. */
 const LIGUE1_CLUBS = 18;
 
+/** Le journal prospectif consigne toute affiche de Ligue 1 non jouée dont le coup d'envoi est dans cette fenêtre. */
+export const LOG_WINDOW_DAYS = 14;
+const DAY_MS = 86_400_000;
+
 export const seasonCode = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}${String((startYear + 1) % 100).padStart(2, "0")}`;
 
 const sha256 = (text: string) => createHash("sha256").update(text).digest("hex");
+
+/** Journal prospectif incomplet ou inaccessible : fait échouer l'étape de synchro. */
+export class PredictionLogError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PredictionLogError";
+  }
+}
+
+/**
+ * Commit Git du code en cours d'exécution : `GITHUB_SHA` dans le workflow, sinon `git rev-parse HEAD`.
+ * Le code du modèle n'est pas gelé en cours de saison ; chaque prédiction garde donc la trace de sa version.
+ */
+export function currentCodeCommit(): string {
+  const fromCi = process.env.GITHUB_SHA?.trim();
+  if (fromCi) return fromCi;
+  try {
+    return execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim() || "inconnu";
+  } catch {
+    return "inconnu";
+  }
+}
 
 /** Journée du prochain match de Ligue 1 de l'OM, et toutes les affiches réelles de cette journée. */
 export function nextOmMatchday(season: readonly Ligue1SeasonMatch[]): { matchday: number; fixtures: Ligue1SeasonMatch[] } | null {
@@ -72,53 +99,96 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value ?? null);
 }
 
+/** Affiches à consigner : toute affiche de Ligue 1 non jouée dont le coup d'envoi est dans les 14 jours. */
+export function fixturesToLog(season: readonly Ligue1SeasonMatch[], now: Date): Ligue1SeasonMatch[] {
+  const from = now.getTime();
+  const until = from + LOG_WINDOW_DAYS * DAY_MS;
+  return season
+    .filter((m) => {
+      const kickoff = new Date(m.date).getTime();
+      return !m.played && kickoff > from && kickoff <= until;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
 /**
- * Lignes du journal prospectif : une par affiche de Ligue 1 de la journée encore à jouer
- * (les 9 de la journée, pas seulement l'OM), rattachée à son identifiant football-data.org.
+ * Lignes du journal prospectif : une par affiche de Ligue 1 à venir dans les 14 jours, quelle que soit
+ * sa journée. Les affiches de la journée en cours reprennent la prédiction affichée sur le site ; les
+ * autres sont calculées depuis les mêmes paramètres, par la même formule.
  */
-export function buildLogEntries(params: ModelParams, season: readonly Ligue1SeasonMatch[], seasonYear: number): PredictionLogEntry[] {
+export function buildLogEntries(
+  params: ModelParams,
+  season: readonly Ligue1SeasonMatch[],
+  seasonYear: number,
+  now: Date = new Date(),
+  codeCommit: string = currentCodeCommit(),
+): PredictionLogEntry[] {
   const hash = paramsHash(params);
   const hyperHash = sha256(params.hyper?.signature ?? "non gelé");
-  return params.fixtures.flatMap((f) => {
-    const match = season.find((m) => m.home === f.home && m.away === f.away);
-    if (!match || match.played) return [];
-    return [
-      {
-        matchId: String(match.id),
-        season: seasonCode(seasonYear),
-        matchday: match.matchday,
-        homeTeam: f.home,
-        awayTeam: f.away,
-        // Coup d'envoi du calendrier à l'instant de l'écriture (il peut différer de celui du JSON après un report).
-        kickoff: new Date(match.date),
-        paramsHash: hash,
-        hyperHash,
-        dataThrough: params.dataThrough || null,
-        grid: f.grid,
-        pHome: f.probabilities.home,
-        pDraw: f.probabilities.draw,
-        pAway: f.probabilities.away,
-        probabilityInterval: f.interval,
-        lambdaHome: f.lambdaHome,
-        lambdaAway: f.lambdaAway,
-      },
-    ];
+  return fixturesToLog(season, now).map((match) => {
+    const fixture = { matchday: match.matchday, date: match.date, home: match.home, away: match.away };
+    const prediction = params.fixtures.find((f) => f.home === match.home && f.away === match.away) ?? predictFixtureFromParams(params, fixture);
+    if (!prediction) throw new PredictionLogError(`Affiche ${match.home} – ${match.away} : club inconnu du modèle, prédiction impossible.`);
+    return {
+      matchId: String(match.id),
+      season: seasonCode(seasonYear),
+      matchday: match.matchday,
+      homeTeam: match.home,
+      awayTeam: match.away,
+      // Coup d'envoi du calendrier à l'instant de l'écriture (il peut différer de celui du JSON après un report).
+      kickoff: new Date(match.date),
+      paramsHash: hash,
+      hyperHash,
+      codeCommit,
+      dataThrough: params.dataThrough || null,
+      grid: prediction.grid,
+      pHome: prediction.probabilities.home,
+      pDraw: prediction.probabilities.draw,
+      pAway: prediction.probabilities.away,
+      probabilityInterval: prediction.interval,
+      lambdaHome: prediction.lambdaHome,
+      lambdaAway: prediction.lambdaAway,
+    };
   });
 }
 
-/** Écrit dans le journal les prédictions pas encore consignées. Insertion seule ; matchs commencés refusés. */
-export async function logPredictions(db: Db | null, params: ModelParams, season: readonly Ligue1SeasonMatch[], seasonYear: number): Promise<number> {
-  const entries = buildLogEntries(params, season, seasonYear);
+/**
+ * Consigne les prédictions pas encore écrites, puis vérifie que le journal est complet : chaque affiche
+ * attendue doit y avoir une ligne pour les paramètres courants. Insertion seule. Lève `PredictionLogError`
+ * si une ligne manque ou si la table est inaccessible : la synchro échoue alors bruyamment.
+ */
+export async function logPredictions(
+  db: Db | null,
+  params: ModelParams,
+  season: readonly Ligue1SeasonMatch[],
+  seasonYear: number,
+  now: Date = new Date(),
+): Promise<{ written: number; expected: number; present: number }> {
+  const entries = buildLogEntries(params, season, seasonYear, now);
   if (!db) {
-    console.log(`ℹ journal prospectif : ${entries.length} prédiction(s) à consigner (aucune écriture en dry run)`);
-    return 0;
+    console.log(`ℹ journal prospectif : ${entries.length} affiche(s) à consigner dans les ${LOG_WINDOW_DAYS} jours (aucune écriture en dry run)`);
+    return { written: 0, expected: entries.length, present: 0 };
   }
-  const { written, refused } = await appendPredictionLog(db, entries);
-  console.log(
-    `✓ journal prospectif : ${written} nouvelle(s) prédiction(s) sur ${entries.length} affiche(s)` +
-      (refused.length ? `, ${refused.length} refusée(s) car le match a commencé` : ""),
-  );
-  return written;
+  let written: number;
+  let present: number;
+  let expected: PredictionLogEntry[];
+  try {
+    const result = await appendPredictionLog(db, entries, now);
+    written = result.written;
+    // Un match qui a commencé entre le calcul et l'écriture n'est plus attendu : il est refusé, pas manquant.
+    expected = entries.filter((e) => !result.refused.includes(e));
+    const rows = await getPredictionLogFor(db, entries[0]?.paramsHash ?? "", expected.map((e) => e.matchId));
+    const logged = new Set(rows.map((r) => `${r.matchId}|${new Date(r.kickoff).getTime()}`));
+    present = expected.filter((e) => logged.has(`${e.matchId}|${e.kickoff.getTime()}`)).length;
+  } catch (error) {
+    const e = error as { message?: string; cause?: { message?: string } };
+    throw new PredictionLogError(`écriture impossible (${e.cause?.message ?? e.message ?? String(error)})`);
+  }
+  if (present < expected.length) {
+    throw new PredictionLogError(`${present} ligne(s) consignée(s) pour ${expected.length} affiche(s) attendue(s) : des prédictions manquent au journal.`);
+  }
+  console.log(`✓ journal prospectif : ${present}/${expected.length} affiche(s) consignée(s) dans les ${LOG_WINDOW_DAYS} jours, dont ${written} nouvelle(s)`);
+  return { written, expected: expected.length, present };
 }
 
 /**
@@ -126,27 +196,24 @@ export async function logPredictions(db: Db | null, params: ModelParams, season:
  * (match de l'OM compris) ou quand la journée à prédire a changé. Appelé à chaque synchro :
  * le rattrapage quotidien des autres clubs est donc automatique. Renvoie true s'il a écrit.
  *
- * Dans tous les cas, les prédictions des affiches à venir sont consignées dans le journal prospectif.
+ * Dans tous les cas, les prédictions des affiches à venir sont consignées dans le journal prospectif ;
+ * un journal incomplet lève `PredictionLogError`.
  */
 export async function refreshSimulationModel(db: Db | null, token: string, seasonYear: number, force = false): Promise<boolean> {
   const season = await fetchLigue1Season(token, seasonYear);
   const played = season.filter((m) => m.played).length;
   const matchday = nextOmMatchday(season)?.matchday ?? null;
-  // Le journal ne doit jamais faire échouer la mise à jour des paramètres (table absente, par exemple).
-  const log = async (params: ModelParams) => {
-    try {
-      await logPredictions(db, params, season, seasonYear);
-    } catch (error) {
-      console.warn("⚠ journal prospectif non écrit :", error);
-    }
-  };
 
   if (db && !force) {
-    const existing = (await getSimulationParams(db, SIMULATION_PARAMS_KEY)) as ModelParams | null;
+    // Une table de paramètres illisible ne doit pas empêcher de consigner les prédictions.
+    const existing = (await getSimulationParams(db, SIMULATION_PARAMS_KEY).catch((error) => {
+      console.warn("⚠ lecture de simulation_params impossible :", (error as Error).message);
+      return null;
+    })) as ModelParams | null;
     const sameHyper = existing?.hyper?.signature === hyperSignature(seasonHyper(seasonCode(seasonYear)).hyper);
     if (existing && sameHyper && existing.seasonResults >= played && existing.matchday === matchday) {
       console.log(`✓ modèle de simulation : à jour (${played} matchs joués, journée ${matchday ?? "—"})`);
-      await log(existing);
+      await logPredictions(db, existing, season, seasonYear);
       return false;
     }
   }
@@ -156,11 +223,15 @@ export async function refreshSimulationModel(db: Db | null, token: string, seaso
     `✓ modèle de simulation : ${params.matchesUsed} matchs ajustés, données jusqu'au ${params.dataThrough}, ` +
       `journée ${params.matchday ?? "—"} (${params.fixtures.length} affiches à jouer, ${params.playedFixtures?.length ?? 0} déjà jouées)`,
   );
-  if (!db) {
-    await log(params);
-    return false;
+  let stored = false;
+  if (db) {
+    try {
+      await upsertSimulationParams(db, SIMULATION_PARAMS_KEY, params);
+      stored = true;
+    } catch (error) {
+      console.warn("⚠ écriture de simulation_params impossible :", (error as Error).message);
+    }
   }
-  await upsertSimulationParams(db, SIMULATION_PARAMS_KEY, params);
-  await log(params);
-  return true;
+  await logPredictions(db, params, season, seasonYear);
+  return stored;
 }

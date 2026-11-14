@@ -29,6 +29,7 @@ const prospective: ProspectiveRow[] = rows.map((r) => ({
   writtenAt: new Date(r.writtenAt),
   paramsHash: r.paramsHash,
   hyperHash: r.hyperHash,
+  codeCommit: r.codeCommit,
   grid: r.grid,
   probabilities: [r.pHome, r.pDraw, r.pAway],
 }));
