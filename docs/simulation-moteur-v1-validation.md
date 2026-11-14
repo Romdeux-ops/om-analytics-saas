@@ -25,7 +25,13 @@ domicile à huis clos, et intervalles par bootstrap par blocs au lieu d'erreurs-
 | Moteur « score d'abord » | `frontend/src/lib/simulation/engines/dixon-coles.ts` |
 | Probabilités en direct en forme close | `frontend/src/lib/simulation/live.ts` |
 | Construction des entrées | `frontend/src/lib/simulation/model-input.ts`, `frontend/src/lib/data/simulation-model.ts` |
-| Contrôles | `frontend/scripts/check-simulation.ts` |
+| Hyperparamètres gelés pour la saison | `packages/match-model/src/frozen-hyper.ts` |
+| Journal prospectif (écriture seule) | table `prediction_log` (migration `supabase/migrations/20261114130000_prediction_log.sql`) |
+| Consignation à chaque synchro, contrôle de complétude | `packages/football-sync/src/simulation-model.ts` |
+| Évaluation prospective | `packages/match-model/src/prospective.ts`, `packages/football-sync/src/prospective-cli.ts` |
+| Base Postgres embarquée pour les contrôles | `packages/db/src/testing.ts` |
+| Contrôles du moteur | `frontend/scripts/check-simulation.ts` |
+| Contrôles du journal | `packages/football-sync/scripts/check-prediction-log.ts` |
 
 Commandes :
 
@@ -33,7 +39,13 @@ Commandes :
 bun run model:ingest     # historique football-data.co.uk (ponctuel, à relancer environ une fois par mois)
 bun run model:backtest   # backtest de référence, choisit les hyperparamètres (≈ 2 min)
 bun run model:fit        # régénère la copie de référence des paramètres (ajouter -- --db pour écrire en base)
+bun run model:prospective  # évaluation prospective : journal joint aux résultats et aux cotes de clôture
+bun run model:check-log    # contrôles du journal prospectif sur un Postgres embarqué
 ```
+
+Deux migrations sont à appliquer avant la mise en service (§ 12). **Une fois cette branche fusionnée, l'étape
+de synchro du workflow échoue tant que `prediction_log` n'existe pas** : c'est voulu, une prédiction non
+consignée avant le coup d'envoi est perdue.
 
 Le contrat `SimulationEngine` n'est pas cassé : `MatchSimulationInput.model` et deux champs de `SimPlayer` sont
 optionnels. Le moteur de démonstration reste dans `ENGINES`.
@@ -346,8 +358,9 @@ Aucune de ces valeurs non mesurées n'agit sur le score ni sur les probabilités
 
 ## 12. Mise en service
 
-1. Appliquer les migrations `20261114120000_simulation_params.sql` et `20261114130000_prediction_log.sql`. Tant qu'elle ne l'est pas, la synchro journalise
-   un avertissement et le site utilise la copie de référence du dépôt.
+1. Appliquer les migrations `20261114120000_simulation_params.sql` et `20261114130000_prediction_log.sql`. Sans la première, la synchro
+   journalise un avertissement et le site utilise la copie de référence du dépôt. Sans la seconde, **l'étape de
+   synchro échoue** (code de sortie 1) à chaque exécution.
 2. La synchro existante régénère les paramètres dès que le nombre de matchs de Ligue 1 joués augmente ou que la
    journée à prédire change : une requête de plus à football-data.org par exécution (3 au total).
 3. Relancer `model:ingest` puis `model:fit` environ une fois par mois pour rafraîchir statistiques et cotes, et
@@ -362,8 +375,7 @@ coup d'envoi, dans une table que personne ne peut retoucher, avec des hyperparam
 
 ### Table `prediction_log` (migration `20261114130000_prediction_log.sql`)
 
-Une ligne par affiche de Ligue 1 et par jeu de paramètres : les 9 affiches de la journée, pas seulement celle
-de Marseille.
+Une ligne par affiche de Ligue 1 et par jeu de paramètres.
 
 | Colonne | Contenu |
 |---|---|
@@ -373,6 +385,7 @@ de Marseille.
 | `written_at` | horodatage de la prédiction, **imposé par la base** |
 | `params_hash` | SHA-256 des paramètres qui déterminent la prédiction (niveau de ligue, forces, hyperparamètres) |
 | `hyper_hash` | SHA-256 des hyperparamètres gelés |
+| `code_commit` | commit Git du code qui a produit la prédiction (`GITHUB_SHA` dans le workflow) |
 | `data_through` | date du dernier match pris en compte |
 | `grid` | grille de scores complète (11 × 11) |
 | `p_home`, `p_draw`, `p_away` | probabilités 1/N/2 |
@@ -393,25 +406,45 @@ journal protège contre l'erreur et la tentation, pas contre un accès propriét
 
 ### Alimentation
 
-À chaque synchro, après la mise à jour éventuelle des paramètres, les prédictions des affiches encore à jouer
-sont consignées si elles ne le sont pas déjà. Quand un résultat arrive (un match du vendredi, par exemple), les
-paramètres changent et les affiches restantes reçoivent une nouvelle ligne. **Pour chaque match, c'est la
-dernière ligne écrite avant le coup d'envoi qui sera évaluée.** Un échec d'écriture du journal n'interrompt pas
-la synchro.
+À chaque synchro, **toute affiche de Ligue 1 non jouée dont le coup d'envoi est dans les 14 jours** est
+consignée si elle ne l'est pas déjà, quelle que soit sa journée : journée en cours, journée suivante, match en
+retard. Au 14 novembre 2026, cela fait 11 affiches (les 9 de la J11 et 2 de la J12).
 
-Ne sont pas couverts : les matchs en retard d'une autre journée que celle du prochain match de l'OM, et les
-affiches dont l'horaire n'est pas encore fixé si la date provisoire est déjà passée.
+- Les affiches de la journée en cours reprennent exactement la prédiction affichée sur le site.
+- Les autres sont calculées depuis les mêmes paramètres par la même formule, à l'arrondi des forces près
+  (4 décimales).
 
-### Gel des hyperparamètres
+Quand un résultat arrive, les paramètres changent et chaque affiche à venir reçoit une nouvelle ligne.
+**Pour chaque match, c'est la dernière ligne écrite avant le coup d'envoi qui sera évaluée.** Une affiche est
+donc typiquement prédite plusieurs fois, de J−14 au dernier passage de la synchro avant le match.
+
+Non couvert : une affiche dont l'horaire n'est pas fixé et dont la date provisoire est déjà passée.
+
+### Complétude : la synchro échoue si des lignes manquent
+
+Après l'écriture, la synchro relit le journal et compte, pour les paramètres courants, les affiches attendues
+qui y figurent. **S'il y en a moins que d'affiches attendues, ou si la table est inaccessible, l'étape de
+synchro du workflow sort en code 1.** Le reste de la synchro (calendrier, classement, actus) est exécuté
+avant ; seul le statut final change.
+
+Le décompte porte sur les lignes présentes, pas sur les seules lignes nouvelles : une synchro qui retrouve
+ses prédictions déjà consignées écrit zéro ligne et n'échoue pas. Un match qui commence entre le calcul et
+l'écriture est refusé par la base et retiré du nombre attendu.
+
+Un échec de régénération des paramètres (API indisponible, table `simulation_params` illisible) reste un
+simple avertissement et n'empêche pas la consignation.
+
+### Gel des hyperparamètres et trace du code
 
 `packages/match-model/src/frozen-hyper.ts` fixe pour 2026-27 : demi-vie 365 jours, σ = 0,15, fenêtre 1 500
 jours, Elo K = 20, promu 1 500, avantage du domicile 60. La production lit ce fichier et **ne suit plus le
 dernier backtest** : le relancer ne change rien aux prédictions. Une saison sans entrée gelée fait échouer la
-génération des paramètres au lieu de retomber silencieusement sur une valeur par défaut. Si un changement
-survenait malgré tout, `hyper_hash` différerait et le rapport prospectif le signalerait.
+génération des paramètres au lieu de retomber silencieusement sur une valeur par défaut.
 
-Ce qui n'est pas gelé : le code du modèle lui-même. Toute modification de l'ajustement en cours de saison
-changerait `params_hash` sans alerte particulière ; elle doit donc être évitée ou consignée à la main.
+Le code du modèle, lui, n'est pas gelé : il est **tracé**. Chaque ligne porte le commit qui l'a produite, et le
+rapport prospectif liste les versions rencontrées. Un changement de code en cours de saison n'est donc pas
+empêché, mais il ne peut plus passer inaperçu ; c'est au lecteur du rapport de vérifier, commit par commit,
+qu'il ne touche pas l'ajustement.
 
 ### Évaluation : `bun run model:prospective`
 
@@ -424,7 +457,7 @@ avec :
 - les mêmes mesures pour les cotes de clôture et pour les fréquences de base des saisons précédentes ;
 - l'écart apparié modèle − cotes, avec intervalle ;
 - la table de calibration par tranche de probabilité, modèle et cotes côte à côte ;
-- le nombre de jeux d'hyperparamètres rencontrés, avec un avertissement s'il y en a plus d'un.
+- le nombre de jeux d'hyperparamètres et de versions du code rencontrés, avec un avertissement au-delà d'un.
 
 Intervalles par bootstrap par blocs de journées, 2 000 rééchantillonnages. En dessous de 100 matchs, le rapport
 prévient que l'échantillon est trop petit pour conclure. Sur le reste de la saison (24 journées, 216 matchs au
@@ -433,7 +466,7 @@ sur plusieurs saisons.
 
 ### Contrôles : `bun run model:check-log`
 
-27 contrôles, tous passent ([sortie](simulation-journal-controles-sortie.txt)). La migration réelle est
+39 contrôles, tous passent ([sortie](simulation-journal-controles-sortie.txt)). La migration réelle est
 exécutée dans un Postgres embarqué en mémoire (PGlite) : ce sont les vrais déclencheurs qui sont testés.
 Aucune base réelle n'a été touchée, et la migration n'a pas été appliquée en production.
 
@@ -441,7 +474,12 @@ Aucune base réelle n'a été touchée, et la migration n'a pas été appliquée
 |---|---|
 | Écriture seule | `UPDATE`, `DELETE`, `TRUNCATE` et écrasement par `ON CONFLICT DO UPDATE` refusés ; pas de doublon ; ancienne ligne intacte |
 | Refus après le coup d'envoi | écarté côté application ; refusé par la base quand on contourne l'application ; antidatage inopérant |
-| Contenu | 9 lignes, une par affiche ; grille, 1/N/2, intervalle, λ, empreintes ; match déjà joué non consigné |
-| Empreinte | insensible à l'ordre des clés d'un jsonb relu, sensible à un changement de force de 0,001 |
+| Fenêtre de 14 jours | 19 affiches d'un calendrier fictif consignées (J11, J12, match en retard) ; J13, match joué et date dépassée exclus ; limite à la minute près |
+| Contenu | grille, 1/N/2, intervalle, λ, empreintes, commit ; affiche de la journée identique au site ; affiche retour recalculée depuis les forces |
+| Complétude | 19 écrites pour 19 attendues ; 18 pour 19 → erreur ; table absente → erreur ; relance sans réécriture ; dry run sans écriture |
+| Empreinte et commit | insensible à l'ordre des clés d'un jsonb relu, sensible à un changement de force de 0,001 ; `GITHUB_SHA` prioritaire |
 | Gel | hyperparamètres 2026-27 gelés ; saison sans gel refusée |
-| Évaluation | dernière prédiction d'avant-match retenue ; prédiction égale aux cotes → écart nul ; journal vide géré ; changement d'hyperparamètres signalé |
+| Évaluation | dernière prédiction d'avant-match retenue ; prédiction égale aux cotes → écart nul ; journal vide géré ; changement d'hyperparamètres ou de code signalé |
+
+Non testé de bout en bout : le code de sortie du processus de synchro lui-même, qui demande une base et les
+API externes. Le contrôle vérifie que l'erreur de journal est levée et que la synchro la compte comme un échec.
