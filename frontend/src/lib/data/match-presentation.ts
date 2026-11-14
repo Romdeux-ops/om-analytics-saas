@@ -8,6 +8,8 @@ import { getUpcomingMatches } from "@/src/lib/data/matches";
 import type { StandingRow } from "@/src/lib/types/standing";
 import type { MatchLineups } from "@/src/lib/types/lineup";
 import { resolveTeamName } from "@/src/lib/data/lineup";
+import { getSimulationModelParams } from "@/src/lib/data/simulation-model";
+import { buildSimulationModelData, type SimulationModelData } from "@/src/lib/simulation/model-input";
 
 export type CompetitionId = "ligue1" | "europa" | "coupe";
 
@@ -74,6 +76,8 @@ export interface MatchPresentationData {
   upcomingMatches: MatchView[];
   isNextMatch: boolean;
   nextMatchId?: number;
+  /** Prédiction calibrée et affiches réelles de la journée (Ligue 1 uniquement). */
+  simulation?: SimulationModelData;
 }
 
 const EUROPA_TEAMS = new Set([
@@ -212,6 +216,21 @@ export async function getMatchPresentationData(
 
   const isNextMatch = nextUnplayedMatch ? nextUnplayedMatch.id === match.id : true;
 
+  // 4. Modèle de prédiction : Ligue 1 uniquement. Hors Ligue 1 (Europe, coupe), aucune force
+  // n'est estimée pour l'adversaire : on ne transmet rien et l'interface n'affiche aucune probabilité.
+  let simulation: SimulationModelData = { multiplex: null };
+  if (competition === "ligue1") {
+    try {
+      simulation = buildSimulationModelData(
+        await getSimulationModelParams(),
+        homeStanding?.clubName ?? homeCanonical,
+        awayStanding?.clubName ?? awayCanonical,
+      );
+    } catch (error) {
+      console.warn("[match-presentation] Modèle de simulation indisponible :", error);
+    }
+  }
+
   return {
     match,
     competition,
@@ -230,5 +249,6 @@ export async function getMatchPresentationData(
     upcomingMatches,
     isNextMatch,
     nextMatchId: nextUnplayedMatch?.id,
+    simulation,
   };
 }

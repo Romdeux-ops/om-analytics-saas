@@ -27,6 +27,7 @@ import { LiveScoreboard, type ScoreFlash } from "./LiveScoreboard";
 import { LiveStandings } from "./LiveStandings";
 import { LiveStatsPanel } from "./LiveStatsPanel";
 import { MomentumChart } from "./MomentumChart";
+import { ModelNotes, NoProbabilityNotice } from "./ModelNotes";
 import { Multiplex, type MultiplexCard } from "./Multiplex";
 import { PlaybackControls } from "./PlaybackControls";
 import { SectionTitle, sideTones, teamCode } from "./shared";
@@ -120,20 +121,27 @@ function LiveMatch({
     () => ({
       home: buildSimTeam(homeName, data.homeStanding, lineups?.home),
       away: buildSimTeam(awayName, data.awayStanding, lineups?.away),
+      // Prédiction calibrée (Ligue 1). Absente : simulation illustrative, aucune probabilité affichée.
+      model: data.simulation?.main,
     }),
-    [homeName, awayName, data.homeStanding, data.awayStanding, lineups],
+    [homeName, awayName, data.homeStanding, data.awayStanding, lineups, data.simulation],
   );
   const match = useMemo(() => runSimulation(input, seed), [input, seed]);
 
+  const multiplexFixtures = useMemo(
+    () => buildMultiplexFixtures(data.standings, [homeName, awayName], seed, data.simulation?.multiplex),
+    [data.standings, homeName, awayName, seed, data.simulation],
+  );
+  const multiplexSource = multiplexFixtures[0]?.source ?? "illustratif";
   const multiplex = useMemo(
     () =>
-      buildMultiplexFixtures(data.standings, [homeName, awayName], seed).map((fixture, i) => ({
+      multiplexFixtures.map((fixture, i) => ({
         id: fixture.id,
         homeName: fixture.input.home.name,
         awayName: fixture.input.away.name,
         sim: runSimulation(fixture.input, deriveSeed(seed, i + 1)),
       })),
-    [data.standings, homeName, awayName, seed],
+    [multiplexFixtures, seed],
   );
 
   // Buts du multiplex, recalés sur le temps du match principal (pour le fil).
@@ -255,7 +263,8 @@ function LiveMatch({
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  const expected = expectedGoals(input.home.strength, input.away.strength);
+  const model = input.model;
+  const expected = model ? { home: model.lambdaHome, away: model.lambdaAway } : expectedGoals(input.home.strength, input.away.strength);
   const section = (tab: MobileTab) => cn(mobileTab !== tab && "hidden", "lg:block");
 
   return (
@@ -280,7 +289,10 @@ function LiveMatch({
           onNewSimulation={onNewSimulation}
         />
         <p className="label text-ink/50">
-          {DEFAULT_ENGINE.label} · résultats fictifs, en attendant les moteurs du mémoire (Poisson, Markov, ML) · espace = lecture / pause
+          {model
+            ? `${DEFAULT_ENGINE.label} · score tiré dans la grille prédite, déroulé simulé · une simulation n'est pas un pronostic`
+            : `${DEFAULT_ENGINE.label} · match hors Ligue 1 : simulation illustrative, non calibrée`}{" "}
+          · espace = lecture / pause
         </p>
       </div>
 
@@ -314,7 +326,11 @@ function LiveMatch({
             </button>
           </div>
           <div className="space-y-5 md:col-span-7">
-            <WinProbabilityBar probability={match.frames[0].winProbability} homeName={homeName} awayName={awayName} tones={tones} />
+            {model ? (
+              <WinProbabilityBar probability={match.frames[0].winProbability} homeName={homeName} awayName={awayName} tones={tones} />
+            ) : (
+              <NoProbabilityNotice />
+            )}
             <dl className="grid grid-cols-2 border-t border-ink pt-3">
               <div>
                 <dt className="label text-ink/55">Buts attendus · {teamCode(homeName)}</dt>
@@ -325,7 +341,13 @@ function LiveMatch({
                 <dd className="display mt-1 text-4xl tabular">{expected.away.toFixed(2)}</dd>
               </div>
             </dl>
-            <p className="label text-ink/45">Forces estimées depuis le classement (buts marqués / encaissés par match) + avantage du terrain.</p>
+            {model ? (
+              <ModelNotes model={model} homeName={homeName} awayName={awayName} />
+            ) : (
+              <p className="label text-ink/45">
+                Buts attendus illustratifs, tirés du classement (buts marqués / encaissés par match) : non calibrés.
+              </p>
+            )}
           </div>
         </section>
       )}
@@ -358,14 +380,18 @@ function LiveMatch({
         <div className="flex flex-col gap-10 lg:col-span-8 lg:border-r lg:border-ink lg:pr-8">
           <section className={cn(section("stats"), "space-y-6")}>
             <SectionTitle title="Le rapport de force" aside={started ? shortClock : "Avant-match"} />
-            <WinProbabilityBar
-              probability={state.frame.winProbability}
-              reference={started ? reference : undefined}
-              referenceLabel={lastGoal ? `depuis le but de la ${minuteLabel(lastGoal)}` : "depuis le coup d'envoi"}
-              homeName={homeName}
-              awayName={awayName}
-              tones={tones}
-            />
+            {model ? (
+              <WinProbabilityBar
+                probability={state.frame.winProbability}
+                reference={started ? reference : undefined}
+                referenceLabel={lastGoal ? `depuis le but de la ${minuteLabel(lastGoal)}` : "depuis le coup d'envoi"}
+                homeName={homeName}
+                awayName={awayName}
+                tones={tones}
+              />
+            ) : (
+              <NoProbabilityNotice />
+            )}
             <MomentumChart match={match} clock={t} homeName={homeName} awayName={awayName} tones={tones} markers={markers} />
           </section>
 
@@ -408,7 +434,7 @@ function LiveMatch({
         </section>
         <section className="space-y-4 lg:col-span-5 lg:pl-8">
           <SectionTitle title="Multiplex" aside={`Journée ${data.matchday}`} />
-          <Multiplex cards={multiplexCards} selected={selectedFixture} onSelect={setSelectedFixture} clockLabel={shortClock} />
+          <Multiplex cards={multiplexCards} selected={selectedFixture} onSelect={setSelectedFixture} clockLabel={shortClock} source={multiplexSource} />
         </section>
       </div>
 

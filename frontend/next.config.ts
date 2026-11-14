@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@om/db"],
+  transpilePackages: ["@om/db", "@om/match-model"],
   experimental: {
     staleTimes: {
       dynamic: 30,
