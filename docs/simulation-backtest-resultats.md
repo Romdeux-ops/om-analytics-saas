@@ -39,6 +39,13 @@ A priori à moyenne unique (sans Elo) :
 Retenu avec a priori Elo : demi-vie 365 j, σ = 0.15. Sans Elo : demi-vie 365 j, σ = 0.4.
 Critère de choix : RPS de validation le plus bas (déclaré avant le test).
 
+## 2 bis. Étanchéité entre réglage et test
+
+- Dernier match visible pendant le réglage : 2023-06-03 (3319 matchs). Premier match du test : 2023-08-11.
+- Pendant le réglage, l'Elo, la pente Elo → buts, les ajustements et le recalibrage ne reçoivent que ces matchs : les saisons de test ne sont pas chargées dans le jeu de données visible, et le script s'arrête sur toute tentative d'accès.
+- Réglages gelés avant l'ouverture du test : K = 20, promu = 1500, demi-vie = 365 j, σ = 0.15, puissance de recalibrage = 0.9.
+- Les grilles de valeurs candidates et les constantes non réglées (fenêtre de 1 500 jours, avantage du domicile de l'Elo à 60 points, a priori à huis clos) sont fixées dans le code, pas choisies sur le test.
+
 ## 3. Test : 2023-24, 2024-25, 2025-26
 
 | Modèle | RPS | Log-loss | Brier | Log-perte score exact | ΔRPS contre E [IC 95 %] | Δlog-loss contre E [IC 95 %] |
@@ -129,4 +136,4 @@ Dernier ajustement de la période : μ = 0.200, γ = 0.197 (× 1.217), ρ = -0.0
 Test et saison en cours : AvgCH / AvgCD / AvgCA (1008 matchs).
 Historique complet : PSC (1900), AvgC (2427).
 
-Durée du backtest : 135 s.
+Durée du backtest : 197 s.

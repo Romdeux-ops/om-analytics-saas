@@ -113,6 +113,23 @@ export interface FixturePrediction {
   interval: { home: [number, number]; draw: [number, number]; away: [number, number] };
 }
 
+export interface PlayedFixture {
+  matchday: number;
+  date: string;
+  home: string;
+  away: string;
+  homeScore: number;
+  awayScore: number;
+}
+
+/** Sur le test du backtest, issues annoncées à `threshold` ou plus : probabilité moyenne annoncée et fréquence observée. */
+export interface HighConfidenceCalibration {
+  threshold: number;
+  predicted: number;
+  observed: number;
+  cases: number;
+}
+
 export interface ComponentStatus {
   component: string;
   /** « démontré », « non démontré » ou « défavorable » d'après le backtest. */
@@ -149,10 +166,21 @@ export interface ModelParams {
   eventRates: EventRates;
   /** Journée réelle du prochain match de l'OM, ou null si le calendrier est indisponible. */
   matchday: number | null;
+  /** Affiches de la journée encore à jouer : les seules à être prédites et simulées. */
   fixtures: FixturePrediction[];
+  /** Affiches de la journée déjà jouées : score réel, ni prédiction ni simulation. */
+  playedFixtures?: PlayedFixture[];
   /** Statut de chaque composant du modèle dans le dernier backtest. */
   components: ComponentStatus[];
-  backtest: { generatedAt: string; testSeasons: string[]; matches: number; rps: Record<string, number>; logloss: Record<string, number> } | null;
+  backtest: {
+    generatedAt: string;
+    testSeasons: string[];
+    matches: number;
+    rps: Record<string, number>;
+    logloss: Record<string, number>;
+    /** Calibration mesurée au-dessus du seuil de prudence : le modèle y a été trop confiant. */
+    highConfidence?: HighConfidenceCalibration;
+  } | null;
   /** Emplacement réservé : les xG ne déplacent aucune probabilité en v1. */
   xg: { used: false; source: string; matches: number; perTeam: Record<string, { for: number; against: number; matches: number }> } | null;
 }

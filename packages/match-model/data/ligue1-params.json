@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-14T17:44:45.185Z",
+ "generatedAt": "2026-11-14T18:06:45.836Z",
  "dataThrough": "2026-11-08",
  "matchesUsed": 1298,
  "seasonResults": 90,
@@ -1864,6 +1864,7 @@
    }
   }
  ],
+ "playedFixtures": [],
  "components": [
   {
    "component": "Historique multi-saisons",
@@ -1930,7 +1931,7 @@
   }
  ],
  "backtest": {
-  "generatedAt": "2026-11-14T11:53:47.375Z",
+  "generatedAt": "2026-11-14T18:06:36.628Z",
   "testSeasons": [
    "2324",
    "2425",
@@ -1952,6 +1953,12 @@
    "E. Dixon-Coles + a priori Elo (moyenne prédictive)": 0.9997,
    "(4) Cotes de clôture, normalisation proportionnelle": 0.9816,
    "(4 bis) Cotes de clôture, méthode de la puissance": 0.9812
+  },
+  "highConfidence": {
+   "threshold": 0.7,
+   "predicted": 0.765,
+   "observed": 0.676,
+   "cases": 68
   }
  },
  "xg": {

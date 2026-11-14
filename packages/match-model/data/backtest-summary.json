@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T11:53:47.375Z",
+  "generatedAt": "2026-11-14T18:06:36.628Z",
   "validationSeasons": [
     "1819",
     "1920",
@@ -37,6 +37,12 @@
       "E. Dixon-Coles + a priori Elo (moyenne prédictive)": 0.9997,
       "(4) Cotes de clôture, normalisation proportionnelle": 0.9816,
       "(4 bis) Cotes de clôture, méthode de la puissance": 0.9812
+    },
+    "highConfidence": {
+      "threshold": 0.7,
+      "predicted": 0.765,
+      "observed": 0.676,
+      "cases": 68
     },
     "components": [
       {

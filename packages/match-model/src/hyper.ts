@@ -1,12 +1,18 @@
 import summary from "../data/backtest-summary.json";
-import type { ComponentStatus, ModelParams } from "./params";
+import type { ComponentStatus, HighConfidenceCalibration, ModelParams } from "./params";
 import { ELO_BASE, type Hyper } from "./model";
 
 interface BacktestSummary {
   generatedAt: string;
   testSeasons: string[];
   selected: { halfLifeDays: number | null; sigma: number; windowDays: number; eloK: number; promotedRating: number; recalibrationPower: number | null };
-  test: { matches: number; rps: Record<string, number>; logloss: Record<string, number>; components?: ComponentStatus[] };
+  test: {
+    matches: number;
+    rps: Record<string, number>;
+    logloss: Record<string, number>;
+    components?: ComponentStatus[];
+    highConfidence?: HighConfidenceCalibration;
+  };
 }
 
 const backtest = summary as unknown as BacktestSummary;
@@ -30,4 +36,5 @@ export const BACKTEST_HEADLINE: NonNullable<ModelParams["backtest"]> = {
   matches: backtest.test.matches,
   rps: backtest.test.rps,
   logloss: backtest.test.logloss,
+  highConfidence: backtest.test.highConfidence,
 };

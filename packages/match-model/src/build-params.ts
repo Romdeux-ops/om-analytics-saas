@@ -28,6 +28,8 @@ export interface SeasonFixture {
   date: string;
   home: string;
   away: string;
+  /** Score réel si le match est déjà joué : il n'est alors ni prédit ni simulé. */
+  result?: { home: number; away: number };
 }
 
 export interface BuildInput {
@@ -244,7 +246,12 @@ export function buildModelParams(input: BuildInput): ModelParams {
     teams,
     eventRates,
     matchday: input.matchday ?? null,
-    fixtures: (input.fixtures ?? []).filter((f) => fit.att[f.home] !== undefined && fit.att[f.away] !== undefined).map((f) => predictFixture(fit, f)),
+    fixtures: (input.fixtures ?? [])
+      .filter((f) => !f.result && fit.att[f.home] !== undefined && fit.att[f.away] !== undefined)
+      .map((f) => predictFixture(fit, f)),
+    playedFixtures: (input.fixtures ?? [])
+      .filter((f) => f.result)
+      .map((f) => ({ matchday: f.matchday, date: f.date, home: f.home, away: f.away, homeScore: f.result!.home, awayScore: f.result!.away })),
     components: input.components ?? [],
     backtest: input.backtest ?? null,
     xg: withXg.length

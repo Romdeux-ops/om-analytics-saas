@@ -59,6 +59,23 @@ const block = new Array<number>(N);
   });
 }
 const firstDay = Object.fromEntries(seasons.map((s) => [s, matches.find((m) => m.season === s)!.day]));
+
+/**
+ * Garde-fou contre la fuite du test vers le réglage. Pendant le choix des hyperparamètres, tout ce qui
+ * ajuste ou prédit ne voit que `visible` : les matchs joués jusqu'au dernier jour de la validation.
+ * Les saisons de test n'existent pas pour le code de réglage, et toute tentative d'y accéder lève une erreur.
+ */
+const lastValidationDay = Math.max(...matches.filter((m) => VALIDATION.includes(m.season)).map((m) => m.day));
+const firstTestDay = Math.min(...matches.filter((m) => TEST.includes(m.season)).map((m) => m.day));
+if (lastValidationDay >= firstTestDay) throw new Error("Les saisons de validation doivent précéder entièrement les saisons de test.");
+const tuningMatches = matches.filter((m) => m.day <= lastValidationDay);
+const tuningTeams = Object.fromEntries(Object.entries(teamsBySeason).filter(([s]) => firstDay[s] <= lastValidationDay));
+let visible: typeof matches = tuningMatches;
+let visibleTeams: typeof teamsBySeason = tuningTeams;
+let testOpened = false;
+const guard = (i: number) => {
+  if (i >= visible.length) throw new Error(`Fuite : accès au match ${i} (${matches[i].season}) pendant le réglage.`);
+};
 const indicesOf = (list: readonly string[]) => matches.map((m, i) => (list.includes(m.season) ? i : -1)).filter((i) => i >= 0);
 
 // ------------------------------------------------------------------ prédictions
@@ -76,14 +93,16 @@ interface EloContext {
 }
 
 function makeElo(k: number, promoted: number): EloContext {
-  const run = runElo(matches, teamsBySeason, { ...ELO_BASE, k, promotedRating: promoted });
-  const goals = Object.fromEntries(seasons.slice(1).map((s) => [s, fitEloGoalModel(matches, run, firstDay[s], BURN_IN)]));
+  const run = runElo(visible, visibleTeams, { ...ELO_BASE, k, promotedRating: promoted });
+  const known = Object.keys(visibleTeams).sort();
+  const goals = Object.fromEntries(known.slice(1).map((s) => [s, fitEloGoalModel(visible, run, firstDay[s], BURN_IN)]));
   return { k, promoted, run, goals };
 }
 
 function predictElo(ctx: EloContext, idx: readonly number[]): Preds {
   const out: Preds = new Array(N);
   for (const i of idx) {
+    guard(i);
     const g = ctx.goals[matches[i].season];
     const x = (ctx.run.pre[i].home - ctx.run.pre[i].away) / 400;
     const grid = scoreGrid(Math.exp(g.home + g.beta * x), Math.exp(g.away - g.beta * x));
@@ -107,6 +126,7 @@ function predictDixonColes(ctx: EloContext, idx: readonly number[], opts: DcOpti
   let day = -1;
   let season = "";
   for (const i of idx) {
+    guard(i);
     const m = matches[i];
     if (m.season !== season) {
       season = m.season;
@@ -117,7 +137,7 @@ function predictDixonColes(ctx: EloContext, idx: readonly number[], opts: DcOpti
       const prior = useElo
         ? eloPrior(ctx.run.snapshots.get(day)!, teamsBySeason[season], ctx.goals[season].beta, ELO_BASE.initialRating)
         : { att: {}, def: {} };
-      fit = fitDixonColes(matches, day, cfg, prior, teamsBySeason[season], fit);
+      fit = fitDixonColes(visible, day, cfg, prior, teamsBySeason[season], fit);
     }
     const r = matchLogRates(fit!, m.home, m.away, { covid: cfg.covidGamma && m.covid });
     const rest = fit!.rest;
@@ -189,6 +209,7 @@ function recalibrate(preds: Preds, k: number): Preds {
 // ------------------------------------------------------------------ mesures
 type Metric = "rps" | "logloss" | "brier" | "score";
 function loss(pr: Pred, i: number, metric: Metric): number {
+  guard(i);
   if (metric === "rps") return rps(pr.p, outcome[i]);
   if (metric === "logloss") return logLoss(pr.p, outcome[i]);
   if (metric === "brier") return brier(pr.p, outcome[i]);
@@ -343,6 +364,22 @@ let power = 1;
   }
 }
 
+// ------------------------------------------------------------------ gel des réglages, ouverture du test
+const frozen = { ...reference, eloK: elo.k, promoted: elo.promoted, flat: { ...chosenFlat }, power };
+say("## 2 bis. Étanchéité entre réglage et test");
+say();
+say(`- Dernier match visible pendant le réglage : ${history[tuningMatches.length - 1].date} (${tuningMatches.length} matchs). Premier match du test : ${history[tuningMatches.length].date}.`);
+say("- Pendant le réglage, l'Elo, la pente Elo → buts, les ajustements et le recalibrage ne reçoivent que ces matchs : les saisons de test ne sont pas chargées dans le jeu de données visible, et le script s'arrête sur toute tentative d'accès.");
+say(`- Réglages gelés avant l'ouverture du test : K = ${frozen.eloK}, promu = ${frozen.promoted}, demi-vie = ${hlLabel(frozen.halfLifeDays)}, σ = ${frozen.sigma}, puissance de recalibrage = ${frozen.power}.`);
+say("- Les grilles de valeurs candidates et les constantes non réglées (fenêtre de 1 500 jours, avantage du domicile de l'Elo à 60 points, a priori à huis clos) sont fixées dans le code, pas choisies sur le test.");
+say();
+if (testOpened) throw new Error("Le test ne doit être ouvert qu'une fois.");
+testOpened = true;
+visible = matches;
+visibleTeams = teamsBySeason;
+// L'Elo est recalculé sur l'historique complet avec les réglages gelés (il reste séquentiel : une note d'avant-match ne voit que le passé).
+elo = makeElo(frozen.eloK, frozen.promoted);
+
 // ------------------------------------------------------------------ 2. évaluation
 interface Evaluation {
   E: Preds;
@@ -481,6 +518,16 @@ function evaluate(title: string, idx: readonly number[], full: boolean): Evaluat
   const last = ref.last!;
   say(`Dernier ajustement de la période : μ = ${last.mu.toFixed(3)}, γ = ${last.gamma.toFixed(3)} (× ${Math.exp(last.gamma).toFixed(3)}), ρ = ${last.rho.toFixed(3)}, itérations = ${last.iterations}.`);
   say();
+  {
+    const THRESHOLD = 0.7;
+    let cases = 0, p = 0, o = 0;
+    for (const i of idx) {
+      E[i]!.p.forEach((x, k) => {
+        if (x >= THRESHOLD) { cases++; p += x; o += k === outcome[i] ? 1 : 0; }
+      });
+    }
+    summary.highConfidence = { threshold: THRESHOLD, predicted: Number((p / cases).toFixed(3)), observed: Number((o / cases).toFixed(3)), cases };
+  }
   summary.components = components;
   summary.recalibration = { power, deltaLogLoss: Number(recalLl.mean.toFixed(4)), admitted: recalLl.hi < 0 };
   return { E, plugin: ref.plugin, B, last: ref.last, summary };
