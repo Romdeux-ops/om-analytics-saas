@@ -10,18 +10,34 @@
 
 — Refus après le coup d'envoi —
 ✓ côté application : le match commencé est écarté, les autres sont écrits
-✓ côté base : écriture refusée même si l'application la laisse passer — prediction_log : écriture refusée, le match 1002 a commencé (coup d'envoi 2026-11-14 17:21:11.596+00)
-✓ antidater l'horodatage ne permet pas d'écrire après le coup d'envoi — prediction_log : écriture refusée, le match 1004 a commencé (coup d'envoi 2026-11-14 18:20:11.645+00)
-✓ l'horodatage d'écriture est imposé par la base — 2026-11-14T18:21:11.647Z
+✓ côté base : écriture refusée même si l'application la laisse passer — prediction_log : écriture refusée, le match 1002 a commencé (coup d'envoi 2026-11-14 17:31:13.139+00)
+✓ antidater l'horodatage ne permet pas d'écrire après le coup d'envoi — prediction_log : écriture refusée, le match 1004 a commencé (coup d'envoi 2026-11-14 18:30:13.195+00)
+✓ l'horodatage d'écriture est imposé par la base — 2026-11-14T18:31:13.196Z
 ✓ probabilités qui ne somment pas à 1 : refusées
 
-— Contenu du journal : les 9 affiches, empreinte stable —
-✓ une ligne par affiche de Ligue 1 de la journée, pas seulement l'OM — 9 lignes
-✓ chaque ligne porte grille, 1/N/2, intervalle, λ, coup d'envoi et empreintes
-✓ un match déjà joué n'est pas consigné
+— Contenu du journal : toute affiche à 14 jours, empreinte stable —
+✓ toute affiche non jouée à 14 jours est consignée, quelle que soit sa journée — 19 lignes : 9 de la J11, 9 de la J12, 1 match en retard de la J9
+✓ hors fenêtre, déjà joué ou date dépassée : non consigné
+✓ la limite est bien de 14 jours
+✓ pas seulement l'OM : une seule des 9 affiches de la journée le concerne
+✓ chaque ligne porte grille, 1/N/2, intervalle, λ, coup d'envoi, empreintes et commit du code
+✓ affiche de la journée : prédiction identique à celle affichée sur le site
+✓ affiche hors journée : calculée depuis les mêmes forces (avantage du domicile inversé)
+✓ commit du code : GITHUB_SHA dans le workflow, sinon le commit Git local — e014d4a9
+✓ GITHUB_SHA prime quand il est défini
 ✓ empreinte des paramètres insensible à l'ordre des clés
 ✓ empreinte sensible au moindre changement de force
-✓ deux synchros avec les mêmes paramètres n'écrivent qu'une fois
+
+— Complétude : la synchro échoue si des lignes manquent —
+✓ journal prospectif : 19/19 affiche(s) consignée(s) dans les 14 jours, dont 19 nouvelle(s)
+✓ première synchro : autant de lignes écrites que d'affiches attendues — 19 écrites / 19 attendues
+✓ journal prospectif : 19/19 affiche(s) consignée(s) dans les 14 jours, dont 0 nouvelle(s)
+✓ synchro suivante, mêmes paramètres : rien de réécrit, journal toujours complet
+✓ 18 lignes écrites pour 19 attendues : erreur levée — 18 ligne(s) consignée(s) pour 19 affiche(s) attendue(s) : des prédictions manquent au journal.
+✓ table absente : erreur de journal levée (la synchro sort en code 1)
+ℹ journal prospectif : 19 affiche(s) à consigner dans les 14 jours (aucune écriture en dry run)
+✓ dry run : aucune écriture, aucune erreur
+✓ la synchro compte une erreur de journal comme un échec (code de sortie 1)
 
 — Gel des hyperparamètres —
 ✓ la saison 2026-27 a des hyperparamètres gelés — demi-vie=365;sigma=0.15;fenetre=1500;elo.k=20;elo.promu=1500;elo.domicile=60;elo.depart=1500
@@ -35,5 +51,6 @@
 ✓ le rapport contient RPS, log-loss, calibration et intervalles
 ✓ journal vide : rapport sans erreur
 ✓ un changement d'hyperparamètres en cours de saison est signalé
+✓ un changement de code en cours de saison est signalé
 
 Tous les contrôles passent.
