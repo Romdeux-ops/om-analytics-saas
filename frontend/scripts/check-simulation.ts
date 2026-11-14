@@ -309,6 +309,29 @@ check("un match simulé en moins de 20 ms (navigateur : 1 + 8 matchs)", msPerMat
   const fallback = buildMultiplexFixtures(table, [omFixture.home, omFixture.away], 42, null);
   check("multiplex de repli étiqueté illustratif, sans modèle", fallback.length === 8 && fallback.every((f) => f.source === "illustratif" && !f.input.model));
   check("match hors Ligue 1 : aucune prédiction transmise", buildModelInput(params, "Marseille", "Olympiacos") === undefined && buildSimulationModelData(params, "Marseille", "Olympiacos").main === undefined);
+  // Un match de la journée déjà joué : score réel transmis tel quel, jamais simulé ni ajouté au classement live.
+  const alreadyPlayed = params.fixtures.find((f) => f !== omFixture)!;
+  const withPlayed = {
+    ...params,
+    fixtures: params.fixtures.filter((f) => f !== alreadyPlayed),
+    playedFixtures: [{ matchday: alreadyPlayed.matchday, date: alreadyPlayed.date, home: alreadyPlayed.home, away: alreadyPlayed.away, homeScore: 3, awayScore: 1 }],
+  };
+  const playedData = buildSimulationModelData(withPlayed, omFixture.home, omFixture.away);
+  const simulated = buildMultiplexFixtures(table, [omFixture.home, omFixture.away], 42, playedData.multiplex);
+  check(
+    "match de la journée déjà joué : score réel conservé, exclu des matchs simulés",
+    playedData.played?.length === 1 &&
+      playedData.played[0].homeGoals === 3 &&
+      playedData.played[0].awayGoals === 1 &&
+      simulated.length === params.fixtures.length - 2 &&
+      simulated.every((f) => f.input.home.name !== alreadyPlayed.home && f.input.away.name !== alreadyPlayed.away),
+    `${alreadyPlayed.home} 3-1 ${alreadyPlayed.away} (score fictif du test), ${simulated.length} matchs simulés`,
+  );
+  const onlyPlayed = buildSimulationModelData({ ...params, fixtures: [omFixture], playedFixtures: withPlayed.playedFixtures }, omFixture.home, omFixture.away);
+  check(
+    "toutes les autres affiches déjà jouées : aucun appariement fictif de repli",
+    buildMultiplexFixtures(table, [omFixture.home, omFixture.away], 42, onlyPlayed.multiplex).length === 0 && onlyPlayed.multiplex !== null,
+  );
   const direct = buildModelInput(params, omFixture.away, omFixture.home);
   check("affiche de Ligue 1 hors journée : prédiction en forme close depuis les forces", direct?.provenance.source === "forces");
 }

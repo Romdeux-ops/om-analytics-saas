@@ -21,7 +21,7 @@
 ✓ convergence (modèle calibré) : chaque score exact ≈ grille (écart < 4 σ par case) — pire case 2.38 σ ; distance en variation totale 0.0320
 ✓ convergence (repli sans modèle) : 1/N/2 simulé ≈ prédit (6000 graines, écart < 3,5 σ) — simulé 39.3 / 25.3 / 35.4 % ; prédit 39.1 / 25.4 / 35.5 % ; écart max 0.37 σ
 ✓ convergence (repli sans modèle) : chaque score exact ≈ grille (écart < 4 σ par case) — pire case 2.55 σ ; distance en variation totale 0.0318
-✓ un match simulé en moins de 20 ms (navigateur : 1 + 8 matchs) — 6.78 ms par match
+✓ un match simulé en moins de 20 ms (navigateur : 1 + 8 matchs) — 7.32 ms par match
 ✓ probabilités à t = 0 identiques à la prédiction d'avant-match — 1.39e-17
 ✓ buts attendus transmis = moyennes de la grille
 ✓ chaque frame se recalcule depuis les seuls événements passés
@@ -39,6 +39,8 @@
 ✓ multiplex : affiches du calendrier réel, toutes prédites par le modèle — 8 affiches
 ✓ multiplex de repli étiqueté illustratif, sans modèle
 ✓ match hors Ligue 1 : aucune prédiction transmise
+✓ match de la journée déjà joué : score réel conservé, exclu des matchs simulés — Troyes 3-1 Le Havre (score fictif du test), 7 matchs simulés
+✓ toutes les autres affiches déjà jouées : aucun appariement fictif de repli
 ✓ affiche de Ligue 1 hors journée : prédiction en forme close depuis les forces
 ✓ backtest : le modèle fait mieux que les fréquences de base et que l'ancien modèle — RPS modèle 0.2082, fréquences de base 0.2326, ancien modèle 0.2153, cotes 0.2027 (918 matchs)
 
