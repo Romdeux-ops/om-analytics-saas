@@ -15,6 +15,8 @@ CREATE TABLE prediction_log (
   -- Empreinte des paramètres du modèle (forces, niveau de ligue) et des hyperparamètres gelés.
   params_hash TEXT NOT NULL,
   hyper_hash TEXT NOT NULL,
+  -- Commit Git du code qui a produit la prédiction : le code du modèle n'est pas gelé, il est donc tracé.
+  code_commit TEXT NOT NULL,
   data_through DATE,
   -- Grille de scores complète : grid[x][y] = P(score x-y).
   grid JSONB NOT NULL,

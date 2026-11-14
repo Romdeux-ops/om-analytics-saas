@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { createDb } from "../client";
 import {
   footballSnapshots,
@@ -64,6 +64,8 @@ export interface PredictionLogEntry {
   kickoff: Date;
   paramsHash: string;
   hyperHash: string;
+  /** Commit Git du code qui a produit la prédiction. */
+  codeCommit: string;
   dataThrough: string | null;
   grid: number[][];
   pHome: number;
@@ -94,6 +96,19 @@ export async function appendPredictionLog(
   if (open.length === 0) return { written: 0, refused };
   const inserted = await db.insert(predictionLog).values(open).onConflictDoNothing().returning({ id: predictionLog.id });
   return { written: inserted.length, refused };
+}
+
+/** Lignes déjà consignées pour un jeu de paramètres donné, parmi les matchs indiqués (contrôle de complétude). */
+export async function getPredictionLogFor(
+  db: ReturnType<typeof createDb>,
+  paramsHash: string,
+  matchIds: readonly string[],
+): Promise<{ matchId: string; kickoff: Date }[]> {
+  if (matchIds.length === 0) return [];
+  return db
+    .select({ matchId: predictionLog.matchId, kickoff: predictionLog.kickoff })
+    .from(predictionLog)
+    .where(and(eq(predictionLog.paramsHash, paramsHash), inArray(predictionLog.matchId, [...matchIds])));
 }
 
 /** Lecture du journal d'une saison, dans l'ordre d'écriture. */

@@ -77,6 +77,7 @@ export const predictionLog = pgTable("prediction_log", {
   writtenAt: timestamp("written_at", { withTimezone: true }).notNull().defaultNow(),
   paramsHash: text("params_hash").notNull(),
   hyperHash: text("hyper_hash").notNull(),
+  codeCommit: text("code_commit").notNull(),
   dataThrough: date("data_through"),
   grid: jsonb("grid").$type<number[][]>().notNull(),
   pHome: doublePrecision("p_home").notNull(),

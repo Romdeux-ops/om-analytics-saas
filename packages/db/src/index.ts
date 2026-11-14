@@ -30,6 +30,7 @@ export {
   upsertSimulationParams,
   appendPredictionLog,
   getPredictionLog,
+  getPredictionLogFor,
   type PredictionLogEntry,
   type PredictionLogRow,
   type FootballSnapshot,
