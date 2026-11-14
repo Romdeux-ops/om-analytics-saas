@@ -10,6 +10,8 @@ export interface MultiplexCard {
   score: { home: number; away: number };
   /** Un but vient d'être marqué dans ce match. */
   flash: boolean;
+  /** Match déjà joué : `score` est le score réel, pas une simulation. */
+  final?: boolean;
 }
 
 interface MultiplexProps {
@@ -31,7 +33,7 @@ export function Multiplex({ cards, selected, onSelect, clockLabel, source }: Mul
       <p className="label mb-3 flex justify-between text-ink/55">
         <span>
           {source === "calendrier"
-            ? "Affiches réelles de la journée · scores simulés par le même modèle"
+            ? "Affiches réelles de la journée · scores simulés par le même modèle, sauf matchs déjà joués"
             : "Affiches illustratives (appariement fictif, calendrier réel indisponible) · scores non prédictifs"}
         </span>
         <span className="tabular">{clockLabel}</span>
@@ -57,7 +59,10 @@ export function Multiplex({ cards, selected, onSelect, clockLabel, source }: Mul
                   <span className="mx-1 opacity-40">-</span>
                   {card.score.away}
                 </span>
-                <span className="truncate text-[13px] font-semibold uppercase">{teamCode(card.awayName)}</span>
+                <span className="truncate text-[13px] font-semibold uppercase">
+                  {teamCode(card.awayName)}
+                  {card.final && <span className="label ml-2 normal-case opacity-60">score réel</span>}
+                </span>
               </button>
             </li>
           );

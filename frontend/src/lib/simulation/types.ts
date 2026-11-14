@@ -98,6 +98,8 @@ export interface MatchModelInput {
     rho: number;
     home: ModelTeamInfo;
     away: ModelTeamInfo;
+    /** Calibration mesurée en backtest pour les issues annoncées au-dessus du seuil de prudence. */
+    highConfidence?: { threshold: number; predicted: number; observed: number; cases: number };
     /** Estimation ponctuelle (sans incertitude sur les forces). */
     pointEstimate?: OutcomeProbabilities;
     /** Intervalle à 90 % dû à l'incertitude d'estimation des forces. */

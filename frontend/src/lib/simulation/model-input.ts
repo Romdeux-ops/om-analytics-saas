@@ -27,6 +27,7 @@ export function buildModelInput(params: ModelParams | null | undefined, home: st
       matchesUsed: params.matchesUsed,
       homeFactor: params.league.homeFactor,
       rho: params.league.rho,
+      highConfidence: params.backtest?.highConfidence,
       home: teamInfo(params, home),
       away: teamInfo(params, away),
     },
@@ -71,8 +72,17 @@ export interface RealFixture {
 export interface SimulationModelData {
   /** Absent : match hors Ligue 1 ou club inconnu du modèle → aucune probabilité affichée. */
   main?: MatchModelInput;
-  /** Autres affiches réelles de la journée, ou null si le calendrier réel est indisponible. */
+  /** Autres affiches réelles de la journée encore à jouer, ou null si le calendrier réel est indisponible. */
   multiplex: RealFixture[] | null;
+  /** Affiches de la journée déjà jouées : score réel, jamais simulé. */
+  played?: PlayedResult[];
+}
+
+export interface PlayedResult {
+  home: string;
+  away: string;
+  homeGoals: number;
+  awayGoals: number;
 }
 
 export function buildSimulationModelData(params: ModelParams | null | undefined, home: string, away: string): SimulationModelData {
@@ -86,5 +96,7 @@ export function buildSimulationModelData(params: ModelParams | null | undefined,
     const model = buildModelInput(params, f.home, f.away);
     return model ? [{ home: f.home, away: f.away, model }] : [];
   });
-  return { main, multiplex: multiplex.length > 0 ? multiplex : null };
+  const played = (params.playedFixtures ?? []).map((f) => ({ home: f.home, away: f.away, homeGoals: f.homeScore, awayGoals: f.awayScore }));
+  // Calendrier réel connu dès qu'il reste une affiche à jouer ou qu'une autre est déjà jouée.
+  return { main, multiplex: multiplex.length > 0 || played.length > 0 ? multiplex : null, played };
 }

@@ -30,7 +30,8 @@ export function buildMultiplexFixtures(
 ): MultiplexFixture[] {
   const row = (name: string) => standings.find((r) => r.clubName === name);
 
-  if (real && real.length > 0) {
+  // `real` non nul = calendrier réel connu, même s'il ne reste aucune autre affiche à jouer.
+  if (real) {
     return real
       .filter((f) => !excluded.includes(f.home) && !excluded.includes(f.away))
       .map((f) => ({

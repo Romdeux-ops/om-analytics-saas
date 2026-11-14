@@ -132,7 +132,8 @@ function LiveMatch({
     () => buildMultiplexFixtures(data.standings, [homeName, awayName], seed, data.simulation?.multiplex),
     [data.standings, homeName, awayName, seed, data.simulation],
   );
-  const multiplexSource = multiplexFixtures[0]?.source ?? "illustratif";
+  const playedFixtures = data.simulation?.played;
+  const multiplexSource = data.simulation?.multiplex ? "calendrier" : (multiplexFixtures[0]?.source ?? "illustratif");
   const multiplex = useMemo(
     () =>
       multiplexFixtures.map((fixture, i) => ({
@@ -207,8 +208,25 @@ function LiveMatch({
     [multiplex, multiplexGoals, match, t, started, status, flashWindow],
   );
 
+  // Matchs de la journée déjà joués : score réel figé, affiché à côté des matchs simulés.
+  const allCards = useMemo<MultiplexCard[]>(
+    () => [
+      ...(playedFixtures ?? []).map((f) => ({
+        id: `joue-${f.home}-${f.away}`,
+        homeName: f.home,
+        awayName: f.away,
+        score: { home: f.homeGoals, away: f.awayGoals },
+        flash: false,
+        final: true,
+      })),
+      ...multiplexCards,
+    ],
+    [playedFixtures, multiplexCards],
+  );
+
   const liveRows = useMemo(() => {
     if (!started) return applyLiveResults(data.standings, []);
+    // Seuls les matchs simulés s'ajoutent au classement : les matchs déjà joués y sont déjà comptés.
     const results: LiveResult[] = [
       { home: homeName, away: awayName, homeGoals: state.score.home, awayGoals: state.score.away },
       ...multiplexCards.map((c) => ({ home: c.homeName, away: c.awayName, homeGoals: c.score.home, awayGoals: c.score.away })),
@@ -246,7 +264,7 @@ function LiveMatch({
     : undefined;
 
   const highlighted = selectedFixture
-    ? multiplex.filter((m) => m.id === selectedFixture).flatMap((m) => [m.homeName, m.awayName])
+    ? allCards.filter((m) => m.id === selectedFixture).flatMap((m) => [m.homeName, m.awayName])
     : [];
 
   // Barre d'espace = lecture / pause (hors champs et boutons).
@@ -327,7 +345,14 @@ function LiveMatch({
           </div>
           <div className="space-y-5 md:col-span-7">
             {model ? (
-              <WinProbabilityBar probability={match.frames[0].winProbability} homeName={homeName} awayName={awayName} tones={tones} />
+              <WinProbabilityBar
+                probability={match.frames[0].winProbability}
+                interval={model.provenance.interval}
+                caution={model.provenance.highConfidence}
+                homeName={homeName}
+                awayName={awayName}
+                tones={tones}
+              />
             ) : (
               <NoProbabilityNotice />
             )}
@@ -434,7 +459,7 @@ function LiveMatch({
         </section>
         <section className="space-y-4 lg:col-span-5 lg:pl-8">
           <SectionTitle title="Multiplex" aside={`Journée ${data.matchday}`} />
-          <Multiplex cards={multiplexCards} selected={selectedFixture} onSelect={setSelectedFixture} clockLabel={shortClock} source={multiplexSource} />
+          <Multiplex cards={allCards} selected={selectedFixture} onSelect={setSelectedFixture} clockLabel={shortClock} source={multiplexSource} />
         </section>
       </div>
 
