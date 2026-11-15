@@ -1,7 +1,56 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import { Radio } from "lucide-react";
 import { cn } from "@/src/lib/ui/cn";
 import { teamCode } from "./shared";
+
+/** Un but marqué dans un autre match de la journée. */
+export interface MultiplexFeedEntry {
+  id: string;
+  t: number;
+  label: string;
+  text: string;
+}
+
+/** Petit fil des buts du multiplex, séparé du fil du match suivi. */
+export function MultiplexFeed({ entries, started }: { entries: MultiplexFeedEntry[]; started: boolean }) {
+  return (
+    <section className="border border-ink" aria-label="Fil du multiplex">
+      <p className="label flex items-center justify-between border-b border-ink px-3 py-2">
+        <span className="inline-flex items-center gap-1.5 text-accent-text">
+          <Radio size={14} aria-hidden="true" /> Fil du multiplex
+        </span>
+        <span className="tabular text-ink/55">
+          {entries.length} {entries.length > 1 ? "buts" : "but"}
+        </span>
+      </p>
+      <ol className="no-scrollbar max-h-64 overflow-y-auto px-3" aria-live="polite" aria-relevant="additions">
+        <AnimatePresence initial={false}>
+          {entries.map((entry) => (
+            <motion.li
+              key={entry.id}
+              layout="position"
+              initial={{ opacity: 0, x: 14 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="grid grid-cols-[3rem_1fr] gap-3 border-b border-dashed border-ink/30 py-2 last:border-b-0"
+            >
+              <span className="display text-xl leading-none text-ink/60 tabular">{entry.label}</span>
+              <p className="min-w-0 text-[13px] leading-relaxed">{entry.text}</p>
+            </motion.li>
+          ))}
+        </AnimatePresence>
+        {entries.length === 0 && (
+          <li className="editorial py-4 text-lg text-ink/45">
+            {started ? "Aucun but ailleurs pour l'instant." : "En attente du coup d'envoi…"}
+          </li>
+        )}
+      </ol>
+    </section>
+  );
+}
 
 export interface MultiplexCard {
   id: string;
