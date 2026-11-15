@@ -1,0 +1,47 @@
+✓ même graine → mêmes événements
+✓ graine différente → match différent
+✓ buts / match entre 2 et 3,5 — 2.77
+✓ tirs / match entre 18 et 32 — 24.8
+✓ jaunes / match entre 2 et 6 — 3.8
+✓ remplacements / match entre 6 et 10 — 8.0
+✓ probas 1/N/2 = 100 % et certitude au coup de sifflet final — 2.22e-16
+✓ notes bornées entre 3 et 10
+✓ événements triés dans le temps
+✓ 8 autres affiches, chaque club une fois
+✓ points distribués cohérents — 24 vs 24
+✓ rangs uniques 1..18
+✓ zones attachées aux places
+✓ multiplex à la pause quand le match principal y est
+✓ multiplex terminé au coup de sifflet final
+
+— Moteur de référence —
+✓ le moteur par défaut est Dixon-Coles, le générateur de démonstration reste disponible
+  Affiche testée : Marseille – Le Mans, prédiction 71.7 / 17.0 / 11.3 %, buts attendus 2.54 – 0.90
+✓ convergence (modèle calibré) : 1/N/2 simulé ≈ prédit (6000 graines, écart < 3,5 σ) — simulé 71.0 / 16.9 / 12.1 % ; prédit 71.7 / 17.0 / 11.3 % ; écart max 1.95 σ
+✓ convergence (modèle calibré) : chaque score exact ≈ grille (écart < 4 σ par case) — pire case 2.38 σ ; distance en variation totale 0.0320
+✓ convergence (repli sans modèle) : 1/N/2 simulé ≈ prédit (6000 graines, écart < 3,5 σ) — simulé 39.3 / 25.3 / 35.4 % ; prédit 39.1 / 25.4 / 35.5 % ; écart max 0.37 σ
+✓ convergence (repli sans modèle) : chaque score exact ≈ grille (écart < 4 σ par case) — pire case 2.55 σ ; distance en variation totale 0.0318
+✓ un match simulé en moins de 20 ms (navigateur : 1 + 8 matchs) — 7.05 ms par match
+✓ probabilités à t = 0 identiques à la prédiction d'avant-match — 1.39e-17
+✓ buts attendus transmis = moyennes de la grille
+✓ chaque frame se recalcule depuis les seuls événements passés
+✓ invariance : avant le rouge (45'), la probabilité ne dépend pas du rouge à venir — écart max 0.00e+0
+✓ le rouge, une fois sorti, déplace bien la probabilité — écart max 0.2840
+✓ forme close : états identiques → probabilités identiques
+✓ probabilités en direct calibrées à la 30e minute — écart moyen 0.51 point(s) sur 6000 matchs
+✓ probabilités en direct calibrées à la 70e minute — écart moyen 0.64 point(s) sur 6000 matchs
+✓ tirs par match conformes au modèle de comptage mesuré (± 5 %) — simulé 26.38, cible 26.29
+✓ corners par match conformes (± 5 %) — simulé 9.83, cible 9.77
+✓ fautes par match conformes à la mesure (± 5 %) — simulé 24.60, cible 24.57
+✓ jaunes par match conformes à la mesure (± 8 %) — simulé 3.78, cible 3.79
+✓ rouges par match conformes à la mesure (± 15 %) — simulé 0.21, cible 0.22
+✓ part des buts en première période conforme à la mesure (± 2 points) — simulé 43.8 %, mesuré 44.0 %
+✓ multiplex : affiches du calendrier réel, toutes prédites par le modèle — 8 affiches
+✓ multiplex de repli étiqueté illustratif, sans modèle
+✓ match hors Ligue 1 : aucune prédiction transmise
+✓ match de la journée déjà joué : score réel conservé, exclu des matchs simulés — Troyes 3-1 Le Havre (score fictif du test), 7 matchs simulés
+✓ toutes les autres affiches déjà jouées : aucun appariement fictif de repli
+✓ affiche de Ligue 1 hors journée : prédiction en forme close depuis les forces
+✓ backtest : le modèle fait mieux que les fréquences de base et que l'ancien modèle — RPS modèle 0.2082, fréquences de base 0.2326, ancien modèle 0.2153, cotes 0.2027 (918 matchs)
+
+Tous les contrôles passent.

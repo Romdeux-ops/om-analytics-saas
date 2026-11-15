@@ -18,6 +18,7 @@ import { buildAutoNews, type CompetitionData } from "./auto-news";
 import { europaZone, fetchEspnFixtures, fetchEspnStandings } from "./espn";
 import { fetchLigue1 } from "./football-data";
 import { fetchPressArticles } from "./news";
+import { PredictionLogError, refreshSimulationModel } from "./simulation-model";
 import { scorePredictionsFromSnapshots, syncPlayedMatchesFromSnapshots } from "./sync-matches";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -203,6 +204,24 @@ async function main() {
       await scorePredictionsFromSnapshots(db!, fixtures);
     } catch (err) {
       console.warn(`[sync] Impossible de corriger les pronostics pour ${job.competition}:`, err);
+    }
+  }
+
+  // Modèle de prédiction : régénéré dès que de nouveaux résultats de Ligue 1 sont connus.
+  // Un échec de régénération (API indisponible) ne fait pas échouer la synchro du calendrier : le site
+  // retombe sur les derniers paramètres connus. En revanche un journal prospectif incomplet est une
+  // erreur : une prédiction non consignée avant le coup d'envoi est perdue pour de bon.
+  const modelToken = process.env.FOOTBALL_DATA_TOKEN;
+  if (modelToken) {
+    try {
+      if (await refreshSimulationModel(db, modelToken, seasonYear)) written++;
+    } catch (error) {
+      if (error instanceof PredictionLogError) {
+        failures++;
+        console.error("✗ journal prospectif :", error.message);
+      } else {
+        console.warn("⚠ modèle de simulation non régénéré :", error);
+      }
     }
   }
 

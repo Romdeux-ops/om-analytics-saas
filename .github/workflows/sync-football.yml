@@ -25,7 +25,9 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Sync Ligue 1 (football-data.org) + Europa / Coupe (ESPN) + actus générées
+      # L'étape échoue (code de sortie 1) si une compétition n'a pas pu être synchronisée ou si le journal
+      # prospectif est incomplet : moins de lignes consignées que d'affiches de Ligue 1 attendues.
+      - name: Sync Ligue 1 (football-data.org) + Europa / Coupe (ESPN) + actus générées + journal prospectif
         run: bun run football:sync
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

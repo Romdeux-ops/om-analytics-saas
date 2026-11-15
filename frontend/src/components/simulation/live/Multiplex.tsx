@@ -10,6 +10,8 @@ export interface MultiplexCard {
   score: { home: number; away: number };
   /** Un but vient d'être marqué dans ce match. */
   flash: boolean;
+  /** Match déjà joué : `score` est le score réel, pas une simulation. */
+  final?: boolean;
 }
 
 interface MultiplexProps {
@@ -17,9 +19,11 @@ interface MultiplexProps {
   selected: string | null;
   onSelect: (id: string | null) => void;
   clockLabel: string;
+  /** « calendrier » : vraies affiches de la journée ; « illustratif » : appariement fictif de repli. */
+  source: "calendrier" | "illustratif";
 }
 
-export function Multiplex({ cards, selected, onSelect, clockLabel }: MultiplexProps) {
+export function Multiplex({ cards, selected, onSelect, clockLabel, source }: MultiplexProps) {
   if (cards.length === 0) {
     return <p className="editorial text-xl text-ink/50">Pas d&apos;autre match à suivre pour cette compétition.</p>;
   }
@@ -27,7 +31,11 @@ export function Multiplex({ cards, selected, onSelect, clockLabel }: MultiplexPr
   return (
     <div>
       <p className="label mb-3 flex justify-between text-ink/55">
-        <span>Affiches simulées · même graine</span>
+        <span>
+          {source === "calendrier"
+            ? "Affiches réelles de la journée · scores simulés par le même modèle, sauf matchs déjà joués"
+            : "Affiches illustratives (appariement fictif, calendrier réel indisponible) · scores non prédictifs"}
+        </span>
         <span className="tabular">{clockLabel}</span>
       </p>
       <ul className="grid grid-cols-1 gap-[2px] bg-ink/20 sm:grid-cols-2">
@@ -51,7 +59,10 @@ export function Multiplex({ cards, selected, onSelect, clockLabel }: MultiplexPr
                   <span className="mx-1 opacity-40">-</span>
                   {card.score.away}
                 </span>
-                <span className="truncate text-[13px] font-semibold uppercase">{teamCode(card.awayName)}</span>
+                <span className="truncate text-[13px] font-semibold uppercase">
+                  {teamCode(card.awayName)}
+                  {card.final && <span className="label ml-2 normal-case opacity-60">score réel</span>}
+                </span>
               </button>
             </li>
           );

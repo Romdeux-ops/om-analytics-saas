@@ -10,6 +10,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@om/db": "*",
+        "@om/match-model": "*",
         "@supabase/ssr": "^0.12.7",
         "@supabase/supabase-js": "^2.117.2",
         "clsx": "^2.1.1",
@@ -42,6 +43,7 @@
         "postgres": "^3.4.5",
       },
       "devDependencies": {
+        "@electric-sql/pglite": "^0.5.16",
         "drizzle-kit": "^0.30.4",
         "typescript": "^5.8.2",
       },
@@ -51,8 +53,17 @@
       "version": "0.0.1",
       "dependencies": {
         "@om/db": "*",
+        "@om/match-model": "*",
         "fast-xml-parser": "^5.11.1",
       },
+      "devDependencies": {
+        "@types/bun": "^1.4.2",
+        "typescript": "^5.8.2",
+      },
+    },
+    "packages/match-model": {
+      "name": "@om/match-model",
+      "version": "0.0.1",
       "devDependencies": {
         "@types/bun": "^1.4.2",
         "typescript": "^5.8.2",
@@ -95,6 +106,8 @@
     "@babel/types": ["@babel/types@7.29.7", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
+
+    "@electric-sql/pglite": ["@electric-sql/pglite@0.5.16", "", {}, "sha512-Nj8KcIsJL748W408U2N8q4+9IlONdpRIU8MJypIAAINMJ5nqKyqpX7Mgg/5XKkXiAib3AoZGR6hnJFlrlLBrcg=="],
 
     "@emnapi/core": ["@emnapi/core@1.10.0", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.1", "tslib": "^2.4.0" } }, "sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw=="],
 
@@ -275,6 +288,8 @@
     "@om/db": ["@om/db@workspace:packages/db"],
 
     "@om/football-sync": ["@om/football-sync@workspace:packages/football-sync"],
+
+    "@om/match-model": ["@om/match-model@workspace:packages/match-model"],
 
     "@petamoriken/float16": ["@petamoriken/float16@3.9.3", "", {}, "sha512-8awtpHXCx/bNpFt4mt2xdkgtgVvKqty8VbjHI/WWWQuEw+KLzFot3f4+LkQY9YmOtq7A5GdOnqoIC8Pdygjk2g=="],
 

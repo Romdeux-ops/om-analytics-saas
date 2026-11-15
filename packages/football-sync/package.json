@@ -7,11 +7,15 @@
     "sync": "bun --env-file=../../frontend/.env.local run src/index.ts",
     "sync:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --dry-run",
     "sync:press": "bun --env-file=../../frontend/.env.local run src/index.ts --press-only",
-    "sync:press:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --press-only --dry-run"
+    "sync:press:dry": "bun --env-file=../../frontend/.env.local run src/index.ts --press-only --dry-run",
+    "model:fit": "bun --env-file=../../frontend/.env.local run src/model-cli.ts",
+    "model:prospective": "bun --env-file=../../frontend/.env.local run src/prospective-cli.ts",
+    "model:check-log": "bun run scripts/check-prediction-log.ts"
   },
   "dependencies": {
     "@om/db": "*",
-    "fast-xml-parser": "^5.11.1"
+    "fast-xml-parser": "^5.11.1",
+    "@om/match-model": "*"
   },
   "devDependencies": {
     "@types/bun": "^1.4.2",

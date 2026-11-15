@@ -1,0 +1,137 @@
+{
+  "generatedAt": "2026-11-14T18:06:36.628Z",
+  "validationSeasons": [
+    "1819",
+    "1920",
+    "2021",
+    "2122",
+    "2223"
+  ],
+  "testSeasons": [
+    "2324",
+    "2425",
+    "2526"
+  ],
+  "selected": {
+    "halfLifeDays": 365,
+    "sigma": 0.15,
+    "windowDays": 1500,
+    "eloK": 20,
+    "promotedRating": 1500,
+    "recalibrationPower": null
+  },
+  "test": {
+    "matches": 918,
+    "rps": {
+      "(1) Fréquences de base": 0.2326,
+      "(3) Ancien modèle (classement + double Poisson)": 0.2153,
+      "(2) B. Elo → λ": 0.2082,
+      "E. Dixon-Coles + a priori Elo (moyenne prédictive)": 0.2082,
+      "(4) Cotes de clôture, normalisation proportionnelle": 0.2027,
+      "(4 bis) Cotes de clôture, méthode de la puissance": 0.2027
+    },
+    "logloss": {
+      "(1) Fréquences de base": 1.0688,
+      "(3) Ancien modèle (classement + double Poisson)": 1.0195,
+      "(2) B. Elo → λ": 0.9997,
+      "E. Dixon-Coles + a priori Elo (moyenne prédictive)": 0.9997,
+      "(4) Cotes de clôture, normalisation proportionnelle": 0.9816,
+      "(4 bis) Cotes de clôture, méthode de la puissance": 0.9812
+    },
+    "highConfidence": {
+      "threshold": 0.7,
+      "predicted": 0.765,
+      "observed": 0.676,
+      "cases": 68
+    },
+    "components": [
+      {
+        "component": "Historique multi-saisons",
+        "status": "démontré",
+        "deltaRps": 0.007,
+        "lo": 0.0028,
+        "hi": 0.0115
+      },
+      {
+        "component": "Avantage du domicile",
+        "status": "démontré",
+        "deltaRps": 0.0032,
+        "lo": 0.0003,
+        "hi": 0.0059
+      },
+      {
+        "component": "Avantage du domicile estimé",
+        "status": "non démontré",
+        "deltaRps": -0.0004,
+        "lo": -0.001,
+        "hi": 0.0002
+      },
+      {
+        "component": "A priori Elo",
+        "status": "non démontré",
+        "deltaRps": 0.0007,
+        "lo": -0.0006,
+        "hi": 0.0019
+      },
+      {
+        "component": "Pondération temporelle",
+        "status": "non démontré",
+        "deltaRps": -0.0006,
+        "lo": -0.0024,
+        "hi": 0.0011
+      },
+      {
+        "component": "Correction ρ",
+        "status": "non démontré",
+        "deltaRps": -0.0001,
+        "lo": -0.0003,
+        "hi": 0.0001
+      },
+      {
+        "component": "γ séparé pour 2020-21",
+        "status": "non démontré",
+        "deltaRps": 0,
+        "lo": -0.0002,
+        "hi": 0.0001
+      },
+      {
+        "component": "Moyenne prédictive",
+        "status": "non démontré",
+        "deltaRps": 0,
+        "lo": 0,
+        "hi": 0.0001
+      },
+      {
+        "component": "Sans le repos court (candidat)",
+        "status": "non démontré",
+        "deltaRps": 0,
+        "lo": 0,
+        "hi": 0.0001
+      }
+    ],
+    "recalibration": {
+      "power": 0.9,
+      "deltaLogLoss": 0.0006,
+      "admitted": false
+    }
+  },
+  "current": {
+    "matches": 90,
+    "rps": {
+      "(1) Fréquences de base": 0.2324,
+      "(3) Ancien modèle (classement + double Poisson)": 0.225,
+      "(2) B. Elo → λ": 0.2027,
+      "E. Dixon-Coles + a priori Elo (moyenne prédictive)": 0.2018,
+      "(4) Cotes de clôture, normalisation proportionnelle": 0.1949,
+      "(4 bis) Cotes de clôture, méthode de la puissance": 0.194
+    },
+    "logloss": {
+      "(1) Fréquences de base": 1.0562,
+      "(3) Ancien modèle (classement + double Poisson)": 1.0337,
+      "(2) B. Elo → λ": 0.9703,
+      "E. Dixon-Coles + a priori Elo (moyenne prédictive)": 0.9683,
+      "(4) Cotes de clôture, normalisation proportionnelle": 0.9482,
+      "(4 bis) Cotes de clôture, méthode de la puissance": 0.9445
+    }
+  }
+}

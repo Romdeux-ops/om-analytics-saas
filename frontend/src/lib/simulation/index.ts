@@ -1,5 +1,6 @@
 import type { ProbableLineup, RosterPlayer } from "@/src/lib/types/lineup";
 import type { StandingRow } from "@/src/lib/types/standing";
+import { dixonColesEngine } from "./engines/dixon-coles";
 import { placeholderEngine } from "./engines/placeholder";
 import { Rng } from "./rng";
 import { strengthFromStanding } from "./strength";
@@ -7,9 +8,12 @@ import type { MatchSimulationInput, SimPlayer, SimTeam, SimulatedMatch, Simulati
 
 export type * from "./types";
 
-/** Moteurs disponibles. Les moteurs du mémoire (Poisson, Markov, ML) viendront s'ajouter ici. */
-export const ENGINES: readonly SimulationEngine[] = [placeholderEngine];
-export const DEFAULT_ENGINE = placeholderEngine;
+/**
+ * Moteurs disponibles. Le moteur de référence est Dixon-Coles (score d'abord) ; le générateur de
+ * démonstration reste disponible. Un moteur à états (Markov) pourra s'ajouter ici sans toucher au contrat.
+ */
+export const ENGINES: readonly SimulationEngine[] = [dixonColesEngine, placeholderEngine];
+export const DEFAULT_ENGINE: SimulationEngine = dixonColesEngine;
 
 export function runSimulation(
   input: MatchSimulationInput,
@@ -28,6 +32,8 @@ function toSimPlayer(p: RosterPlayer): SimPlayer {
     position: p.position,
     seasonGoals: p.goals,
     seasonAssists: p.assists,
+    seasonStarts: p.starts,
+    seasonAppearances: p.appearances,
   };
 }
 

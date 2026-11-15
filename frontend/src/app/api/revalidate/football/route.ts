@@ -16,6 +16,8 @@ export async function POST(request: NextRequest) {
   for (const path of ["/", "/calendrier", "/classement", "/simulation"]) {
     revalidatePath(path);
   }
+  // Pages de simulation par match : la prédiction change dès que de nouveaux résultats arrivent.
+  revalidatePath("/simulation/[matchId]", "page");
 
   return NextResponse.json({ revalidated: true, at: new Date().toISOString() });
 }

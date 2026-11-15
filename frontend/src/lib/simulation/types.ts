@@ -5,6 +5,7 @@
  * modèle de machine learning…) n'a qu'à implémenter `SimulationEngine`
  * pour être rejoué minute par minute dans l'interface.
  */
+import type { EventRates, OutcomeProbabilities } from "@om/match-model";
 import type { PlayerPosition } from "@/src/lib/types/lineup";
 import type { Rng } from "./rng";
 
@@ -38,6 +39,9 @@ export interface SimPlayer {
   position: PlayerPosition;
   seasonGoals: number;
   seasonAssists: number;
+  /** Titularisations et apparitions de la saison (optionnels) : orientent les remplacements. */
+  seasonStarts?: number;
+  seasonAppearances?: number;
 }
 
 /**
@@ -58,9 +62,56 @@ export interface SimTeam {
   bench: SimPlayer[];
 }
 
+/** Force d'un club telle que le modèle l'estime, pour affichage. */
+export interface ModelTeamInfo {
+  /** Forces sur l'échelle log ; `def` positif = défense faible. */
+  att: number;
+  def: number;
+  elo: number;
+  promoted: boolean;
+  /** Taille d'échantillon effective (somme des poids temporels des matchs du club). */
+  effectiveMatches: number;
+}
+
+/**
+ * Prédiction calibrée produite hors ligne (Dixon-Coles) et injectée dans la simulation.
+ * Optionnelle : sans elle, le moteur retombe sur les forces du classement et aucune
+ * probabilité ne doit être présentée comme une prédiction.
+ */
+export interface MatchModelInput {
+  /** Grille de scores prédite, `grid[x][y]` = P(score x-y). C'est elle qui est échantillonnée. */
+  grid: number[][];
+  /** Buts attendus (moyennes de la grille). */
+  lambdaHome: number;
+  lambdaAway: number;
+  /** Fréquences d'événements mesurées sur l'historique. */
+  eventRates: EventRates;
+  /** Ce que l'interface peut exposer : paramètres et provenance. */
+  provenance: {
+    /** « calendrier » : affiche du calendrier réel, intervalle disponible ; « forces » : calcul direct depuis les forces. */
+    source: "calendrier" | "forces";
+    generatedAt: string;
+    dataThrough: string;
+    matchesUsed: number;
+    /** Multiplicateur des buts à domicile, estimé. */
+    homeFactor: number;
+    rho: number;
+    home: ModelTeamInfo;
+    away: ModelTeamInfo;
+    /** Calibration mesurée en backtest pour les issues annoncées au-dessus du seuil de prudence. */
+    highConfidence?: { threshold: number; predicted: number; observed: number; cases: number };
+    /** Estimation ponctuelle (sans incertitude sur les forces). */
+    pointEstimate?: OutcomeProbabilities;
+    /** Intervalle à 90 % dû à l'incertitude d'estimation des forces. */
+    interval?: { home: [number, number]; draw: [number, number]; away: [number, number] };
+  };
+}
+
 export interface MatchSimulationInput {
   home: SimTeam;
   away: SimTeam;
+  /** Prédiction calibrée (Ligue 1 uniquement). Absente : simulation illustrative, sans probabilité affichable. */
+  model?: MatchModelInput;
 }
 
 export interface SimEvent {
