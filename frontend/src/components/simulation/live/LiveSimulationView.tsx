@@ -28,7 +28,7 @@ import { LiveStandings } from "./LiveStandings";
 import { LiveStatsPanel } from "./LiveStatsPanel";
 import { MomentumChart } from "./MomentumChart";
 import { ModelNotes, NoProbabilityNotice } from "./ModelNotes";
-import { Multiplex, type MultiplexCard } from "./Multiplex";
+import { Multiplex, MultiplexFeed, type MultiplexCard, type MultiplexFeedEntry } from "./Multiplex";
 import { PlaybackControls } from "./PlaybackControls";
 import { SectionTitle, sideTones, teamCode } from "./shared";
 import { WinProbabilityBar } from "./WinProbabilityBar";
@@ -234,21 +234,29 @@ function LiveMatch({
     return applyLiveResults(data.standings, results);
   }, [data.standings, started, homeName, awayName, state.score, multiplexCards]);
 
-  const feed = useMemo<FeedEntry[]>(() => {
-    const own: FeedEntry[] = match.events
-      .filter((e) => e.t <= t)
-      .map((e: SimEvent) => ({
-        kind: "match" as const,
-        id: e.id,
-        t: e.t,
-        event: e,
-        teamName: e.team ? (e.team === "home" ? homeName : awayName) : undefined,
-      }));
-    const others: FeedEntry[] = multiplexGoals
-      .filter((g) => g.t <= t)
-      .map((g) => ({ kind: "multiplex" as const, id: g.id, t: g.t, label: g.label, text: g.text }));
-    return [...own, ...others].sort((a, b) => b.t - a.t);
-  }, [match, multiplexGoals, t, homeName, awayName]);
+  // Le fil du match ne montre que le match suivi ; les buts des autres matchs vont dans le fil du multiplex.
+  const feed = useMemo<FeedEntry[]>(
+    () =>
+      match.events
+        .filter((e) => e.t <= t)
+        .map((e: SimEvent) => ({
+          id: e.id,
+          t: e.t,
+          event: e,
+          teamName: e.team ? (e.team === "home" ? homeName : awayName) : undefined,
+        }))
+        .sort((a, b) => b.t - a.t),
+    [match, t, homeName, awayName],
+  );
+
+  const multiplexFeed = useMemo<MultiplexFeedEntry[]>(
+    () =>
+      multiplexGoals
+        .filter((g) => g.t <= t)
+        .map((g) => ({ id: g.id, t: g.t, label: g.label, text: g.text }))
+        .sort((a, b) => b.t - a.t),
+    [multiplexGoals, t],
+  );
 
   const [selectedFixture, setSelectedFixture] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<MobileTab>("feed");
@@ -460,6 +468,7 @@ function LiveMatch({
         <section className="space-y-4 lg:col-span-5 lg:pl-8">
           <SectionTitle title="Multiplex" aside={`Journée ${data.matchday}`} />
           <Multiplex cards={allCards} selected={selectedFixture} onSelect={setSelectedFixture} clockLabel={shortClock} source={multiplexSource} />
+          {multiplexCards.length > 0 && <MultiplexFeed entries={multiplexFeed} started={started} />}
         </section>
       </div>
 

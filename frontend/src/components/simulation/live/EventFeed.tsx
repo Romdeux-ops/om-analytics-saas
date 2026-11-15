@@ -2,15 +2,19 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeftRight, Crosshair, Flag, Hand, MonitorPlay, Radio, Timer, Zap } from "lucide-react";
+import { ArrowLeftRight, Crosshair, Flag, Hand, MonitorPlay, Timer, Zap } from "lucide-react";
 import type { SimEvent } from "@/src/lib/simulation";
 import { minuteLabel } from "@/src/lib/simulation/timeline";
 import { cn } from "@/src/lib/ui/cn";
 import { CardIcon, SectionTitle, teamCode } from "./shared";
 
-export type FeedEntry =
-  | { kind: "match"; id: string; t: number; event: SimEvent; teamName?: string }
-  | { kind: "multiplex"; id: string; t: number; label: string; text: string };
+/** Une action du match suivi. Les buts des autres matchs ont leur propre fil, sous le multiplex. */
+export interface FeedEntry {
+  id: string;
+  t: number;
+  event: SimEvent;
+  teamName?: string;
+}
 
 type FeedFilter = "all" | "highlights" | "goals" | "cards";
 
@@ -22,7 +26,6 @@ const FILTERS: { id: FeedFilter; label: string }[] = [
 ];
 
 function keep(entry: FeedEntry, filter: FeedFilter): boolean {
-  if (entry.kind === "multiplex") return filter !== "cards";
   const { type, importance } = entry.event;
   switch (filter) {
     case "all":
@@ -42,7 +45,7 @@ export function EventFeed({ entries, started }: { entries: FeedEntry[]; started:
 
   return (
     <section className="flex flex-col" aria-label="Fil du match">
-      <SectionTitle title="Fil du match" aside={`${entries.filter((e) => e.kind === "match").length} actions`} />
+      <SectionTitle title="Fil du match" aside={`${entries.length} actions`} />
       <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Filtrer le fil">
         {FILTERS.map((f) => (
           <button
@@ -71,7 +74,7 @@ export function EventFeed({ entries, started }: { entries: FeedEntry[]; started:
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {entry.kind === "match" ? <MatchRow event={entry.event} teamName={entry.teamName} /> : <MultiplexRow entry={entry} />}
+              <MatchRow event={entry.event} teamName={entry.teamName} />
             </motion.li>
           ))}
         </AnimatePresence>
@@ -160,20 +163,6 @@ function MatchRow({ event, teamName }: { event: SimEvent; teamName?: string }) {
         <p className={cn("mt-1 leading-relaxed", minor ? "text-[12px] text-ink/65" : "text-[13px]", goal && "font-semibold")}>
           {event.text}
         </p>
-      </div>
-    </div>
-  );
-}
-
-function MultiplexRow({ entry }: { entry: Extract<FeedEntry, { kind: "multiplex" }> }) {
-  return (
-    <div className="grid grid-cols-[3.75rem_1fr] gap-3 border-b border-dashed border-ink/40 py-2.5">
-      <span className="display text-xl leading-none text-ink/60 tabular">{entry.label}</span>
-      <div className="min-w-0">
-        <span className="label inline-flex items-center gap-1.5 text-accent-text">
-          <Radio size={14} aria-hidden="true" /> Multiplex
-        </span>
-        <p className="mt-1 text-[13px] leading-relaxed">{entry.text}</p>
       </div>
     </div>
   );
